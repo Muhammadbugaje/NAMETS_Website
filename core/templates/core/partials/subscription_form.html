@@ -1,0 +1,27 @@
+{% load static %}
+<section class="home-subscription reveal">
+    <div class="glass-card subscription-card">
+        <h2 class="section-title">Stay Updated</h2>
+        <p class="subscription-intro">Subscribe to receive notifications about announcements, events, and prayer time changes.</p>
+        
+        <form method="post" action="{% url 'communications:subscribe' %}" class="subscription-form">
+            {% csrf_token %}
+            <div class="form-row">
+                <input type="email" name="email" placeholder="Your email address" required class="subscription-input">
+                <button type="submit" class="btn btn-primary">Subscribe</button>
+            </div>
+            <div class="preferences">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="notify_announcements" checked> Announcements
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="notify_events" checked> Events
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="notify_prayer_changes"> Prayer time changes
+                </label>
+            </div>
+        </form>
+        <p class="subscription-note">We respect your privacy. Unsubscribe at any time.</p>
+    </div>
+</section>

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Subscribe to Updates | NAMETS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="reveal">Stay Updated</h1>
+    <p class="lead reveal">Subscribe to receive notifications about announcements, events, and prayer time changes.</p>
+
+    <div class="form-container glass-card reveal">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Subscribe</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

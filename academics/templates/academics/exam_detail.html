@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'academics/css/academics.css' %}">
+{% endblock %}
+
+{% block title %}{{ exam.title }} Results | NAMETS{% endblock %}
+
+{% block content %}
+<h1>{{ exam.title }} – Results</h1>
+<p>Course: {{ exam.course.name }} | Date: {{ exam.date|date:"F j, Y" }}</p>
+
+<form method="get">
+    <input type="text" name="student" placeholder="Filter by student name" value="{{ student_name }}">
+    <button type="submit">Filter</button>
+    {% if student_name %}
+        <a href="{% url 'academics:exam_detail' exam.id %}">Clear</a>
+    {% endif %}
+</form>
+
+<table class="table table-striped-columns">
+    <thead>
+        <tr>
+            <th>Student Name</th>
+            <th>Marks Obtained</th>
+            <th>Grade</th>
+            <th>Remarks</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for result in results %}
+            <tr>
+                <td>{{ result.student_name }}</td>
+                <td>{{ result.marks_obtained }}</td>
+                <td>{{ result.grade }}</td>
+                <td>{{ result.remarks|default:"—" }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4">No results found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="{% url 'academics:exam_list' %}" class="btn btn-secondary" style="margin-top: 10px; border-radius:23px">← Back to all exams</a>
+{% endblock %}

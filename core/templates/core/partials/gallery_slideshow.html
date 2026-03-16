@@ -1,0 +1,33 @@
+{% load static %}
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+<!-- ... other styles ... -->
+
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+{% if recent_gallery_images %}
+<section class="home-gallery reveal">
+    <h2 class="section-title">Recent Moments</h2>
+    <div class="swiper gallery-swiper">
+        <div class="swiper-wrapper">
+            {% for image in recent_gallery_images %}
+            <div class="swiper-slide">
+                <img src="{{ image.image.url }}" alt="{{ image.caption|default:image.gallery.title }}">
+                {% if image.caption %}
+                <p class="slide-caption">{{ image.caption }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <!-- Pagination -->
+        <div class="swiper-pagination"></div>
+        <!-- Navigation buttons -->
+        <div class="swiper-button-prev" style="color: rgb(0,0,0,0.5);"></div>
+        <div class="swiper-button-next" style="color: rgb(0,0,0,0.5);"></div>
+    </div>
+    <div class="text-center mt-md">
+        <a href="{% url 'gallery:list' %}" class="btn btn-link">View Full Gallery →</a>
+    </div>
+</section>
+{% endif %}

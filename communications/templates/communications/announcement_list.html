@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Announcements | NAMETS{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css\communications.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Page Hero -->
+<section class="page-her card-reveal" data-bg="dark" style="background-color: #0F3D2E;">
+    <div class="page-her-deco page-her-deco-1" aria-hidden="true"></div>
+    <div class="page-her-deco page-her-deco-2" aria-hidden="true"></div>
+    <span class="page-her-badge">Stay Informed</span>
+    <h1 class="page-her-title">Announcements</h1>
+    <p class="page-her-subtitle">Latest news, updates, and important notices from NAMETS.</p>
+    <div class="page-her-divider"></div>
+</section>
+
+<!-- Announcements Grid -->
+<div class="section-heading reveal mt-lg">
+    <h2>All Announcements</h2>
+    <div class="section-heading-line"></div>
+</div>
+
+{% if announcements %}
+<div class="card-grid-1">
+    {% for announcement in announcements %}
+    <div class="glass-card hover-lift tap-feedback announcement-card card-reveal">
+        {% if announcement.image %}
+        <div class="card-image">
+            <img src="{{ announcement.image.url }}" alt="{{ announcement.title }}">
+        </div>
+        {% endif %}
+        <div class="card-content">
+            <div class="card-header">
+                <span class="badge badge-{{ announcement.category }}">{{ announcement.get_category_display }}</span>
+                {% if announcement.is_pinned %}
+                <span class="pinned-indicator">📌 Pinned</span>
+                {% endif %}
+            </div>
+            <h3 class="card-title">
+                <a href="{% url 'communications:announcement_detail' announcement.slug %}">{{ announcement.title }}</a>
+            </h3>
+            <p class="card-desc">{{ announcement.content|truncatewords:25 }}</p>
+            <div class="card-footer">
+                <span class="date">{{ announcement.publish_at|date:"M j, Y" }}</span>
+                <a href="{% url 'communications:announcement_detail' announcement.slug %}" class="btn btn-primary btn-sm">Read More</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state glass card-reveal">
+    <span class="empty-state-icon">📢</span>
+    <h3>No announcements yet</h3>
+    <p>Announcements will appear here once they are published. Check back soon!</p>
+</div>
+{% endif %}
+{% endblock %}

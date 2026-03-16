@@ -1,0 +1,10 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Upload Excel for {{ evaluation }}</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Upload" class="btn btn-secondary" style="margin-top: 10px; border-radius:23px; background-color: green; color: white;">
+</form>
+<a href="{% url 'admin:academics_evaluation_changelist' %}" class="btn btn-secondary" style="margin-top: 10px; margin-left: 10px; border-radius:23px; background-color: green; color: white;  width: 80px;">Cancel</a>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ event.title }} | NAMETS{% endblock %}
+
+{% block content %}
+<article class="event-detail">
+    <h1>{{ event.title }}</h1>
+    <p class="text-muted">
+        {{ event.start_datetime|date:"l, F j, Y g:i A" }} – {{ event.end_datetime|date:"g:i A" }}<br>
+        Location: {{ event.location }}
+    </p>
+
+    {% if event.image %}
+        <img src="{{ event.image.url }}" alt="{{ event.title }}" style="max-width:70%; margin:20px 0;">
+    {% endif %}
+
+    <div class="event-description">
+        {{ event.description|linebreaks }}
+    </div>
+
+    <a href="{% url 'events:list' %}" class="btn btn-link">&larr; Back to Events</a>
+</article>
+{% endblock %}

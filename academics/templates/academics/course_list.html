@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Academics | NAMETS{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'academics/css/academics.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Page Hero -->
+<section class="page-hero card-reveal" data-bg="dark" style="background-color: #0F3D2E;">
+    <div class="page-hero-deco page-hero-deco-1" aria-hidden="true"></div>
+    <div class="page-hero-deco page-hero-deco-2" aria-hidden="true"></div>
+    <span class="page-hero-badge">NAMETS Academics</span>
+    <h1 class="page-hero-title">Academics at NAMETS</h1>
+    <p class="page-hero-subtitle">Balancing university success with spiritual growth – explore our tutorials and Islamiyya programs.</p>
+    <div class="page-hero-divider"></div>
+</section>
+
+<!-- Feature Cards Section -->
+<div class="section-heading reveal mt-lg">
+    <h2>Explore Our Programs</h2>
+    <div class="section-heading-line"></div>
+</div>
+
+<div class="feature-cards">
+    <div class="card-grid-1">
+        <!-- Tutorials Card -->
+        <div class="glass-card reveal hover-lift tap-feedback course-card-inner">
+            <span class="course-type-chip">Tutorials</span>
+            <h3 class="card-title">Tutorials</h3>
+            <p class="card-desc">Peer‑led academic support for university courses. Get help with challenging subjects, study in groups, and excel in your exams.</p>
+            <div class="stats">
+                <span>{{ tutorial_count }} courses</span>
+                <span>{{ tutorial_sessions_count }} upcoming sessions</span>
+            </div>
+            <div class="card-actions">
+                <a href="{% url 'academics:tutorial_list' %}" class="btn btn-primary btn-sm">Explore Tutorials →</a>
+            </div>
+        </div>
+
+        <!-- Islamiyya Card -->
+        <div class="glass-card reveal hover-lift tap-feedback course-card-inner">
+            <span class="course-type-chip">Islamiyya</span>
+            <h3 class="card-title">Islamiyya</h3>
+            <p class="card-desc">Deepen your understanding of Islam through structured classes on Quran, Hadith, Fiqh, and Seerah. Open to all levels.</p>
+            <div class="stats">
+                <span>{{ islamiyya_count }} courses</span>
+                <span>{{ islamiyya_sessions_count }} upcoming sessions</span>
+            </div>
+            <div class="card-actions">
+                <a href="{% url 'academics:islamia_list' %}" class="btn btn-primary btn-sm">Explore Islamiyya →</a>
+            </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="glass-card reveal hover-lift tap-feedback course-card-inner">
+            <span class="course-type-chip">Exam Results</span>
+            <h3 class="card-title">Exam Results</h3>
+            <p class="card-desc">View results for past exams (brainstorms) across all courses. Search by student name or browse by exam.</p>
+            <div class="card-actions">
+                <a href="{% url 'academics:exam_list' %}" class="btn btn-secondary btn-sm">View Results →</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Sessions -->
+{% if upcoming_sessions %}
+<div class="section-heading reveal mt-lg">
+    <h2>Upcoming Sessions</h2>
+    <div class="section-heading-line"></div>
+</div>
+
+<div class="glass card-reveal" style="padding: 0; overflow: hidden;">
+    <div class="table-wrapper">
+        <table class="sessions-glass-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Course</th>
+                    <th>Type</th>
+                    <th>Time</th>
+                    <th>Location</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in upcoming_sessions %}
+                <tr>
+                    <td><strong>{{ session.date|date:"D, M j" }}</strong></td>
+                    <td>{{ session.course.name }}</td>
+                    <td><span class="course-type-chip small">{{ session.course.course_type|title }}</span></td>
+                    <td class="session-time">{{ session.start_time|time:"g:i A" }} – {{ session.end_time|time:"g:i A" }}</td>
+                    <td class="session-location">{{ session.location|default:"TBA" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- (Optional) If no sessions, you could show an empty state -->
+{% if not upcoming_sessions %}
+<div class="empty-state glass card-reveal">
+    <span class="empty-state-icon">📅</span>
+    <h3>No upcoming sessions</h3>
+    <p>Sessions will appear here once they are scheduled. Check back later!</p>
+</div>
+{% endif %}
+<div class="scroll-hint" id="scrollHint">→</div>
+<!-- Back link (not needed on main page, but kept for consistency) -->
+<!-- <div class="back-link-wrap reveal">
+    <a href="{% url 'academics:course_list' %}" class="btn btn-secondary">← Back to Academics</a>
+</div> -->
+<!-- GPA Calculator -->
+<div class="section-heading reveal mt-lg">
+    <h2>GPA Calculator</h2>
+    <div class="section-heading-line"></div>
+</div>
+
+<div class="gpa-calculator glass card-reveal">
+    <!-- Grading Scale Selection -->
+    <div class="scale-selector">
+        <label for="gradingScale">Grading Scale:</label>
+        <select id="gradingScale" class="scale-select">
+            <option value="5.0">5.0 Scale</option>
+            <option value="4.0">4.0 Scale</option>
+            <option value="custom">Custom</option>
+        </select>
+    </div>
+
+    <!-- Custom Grade Points (hidden initially) -->
+    <div id="customScalePanel" class="custom-scale-panel" style="display: none;">
+        <h3>Define Grade Points</h3>
+        <div class="custom-grade-grid">
+            <div><label>A: <input type="number" step="0.1" min="0" max="5" id="gradeA" value="5.0"></label></div>
+            <div><label>B: <input type="number" step="0.1" min="0" max="5" id="gradeB" value="4.0"></label></div>
+            <div><label>C: <input type="number" step="0.1" min="0" max="5" id="gradeC" value="3.0"></label></div>
+            <div><label>D: <input type="number" step="0.1" min="0" max="5" id="gradeD" value="2.0"></label></div>
+            <div><label>E: <input type="number" step="0.1" min="0" max="5" id="gradeE" value="1.0"></label></div>
+            <div><label>F: <input type="number" step="0.1" min="0" max="5" id="gradeF" value="0.0"></label></div>
+        </div>
+    </div>
+
+    <!-- Course Count -->
+    <div class="gpa-controls">
+        <div class="form-row">
+            <label for="numCourses">Number of courses:</label>
+            <input type="number" id="numCourses" min="1" value="1" class="num-input">
+            <button type="button" id="generateCourses" class="btn btn-primary">Generate</button>
+        </div>
+    </div>
+
+    <!-- Courses Container (dynamic table) -->
+    <div id="coursesContainer" class="courses-container">
+        <!-- Generated table will appear here -->
+    </div>
+
+    <!-- Previous GPA (optional) -->
+    <div class="previous-gpa">
+        <h3>Previous GPA (optional)</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="prevGPA">Previous GPA:</label>
+                <input type="number" step="0.01" min="0" id="prevGPA" class="gpa-input">
+            </div>
+            <div class="form-group">
+                <label for="prevCredits">Previous Total Credits:</label>
+                <input type="number" step="0.01" min="0" id="prevCredits" class="credits-input">
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="gpa-actions">
+        <button type="button" id="calculateGPA" class="btn btn-primary">Calculate GPA</button>
+        <button type="button" id="clearAll" class="btn btn-secondary">Clear All</button>
+        <button type="button" id="exportResults" class="btn btn-outline">Copy Results</button>
+    </div>
+
+    <!-- Result Display -->
+    <div id="gpaResult" class="gpa-result">
+        <!-- Results will appear here -->
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // DOM elements
+        const scaleSelect = document.getElementById('gradingScale');
+        const customPanel = document.getElementById('customScalePanel');
+        const numCoursesInput = document.getElementById('numCourses');
+        const generateBtn = document.getElementById('generateCourses');
+        const container = document.getElementById('coursesContainer');
+        const calculateBtn = document.getElementById('calculateGPA');
+        const clearBtn = document.getElementById('clearAll');
+        const exportBtn = document.getElementById('exportResults');
+        const resultDiv = document.getElementById('gpaResult');
+        const prevGPAInput = document.getElementById('prevGPA');
+        const prevCreditsInput = document.getElementById('prevCredits');
+
+        // Grade point fields for custom scale
+        const gradeA = document.getElementById('gradeA');
+        const gradeB = document.getElementById('gradeB');
+        const gradeC = document.getElementById('gradeC');
+        const gradeD = document.getElementById('gradeD');
+        const gradeE = document.getElementById('gradeE');
+        const gradeF = document.getElementById('gradeF');
+
+        // Default grade points for standard scales
+        const gradePoints = {
+            '5.0': { 'A': 5.0, 'B': 4.0, 'C': 3.0, 'D': 2.0, 'E': 1.0, 'F': 0.0 },
+            '4.0': { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'E': 0.0, 'F': 0.0 }
+        };
+
+        // Show/hide custom scale panel
+        scaleSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customPanel.style.display = 'block';
+            } else {
+                customPanel.style.display = 'none';
+            }
+        });
+
+        // Generate course rows
+        function generateRows(count) {
+            let html = '<table class="gpa-table"><thead><tr><th>Course Name</th><th>Course Code</th><th>Credit Hours</th><th>Grade</th></tr></thead><tbody>';
+            for (let i = 0; i < count; i++) {
+                html += `<tr>
+                    <td data-label="Course Name"><input type="text" class="course-name" placeholder="e.g., Calculus I"></td>
+                    <td data-label="Course Code"><input type="text" class="course-code" placeholder="e.g., MTH101"></td>
+                    <td data-label="Credit Hours"><input type="number" step="0.5" min="0" class="credit-hours" value="3"></td>
+                    <td data-label="Grade">
+                        <select class="grade-select">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                        </select>
+                    </td>
+                </tr>`;
+            }
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Initial generation
+        generateRows(parseInt(numCoursesInput.value) || 1);
+
+        generateBtn.addEventListener('click', function() {
+            const num = parseInt(numCoursesInput.value);
+            if (num && num > 0) {
+                generateRows(num);
+            } else {
+                alert('Please enter a valid number of courses.');
+            }
+        });
+
+        // Clear all fields
+        clearBtn.addEventListener('click', function() {
+            generateRows(1);
+            prevGPAInput.value = '';
+            prevCreditsInput.value = '';
+            scaleSelect.value = '5.0';
+            customPanel.style.display = 'none';
+            resultDiv.innerHTML = '';
+        });
+
+        // Validate inputs
+        function validateRows() {
+            const rows = document.querySelectorAll('#coursesContainer tbody tr');
+            let valid = true;
+            rows.forEach(row => {
+                const creditInput = row.querySelector('.credit-hours');
+                const credits = parseFloat(creditInput.value);
+                if (isNaN(credits) || credits <= 0) {
+                    creditInput.style.border = '2px solid red';
+                    valid = false;
+                } else {
+                    creditInput.style.border = '';
+                }
+            });
+            return valid;
+        }
+
+        // Get current grade points based on scale
+        function getCurrentGradePoints() {
+            const scale = scaleSelect.value;
+            if (scale === 'custom') {
+                return {
+                    'A': parseFloat(gradeA.value) || 0,
+                    'B': parseFloat(gradeB.value) || 0,
+                    'C': parseFloat(gradeC.value) || 0,
+                    'D': parseFloat(gradeD.value) || 0,
+                    'E': parseFloat(gradeE.value) || 0,
+                    'F': parseFloat(gradeF.value) || 0
+                };
+            } else {
+                return gradePoints[scale];
+            }
+        }
+
+        // Calculate GPA
+        calculateBtn.addEventListener('click', function() {
+            if (!validateRows()) {
+                alert('Please fix the highlighted fields (credit hours must be positive numbers).');
+                return;
+            }
+
+            const points = getCurrentGradePoints();
+            const rows = document.querySelectorAll('#coursesContainer tbody tr');
+            let totalPoints = 0;
+            let totalCredits = 0;
+
+            rows.forEach(row => {
+                const creditInput = row.querySelector('.credit-hours');
+                const gradeSelect = row.querySelector('.grade-select');
+                const credits = parseFloat(creditInput.value);
+                const grade = gradeSelect.value;
+
+                totalPoints += credits * (points[grade] || 0);
+                totalCredits += credits;
+            });
+
+            const semesterGPA = totalPoints / totalCredits;
+
+            // Cumulative GPA
+            const prevGPA = parseFloat(prevGPAInput.value);
+            const prevCredits = parseFloat(prevCreditsInput.value);
+            let cumulativeGPA = null;
+
+            if (!isNaN(prevGPA) && !isNaN(prevCredits) && prevCredits > 0) {
+                const totalPrevPoints = prevGPA * prevCredits;
+                const cumulativePoints = totalPrevPoints + totalPoints;
+                const cumulativeCredits = prevCredits + totalCredits;
+                cumulativeGPA = cumulativePoints / cumulativeCredits;
+            }
+
+            // Build result HTML
+            let resultHtml = `<p><strong>Semester GPA:</strong> ${semesterGPA.toFixed(2)}</p>`;
+            if (cumulativeGPA !== null) {
+                resultHtml += `<p><strong>Cumulative GPA:</strong> ${cumulativeGPA.toFixed(2)}</p>`;
+            }
+
+            // Optionally add a table of entered courses? Not required but could be nice.
+            resultDiv.innerHTML = resultHtml;
+        });
+
+        // Export results
+        exportBtn.addEventListener('click', function() {
+            const resultText = resultDiv.innerText;
+            if (!resultText) {
+                alert('Calculate GPA first before exporting.');
+                return;
+            }
+
+            // Build a more detailed export
+            const rows = document.querySelectorAll('#coursesContainer tbody tr');
+            let coursesList = '';
+            rows.forEach(row => {
+                const name = row.querySelector('.course-name').value || 'Untitled';
+                const code = row.querySelector('.course-code').value || 'No code';
+                const credits = row.querySelector('.credit-hours').value;
+                const grade = row.querySelector('.grade-select').value;
+                coursesList += `${name} (${code}): ${credits} credits, grade ${grade}\n`;
+            });
+
+            const prevGPA = prevGPAInput.value ? `Previous GPA: ${prevGPAInput.value} over ${prevCreditsInput.value} credits\n` : '';
+            const exportContent = `GPA Calculation Results\n\n${coursesList}\n${resultText}\n${prevGPA}`;
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(exportContent).then(() => {
+                alert('Results copied to clipboard!');
+            }).catch(() => {
+                // Fallback download as text file
+                const blob = new Blob([exportContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'gpa_results.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        });
+    });
+    // Show/hide scroll hint based on overflow
+    const container = document.querySelector('.courses-container');
+    const hint = document.getElementById('scrollHint');
+    if (container && hint) {
+        function checkOverflow() {
+            if (container.scrollWidth > container.clientWidth) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+        checkOverflow();
+        container.addEventListener('scroll', function() {
+            if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 5) {
+                hint.classList.add('hidden');
+            } else {
+                hint.classList.remove('hidden');
+            }
+        });
+        window.addEventListener('resize', checkOverflow);
+    }
+    </script>
+{% endblock %}

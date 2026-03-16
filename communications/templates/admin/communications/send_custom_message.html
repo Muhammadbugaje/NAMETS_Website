@@ -1,0 +1,103 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    .recipient-section {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .recipient-section h3 {
+      margin-top: 0;
+    }
+    .recipient-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
+    .recipient-list label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .form-row {
+      margin-bottom: 15px;
+    }
+    .form-row label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .submit-row {
+      margin-top: 20px;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>Send Custom Message</h1>
+  <form method="post" id="send_message_form">
+    {% csrf_token %}
+
+<!-- Patrons section -->
+<div class="recipient-section">
+  <h3>Patrons (Active)</h3>
+  <div class="recipient-list">
+    {% for patron in patrons %}
+      <label>
+        <input type="checkbox" name="patrons" value="{{ patron.id }}">
+        {{ patron.name }} &lt;{{ patron.email }}&gt;
+      </label>
+    {% empty %}
+      <p>No active patrons.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Subscribers section -->
+<div class="recipient-section">
+  <h3>Subscribers (Active)</h3>
+  <div class="recipient-list">
+    {% for subscriber in subscribers %}
+      <label>
+        <input type="checkbox" name="subscribers" value="{{ subscriber.id }}" 
+               {% if subscriber.id in selected_subscriber_ids %}checked{% endif %}>
+        {{ subscriber.email }} 
+        (A:{% if subscriber.notify_announcements %}✅{% else %}❌{% endif %} 
+        E:{% if subscriber.notify_events %}✅{% else %}❌{% endif %} 
+        P:{% if subscriber.notify_prayer_changes %}✅{% else %}❌{% endif %})
+      </label>
+    {% empty %}
+      <p>No active subscribers.</p>
+    {% endfor %}
+  </div>
+  <p><small>A=Announcements, E=Events, P=Prayer</small></p>
+</div>
+
+    <div class="form-row">
+      <label for="subject">Subject:</label>
+      <input type="text" name="subject" id="subject" required>
+    </div>
+
+    <div class="form-row">
+      <label for="body">Body:</label>
+      <textarea name="body" id="body" rows="8" required></textarea>
+    </div>
+
+    <div class="submit-row">
+      <input type="submit" value="Send Message" class="btn btn-secondary" style="border-radius:10px; background-color: green; color: white; padding:7px;">
+      <a href="{% url 'admin:communications_subscriber_changelist' %}" class="btn btn-secondary" style="border-radius:10px; background-color: red; color: white; padding:7px;">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

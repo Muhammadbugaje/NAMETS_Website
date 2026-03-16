@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Confirm Unsubscribe | NAMETS{% endblock %}
+{% block content %}
+<div class="container text-center">
+    <h1>Unsubscribe</h1>
+    <p>Are you sure you want to unsubscribe {{ subscriber.email }}? This will permanently remove your email from our records.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, unsubscribe</button>
+        <a href="{% url 'core:homepage' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

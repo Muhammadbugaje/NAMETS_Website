@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mosque Information | NAMETS{% endblock %}
+
+{% block content %}
+<h1>Engineering Mosque</h1>
+
+{% if info %}
+    <div class="mosque-details" style="font-family:">
+        <p><strong>Location:</strong> {{ info.location }}</p>
+        {% if info.description %}
+            <p><strong>Description:</strong> {{ info.description }}</p>
+        {% endif %}
+        {% if info.imam_name %}
+            <p><strong>Imam:</strong> {{ info.imam_name }}</p>
+        {% endif %}
+        {% if info.contact_email or info.contact_phone %}
+            <p><strong>Contact:</strong> 
+                {% if info.contact_email %}{{ info.contact_email }}{% endif %}
+                {% if info.contact_phone %}{% if info.contact_email %} | {% endif %}{{ info.contact_phone }}{% endif %}
+            </p>
+        {% endif %}
+    </div>
+{% else %}
+    <p>Mosque information not yet added.</p>
+{% endif %}
+
+{% if rules %}
+    <h2 class="mt-lg">Mosque Rules & Guidelines</h2>
+    <div class="rules-list">
+        <ul>
+            {% for rule in rules %}
+                <li>
+                    <div class="rule-item">
+                        <h3>{{ rule.title }}</h3>
+                        <p>{{ rule.content|linebreaks }}</p>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+{% endblock %}

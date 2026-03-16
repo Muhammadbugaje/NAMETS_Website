@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Q&A | NAMETS{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <link rel="stylesheet" href="{% static 'community/css/community.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="community-page">
+    <h1 class="page-title animate-on-scroll">Questions & Answers</h1>
+
+    <a href="{% url 'community:ask_question' %}" class="btn btn-primary animate-on-scroll" style="margin-top:10px; margin-bottom:10px;">Ask a Question</a>
+
+    <div class="qa-list">
+        {% for question in questions %}
+            <div class="qa-item glass-card animate-on-scroll">
+                <div class="question">
+                    <p class="question-meta">Asked by {{ question.name }} on {{ question.submitted_at|date:"M j, Y" }}</p>
+                    <h3>{{ question.question_text }}</h3>
+                    {% if question.category %}
+                        <span class="category-tag">{{ question.category }}</span>
+                    {% endif %}
+                </div>
+                <div class="answer">
+                    <p class="answer-meta">Answered by {{ question.answer.responded_by.get_full_name|default:"Admin" }}</p>
+                    <p>{{ question.answer.answer_text|linebreaks }}</p>
+                </div>
+            </div>
+        {% empty %}
+            <p>No questions yet.</p>
+        {% endfor %}
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <script>alert('{{ message|escapejs }}');</script>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}

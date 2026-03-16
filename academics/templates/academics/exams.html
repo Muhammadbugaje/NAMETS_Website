@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Exam Results | NAMETS{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'academics/css/academics.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="academics-page">
+    <h1>Exam Results</h1>
+
+    <!-- Filter by course -->
+    <form method="get" class="filter-form">
+        <label for="course">Filter by course:</label>
+        <select name="course" id="course" onchange="this.form.submit()">
+            <option value="">All Courses</option>
+            {% for course in courses %}
+                <option value="{{ course.slug }}" {% if request.GET.course == course.slug %}selected{% endif %}>{{ course.name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <div class="exam-list">
+        {% for exam in exams %}
+            <div class="exam-card">
+                <h2><a href="{% url 'academics:exam_detail' exam.id %}">{{ exam.title }}</a></h2>
+                <p class="meta">{{ exam.course.name }} • {{ exam.date|date:"F j, Y" }}</p>
+                <p>{{ exam.description|truncatewords:30 }}</p>
+                <a href="{% url 'academics:course_results' exam.course.slug %}" class="btn btn-sm btn-secondary">View Results</a>
+            </div>
+        {% empty %}
+            <p>No exams available.</p>
+        {% endfor %}
+    </div>
+    <!-- Back Link -->
+    <div class="container text-center mb-5">
+        <a href="{% url 'academics:course_list' %}" class="btn btn-secondary" style="margin-top: 10px; border-radius:23px">← Back to Academics</a>
+    </div>
+</div>
+{% endblock %}

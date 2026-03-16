@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Donations | NAMETS{% endblock %}
+
+{% block content %}
+<h1>Support NAMETS</h1>
+<div class="donation-grid">
+    {% for campaign in campaigns %}
+        <div class="card" style="margin: 20px; min-width: 300px;">
+            <div class="card-body">
+                <h2 class="card-title">{{ campaign.title }}</h2>
+                <p class="card-desc">{{ campaign.description }}</p>
+                <p><strong>Bank Details:</strong><br>{{ campaign.bank_details|linebreaks }}</p>
+                {% if campaign.goal_amount %}
+                    <p>Goal: ₦{{ campaign.goal_amount }}</p>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p>No active donation campaigns at this time.</p>
+    {% endfor %}
+</div>
+{% endblock %}

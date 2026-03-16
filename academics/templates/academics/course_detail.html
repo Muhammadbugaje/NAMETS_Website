@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ course.name }} | NAMETS{% endblock %}
+
+{% block content %}
+<h1>{{ course.name }}</h1>
+<p>{{ course.description }}</p>
+
+<div class="course-links">
+    <a href="{% url 'academics:materials_list' course.slug %}" class="btn btn-primary" style="border-radius:23px">Materials</a>
+    <a href="{% url 'academics:exams_list' course.slug %}" class="btn btn-primary" style="border-radius:23px; margin-left:10px; margin-right:10px;">Exams</a>
+    <a href="{% url 'academics:course_results' course.slug %}" class="btn btn-primary" style="border-radius:23px">Results</a>
+</div>
+
+<!-- Optionally show upcoming sessions if any -->
+{% if sessions %}
+    <h2>Upcoming Sessions</h2>
+    <ul> ... </ul>
+{% endif %}
+<div style="margin-top: 20px;">
+    <a href="{% url 'academics:course_list' %}" class="btn btn-secondary" style="border-radius:23px; margin-right:10px;">&larr; Back to Courses</a>
+    <a href="{% url 'academics:evaluate_tutor' course.slug %}" class="btn btn-secondary" style="border-radius:23px">Evaluate a Tutor</a>
+</div>
+{% endblock %}

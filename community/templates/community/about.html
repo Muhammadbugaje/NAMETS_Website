@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}About NAMETS{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <link rel="stylesheet" href="{% static 'community/css/community.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="community-page">
+    <h1 class="page-title animate-on-scroll">About NAMETS</h1>
+
+    {% if about %}
+        <div class="about-section glass-card animate-on-scroll">
+            <h2>Mission</h2>
+            <p>{{ about.mission_statement|linebreaks }}</p>
+        </div>
+
+        <div class="about-section glass-card animate-on-scroll">
+            <h2>Vision</h2>
+            <p>{{ about.vision_statement|linebreaks }}</p>
+        </div>
+
+        {% if about.history %}
+        <div class="about-section glass-card animate-on-scroll">
+            <h2>Our History</h2>
+            <p>{{ about.history|linebreaks }}</p>
+            {% if about.established_year %}
+                <p><strong>Established:</strong> {{ about.established_year }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% else %}
+        <p>About information not yet added.</p>
+    {% endif %}
+
+    <h2 class="animate-on-scroll">Meet the Developers</h2>
+    <div class="developer-grid card-grid">
+        {% for dev in developers %}
+            <div class="card developer-card animate-on-scroll">
+                <div class="card-body">
+                    <h3 class="card-title">{{ dev.name }}</h3>
+                    <p class="card-meta">{{ dev.role }}</p>
+                    {% if dev.bio %}
+                        <p class="card-desc">{{ dev.bio|truncatewords:20 }}</p>
+                    {% endif %}
+                    <div class="social-links">
+                        {% if dev.github_link %}
+                            <a href="{{ dev.github_link }}" target="_blank">GitHub</a>
+                        {% endif %}
+                        {% if dev.linkedin_link %}
+                            <a href="{{ dev.linkedin_link }}" target="_blank">LinkedIn</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>Developer credits not yet added.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

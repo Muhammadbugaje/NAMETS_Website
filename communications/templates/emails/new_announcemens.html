@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>New Announcements from NAMETS</h2>
+    {% for ann in announcements %}
+        <h3>{{ ann.title }}</h3>
+        <p>{{ ann.content|truncatewords:30 }}</p>
+        <a href="{{ ann.get_absolute_url }}">Read more</a>
+    {% endfor %}
+    <p>To unsubscribe, <a href="{{ unsubscribe_url }}">click here</a>.</p>
+</body>
+</html>

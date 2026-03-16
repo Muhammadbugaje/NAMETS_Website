@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ announcement.title }} | NAMETS{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'communications/css/communications.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="announcement-detail-page">
+    <!-- Header with badge and title -->
+    <div class="page-header">
+        <span class="badge badge-{{ announcement.category }}">{{ announcement.get_category_display }}</span>
+        <h1 class="page-title">{{ announcement.title }}</h1>
+        <div class="title-underline"></div>
+        <p class="publish-date">{{ announcement.publish_at|date:"F j, Y" }}</p>
+    </div>
+
+    <!-- Main content card (glass) -->
+    <article class="glass-card announcement-content card-reveal">
+        {% if announcement.image %}
+        <div class="content-image-wrapper">
+            <img src="{{ announcement.image.url }}" alt="{{ announcement.title }}" class="content-image">
+        </div>
+        {% endif %}
+        <div class="content-text">
+            {{ announcement.content|linebreaks }}
+        </div>
+    </article>
+
+    <!-- Back link -->
+    <div class="back-link-wrapper">
+        <a href="{% url 'communications:announcement_list' %}" class="btn btn-secondary">← Back to Announcements</a>
+    </div>
+</div>
+{% endblock %}

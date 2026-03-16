@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}All Results | NAMETS{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <link rel="stylesheet" href="{% static 'academics/css/academics.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="academics-page">
+    <h1 class="page-title animate-on-scroll">All Exam Results</h1>
+
+    <div class="filter-section glass-card animate-on-scroll">
+        <form method="get" class="filter-form">
+            <div class="filter-grid">
+                <div class="form-group">
+                    <label for="course">Course:</label>
+                    <select name="course" id="course">
+                        <option value="">All Courses</option>
+                        {% for course in courses %}
+                            <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:"s" %}selected{% endif %}>{{ course.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reg_no">Registration Number:</label>
+                    <input type="text" name="reg_no" id="reg_no" value="{{ reg_no }}" placeholder="e.g., 2023/001">
+                </div>
+                <div class="form-group">
+                    <label for="student_name">Student Name:</label>
+                    <input type="text" name="student_name" id="student_name" value="{{ student_name }}" placeholder="Enter name">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <a href="{% url 'academics:all_results' %}" class="btn btn-link">Clear</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="results-table-wrapper animate-on-scroll">
+        <table class="table table-striped-columns">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Reg. No.</th>
+                    <th>Course</th>
+                    <th>Exam</th>
+                    <th>Marks</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                    <tr>
+                        <td>{{ result.student_name }}</td>
+                        <td>{{ result.registration_number|default:"—" }}</td>
+                        <td>{{ result.evaluation.course.name }}</td>
+                        <td>{{ result.evaluation.title }}</td>
+                        <td>{{ result.marks_obtained }}</td>
+                        <td>{{ result.grade|default:"—" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">No results found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if results %}
+        <p class="result-count">Total results: {{ results|length }}</p>
+    {% endif %}
+</div>
+{% endblock %}

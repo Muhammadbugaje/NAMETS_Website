@@ -1,0 +1,10 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Upload Timetable Excel</h1>
+<form method="post" enctype="multipart/form-data" >
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Upload" class="btn btn-secondary" style="margin-top: 10px; border-radius:23px; background-color: green; color: white;">
+</form>
+<a href="{% url 'admin:academics_timetableentry_changelist' %}"><button class="btn btn-secondary" style="margin-top: 10px; border-radius:23px; background-color: green; color: white;">Cancel</button></a>
+{% endblock %}

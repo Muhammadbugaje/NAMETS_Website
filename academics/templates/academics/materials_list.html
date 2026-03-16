@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Materials for {{ course.name }} | NAMETS{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:20px;">{{ course.name }} - Materials</h1>
+
+<ul class="materials-list">
+    {% for material in materials %}
+        <li>
+            <div style="font-weight:bold;">
+                {% if material.file %}
+                    <!-- Download link – stays on site, triggers download -->
+                    <div class="font-weight:bold;">Download: <a href="{% url 'academics:download_material' material.id %}" style="color: #0F3D2E; text-decoration: underline;"> {{ material.title }}</a></div>
+                {% elif material.drive_link %}
+                    <!-- Google Drive link – opens in new tab -->
+                    <a href="{{ material.drive_link }}" target="_blank" rel="noopener" style="color: #0F3D2E; text-decoration: underline;">🔗 {{ material.title }}</a>
+                {% endif %}
+            </div>
+            {% if material.description %}
+                <p>{{ material.description }}</p>
+            {% endif %}
+            <small>Uploaded: {{ material.uploaded_at|date:"M d, Y" }}</small>
+        </li>
+    {% empty %}
+        <li>No materials available.</li>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'academics:course_detail' course.slug %}" class="btn btn-secondary" style="margin-top: 35px; border-radius:23px">&larr; Back to Course</a>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "admin/change_list.html" %}
+{% block object-tools-items %}
+    {{ block.super }}
+    <li>
+        <a href="{% url 'admin:academics_timetableentry_upload' %}" class="addlink" class="btn btn-secondary" style="border-radius:10px; background-color: green; color: white; padding:10px; width:100px;">Upload Timetable Excel</a>
+    </li>
+{% endblock %}

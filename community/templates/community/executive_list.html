@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Executives | NAMETS{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <link rel="stylesheet" href="{% static 'community/css/community.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="community-page">
+    <h1 class="page-title animate-on-scroll">Past Executives</h1>
+
+    <!-- Year Filter -->
+    <div class="year-filter animate-on-scroll">
+        <label for="year-select">Select Year:</label>
+        <select id="year-select" onchange="window.location.href='?year='+this.value">
+            {% for year in years %}
+                <option value="{{ year.id }}" {% if year.id == selected_year.id %}selected{% endif %}>{{ year.year_label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="executive-grid">
+        {% for exec in executives %}
+            <div class="card card-grid-1 animate-on-scroll" style="margin-bottom: 40px;">
+                {% if exec.photo %}
+                    <img src="{{ exec.photo.url }}" alt="{{ exec.name }}" class="card-img">
+                {% else %}
+                    <div class="card-img-placeholder" style="height:200px; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">No Photo</div>
+                {% endif %}
+                <div class="card-body">
+                    <h3 class="card-title">{{ exec.name }}</h3>
+                    <p class="card-meta">{{ exec.role }}</p>
+                    {% if exec.contribution_summary %}
+                        <p class="card-desc">{{ exec.contribution_summary|truncatewords:20 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <p>No executives for this year.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

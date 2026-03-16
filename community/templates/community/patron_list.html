@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Patrons | NAMETS{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <!-- Optional community-specific CSS -->
+    <link rel="stylesheet" href="{% static 'community/css/community.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="community-page">
+    <h1 class="page-title animate-on-scroll">Our Patrons</h1>
+    <div class="patron-grid card-grid">
+        {% for patron in patrons %}
+            <div class="card patron-card animate-on-scroll">
+                {% if patron.image %}
+                    <img src="{{ patron.image.url }}" alt="{{ patron.name }}" class="card-img">
+                {% endif %}
+                <div class="card-body">
+                    <h3 class="card-title">{{ patron.name }}</h3>
+                    <p class="card-meta">{{ patron.designation }}</p>
+                    <p class="card-desc">{{ patron.bio|truncatewords:30 }}</p>
+                </div>
+            </div>
+        {% empty %}
+            <p>No patrons listed yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

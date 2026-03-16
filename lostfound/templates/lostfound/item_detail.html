@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ item.title }} | Lost & Found{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <link rel="stylesheet" href="{% static 'lostfound/css/lostfound.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="lf-page">
+    <article class="lf-item-detail animate-on-scroll">
+        <h1>{{ item.title }}</h1>
+        <div class="meta">
+            <span class="badge badge-{{ item.status }}">{{ item.get_status_display }}</span>
+            <span class="lf-category-tag">{{ item.get_category_display }}</span>
+        </div>
+        {% if item.image %}
+            <img src="{{ item.image.url }}" alt="{{ item.title }}" class="lf-detail-image">
+        {% endif %}
+        <p class="description">{{ item.description|linebreaks }}</p>
+        <p class="text-muted">Reported: {{ item.reported_at|date:"F j, Y" }}</p>
+
+        {% if item.status == 'claimed' %}
+            <div class="lf-claimant-info">
+                <h3>Claimed by:</h3>
+                <p><strong>Name:</strong> {{ item.claimed_by_name|default:"Not provided" }}</p>
+                <p><strong>Contact:</strong> {{ item.claimed_by_contact|default:"Not provided" }}</p>
+                <p><strong>Date claimed:</strong> {{ item.claimed_at|date:"F j, Y" }}</p>
+            </div>
+        {% endif %}
+    </article>
+    <a href="{% url 'lostfound:list' %}" class="btn btn-link lf-back-link animate-on-scroll">← Back to List</a>
+</div>
+{% endblock %}

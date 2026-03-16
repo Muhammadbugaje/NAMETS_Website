@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tutorials | NAMETS Academics{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'academics/css/academics.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Hero -->
+<section class="page-hero card-reveal" data-bg="dark">
+    <div class="page-hero-deco page-hero-deco-1" aria-hidden="true"></div>
+    <div class="page-hero-deco page-hero-deco-2" aria-hidden="true"></div>
+    <span class="page-hero-badge">NAMETS Academics</span>
+    <h1 class="page-hero-title">Tutorials</h1>
+    <p class="page-hero-subtitle">Peer-led academic support to help you excel in your university courses.</p>
+    <div class="page-hero-divider"></div>
+</section>
+
+<!-- Available Tutorials -->
+<div class="section-heading reveal mt-lg">
+    <h2>Available Tutorials</h2>
+    <div class="section-heading-line"></div>
+</div>
+
+{% if courses %}
+<div class="card-grid-1">
+    {% for course in courses %}
+    <div class="glass-card card-reveal hover-lift tap-feedback course-card-inner">
+        <span class="course-type-chip">Tutorial</span>
+        <h3 class="card-title">
+            <a href="{% url 'academics:course_detail' course.slug %}" style="color: inherit; text-decoration: none;">{{ course.name }}</a>
+        </h3>
+        <p class="card-desc">{{ course.description|truncatewords:28 }}</p>
+        <div class="card-actions">
+            <a href="{% url 'academics:course_detail' course.slug %}" class="btn btn-primary btn-sm">View Course</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state glass card-reveal">
+    <span class="empty-state-icon">📚</span>
+    <h3>No tutorials yet</h3>
+    <p>Tutorial courses will appear here once they are set up. Check back soon!</p>
+</div>
+{% endif %}
+
+<!-- Timetable -->
+{% if timetable %}
+<div class="section-heading reveal mt-lg">
+    <h2>Tutorial Timetable</h2>
+    <div class="section-heading-line"></div>
+</div>
+
+<div class="glass card-reveal" style="padding: 0; overflow: hidden;">
+    <table class="custom-table-striped">
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th>Time</th>
+                <th>Course</th>
+                <th>Venue</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in timetable %}
+            <tr>
+                <td data-label="Day">{{ entry.get_day_display }}</td>
+                <td data-label="Time">{{ entry.time_start|time:"g:i A" }} – {{ entry.time_end|time:"g:i A" }}</td>
+                <td data-label="Course">{{ entry.course_name }}</td>
+                <td data-label="Venue">{{ entry.venue|default:"TBA" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state glass card-reveal">
+    <span class="empty-state-icon">📅</span>
+    <h3>No timetable available</h3>
+    <p>Check back later for scheduled sessions.</p>
+</div>
+{% endif %}
+<div class="back-link-wrap reveal">
+    <a href="{% url 'academics:course_list' %}" class="btn btn-secondary">← Back to Academics</a>
+</div>
+
+{% endblock %}

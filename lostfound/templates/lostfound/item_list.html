@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lost & Found | NAMETS{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <link rel="stylesheet" href="{% static 'lostfound/css/lostfound.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="lf-page">
+    <h1 class="page-title animate-on-scroll">Lost & Found</h1>
+
+    <!-- Search Bar -->
+    <div class="lf-search-bar animate-on-scroll">
+        <form method="get" class="lf-search-form">
+            <input type="hidden" name="filter" value="{{ filter }}">
+            <div class="lf-search-group">
+                <input style="border-radius:50px;" type="text" name="q" placeholder="Search by title or description" value="{{ query }}">
+                <select name="category" style="border-radius:50px;">
+                    {% for value, label in category_choices %}
+                        <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary" style="border-radius:50px;">Search</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Status Tabs -->
+    <div class="lf-filter-tabs animate-on-scroll">
+        <a href="?filter=lost{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+           class="lf-filter-tab {% if filter == 'lost' %}active{% endif %}" data-filter="lost">Lost</a>
+        <a href="?filter=found{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+           class="lf-filter-tab {% if filter == 'found' %}active{% endif %}" data-filter="found">Found</a>
+        <a href="?filter=claimed{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+           class="lf-filter-tab {% if filter == 'claimed' %}active{% endif %}" data-filter="claimed">Claimed</a>
+    </div>
+
+    <!-- Item Grid -->
+    <div class="lf-item-grid">
+        {% for item in items %}
+            <div class="lf-item-card card-reveal" onclick="window.location='{% url 'lostfound:detail' item.pk %}'">
+                {% if item.image %}
+                    <div class="lf-card-image">
+                        <img src="{{ item.image.url }}" alt="{{ item.title }}" style="width:400px;height:400px;">
+                    </div>
+                {% else %}
+                    <div class="lf-card-image no-image">
+                        <span>No Image</span>
+                    </div>
+                {% endif %}
+                <div class="lf-card-content">
+                    <div class="lf-card-header">
+                        <span class="badge badge-{{ item.status }}">{{ item.get_status_display }}</span>
+                        <span class="lf-category-tag">{{ item.get_category_display }}</span>
+                    </div>
+                    <h3 class="lf-item-title">{{ item.title }}</h3>
+                    <p class="lf-item-description">{{ item.description|truncatewords:15 }}</p>
+                    <div class="lf-card-footer">
+                        <span class="date">{{ item.reported_at|date:"M j, Y" }}</span>
+                        <span class="lf-click-indicator">Details →</span>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>No items found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Gallery | NAMETS{% endblock %}
+
+{% block content %}
+<div class="gallery-page">
+    <h1>Gallery</h1>
+    <div class="gallery-grid">
+        {% for gallery in galleries %}
+        <a href="{% url 'gallery:detail' gallery.pk %}" class="gallery-card">
+            {% if gallery.cover_image %}
+                <img src="{{ gallery.cover_image.url }}" alt="{{ gallery.title }}" class="gallery-cover">
+            {% else %}
+                <div class="gallery-cover-placeholder">📷</div>
+            {% endif %}
+            <div class="gallery-info">
+                <h3>{{ gallery.title }}</h3>
+                <p>{{ gallery.date|date:"F j, Y" }}</p>
+                <span>{{ gallery.images.count }} photo{{ gallery.images.count|pluralize }}</span>
+            </div>
+        </a>
+        {% empty %}
+        <p>No galleries yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

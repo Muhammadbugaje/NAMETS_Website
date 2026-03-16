@@ -1,0 +1,928 @@
+/* ========================================
+   GLOBAL STYLES – Animations, Glass, Utilities
+   ======================================== */
+
+/* ---------- Glassmorphism ---------- */
+/* Base glass effect (semi-transparent + blur) */
+.glass {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+    color: #1A1A1A;
+}
+
+/* Glass card with more opacity for better readability */
+.glass-card {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 254, 254, 0.4);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    color: #1A1A1A;
+}
+
+.fr-donation-card {
+    background: rgb(223, 120, 120);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(15, 15, 15, 0.884);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    color: #1A1A1A;
+}
+
+/* Hover effect for glass cards (desktop) */
+.glass-card:hover {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(12px);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Tap feedback (mobile) */
+.glass-card:active {
+    transform: scale(0.98);
+}
+
+/* ---------- Animations ---------- */
+/* Fade + slide up on scroll (used with Intersection Observer) */
+.animate-on-scroll {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.animate-on-scroll.animated {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Hover lift (for any card/button) */
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+.hover-lift:active {
+    transform: scale(0.98);
+}
+
+/* Simple fade in (can be used on page load) */
+.fade-in {
+    animation: fadeIn 0.8s ease forwards;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.item-card {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    cursor: pointer;
+    margin-bottom: 20px;
+    padding: 0; /* remove padding from glass-card, we'll add to content */
+    overflow: hidden;
+}
+.item-card .card-image {
+    flex: 0 0 100px;
+    height: 100px;
+    border-radius: 12px 0 0 12px;
+    overflow: hidden;
+}
+.item-card .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.item-card .card-content {
+    flex: 1;
+    padding: 16px 16px 16px 0;
+}
+/* Adjust for mobile */
+@media (max-width: 600px) {
+    .item-card {
+        flex-direction: column;
+        padding: 0;
+    }
+    .item-card .card-image {
+        width: 100%;
+        height: 150px;
+        border-radius: 12px 12px 0 0;
+    }
+    .item-card .card-content {
+        padding: 16px;
+    }
+}
+
+/* Glass filter tabs */
+.filter-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0 30px;
+    padding-bottom: 10px;
+    border-bottom: none; /* remove previous border */
+}
+.filter-tab {
+    padding: 10px 24px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 40px;
+    color: #1A1A1A;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+/* Color coding by status */
+.filter-tab[data-filter="lost"] {
+    background: rgba(155, 44, 44, 0.15);
+    border-color: rgba(155, 44, 44, 0.3);
+}
+.filter-tab[data-filter="lost"].active {
+    background: rgba(155, 44, 44, 0.3);
+    border-color: #9B2C2C;
+    color: #9B2C2C;
+    font-weight: 700;
+}
+.filter-tab[data-filter="found"] {
+    background: rgba(30, 90, 138, 0.15);
+    border-color: rgba(30, 90, 138, 0.3);
+}
+.filter-tab[data-filter="found"].active {
+    background: rgba(30, 90, 138, 0.3);
+    border-color: #1E5A8A;
+    color: #1E5A8A;
+}
+.filter-tab[data-filter="claimed"] {
+    background: rgba(22, 101, 52, 0.15);
+    border-color: rgba(22, 101, 52, 0.3);
+}
+.filter-tab[data-filter="claimed"].active {
+    background: rgba(22, 101, 52, 0.3);
+    border-color: #166534;
+    color: #166534;
+}
+/* Hover effect */
+.filter-tab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.filter-tab:active {
+    transform: scale(0.96);
+}
+
+/* Sticky header with glass effect */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    overflow: visible;
+}
+.site-header a {
+    color: #1A1A1A;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+}
+
+/* Shimmer effect for glass elements */
+.glass-card, .glass {
+    position: relative;
+    overflow: hidden;
+}
+.glass-card::after, .glass::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at var(--shimmer-x, -100px) var(--shimmer-y, -100px), rgba(255,255,255,0.14) 0%, transparent 42%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+}
+.glass-card:hover::after, .glass:hover::after {
+    opacity: 1;
+}
+
+/* Refraction effect for glass elements */
+
+
+.site-header.navbar-light-text a {
+    color: white !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+/* Also adjust logo if needed */
+.site-header.navbar-light-text .logo {
+    color: white;
+}
+
+
+/* ========================================
+   Mobile Menu Animations
+   ======================================== */
+
+/* Prevent body scrolling when menu is open */
+body.menu-open {
+    overflow: hidden;
+}
+
+/* Main content wrapper – add a class around your main content if needed,
+   or apply to the main element directly. We'll target <main> and <header>.
+*/
+.site-header, .main-content {
+    transition: transform 0.3s cubic-bezier(0.7, 0, 0.3, 1), filter 0.3s ease;
+    transform-origin: center center;
+}
+
+/* When menu is open, scale and tilt the main content */
+body.menu-open .site-header,
+body.menu-open .main-content {
+    transform: scale(0.95) rotateY(2deg);
+    filter: blur(0.8px);
+    pointer-events: none; /* prevent interactions with background */
+}
+
+/* Drawer overlay – always visible when menu open */
+.drawer-overlay {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+body.menu-open .drawer-overlay {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Drawer itself – slide from right with scale */
+.drawer {
+    transform: translateX(100%) scale(0.9);
+    transition: transform 0.4s cubic-bezier(0.7, 0, 0.3, 1);
+    will-change: transform;
+}
+
+body.menu-open .drawer {
+    transform: translateX(0) scale(1);
+}
+
+/* Optional: stagger animation for drawer links */
+.drawer-nav a {
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition-delay: 0s;
+}
+body.menu-open .drawer-nav a {
+    opacity: 1;
+    transform: translateX(0);
+}
+body.menu-open .drawer-nav a:nth-child(1) { transition-delay: 0.1s; }
+body.menu-open .drawer-nav a:nth-child(2) { transition-delay: 0.15s; }
+body.menu-open .drawer-nav a:nth-child(3) { transition-delay: 0.2s; }
+body.menu-open .drawer-nav a:nth-child(4) { transition-delay: 0.25s; }
+body.menu-open .drawer-nav a:nth-child(5) { transition-delay: 0.3s; }
+body.menu-open .drawer-nav a:nth-child(6) { transition-delay: 0.35s; }
+body.menu-open .drawer-nav a:nth-child(7) { transition-delay: 0.4s; }
+body.menu-open .drawer-nav a:nth-child(8) { transition-delay: 0.45s; }
+body.menu-open .drawer-nav a:nth-child(9) { transition-delay: 0.5s; }
+body.menu-open .drawer-nav a:nth-child(10) { transition-delay: 0.55s; }
+body.menu-open .drawer-nav a:nth-child(11) { transition-delay: 0.6s; }
+body.menu-open .drawer-nav a:nth-child(12) { transition-delay: 0.65s; }
+body.menu-open .drawer-nav a:nth-child(13) { transition-delay: 0.7s; }
+/* Add more if needed */
+
+
+
+/* Dropdown container */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown button (the About link) */
+.dropbtn {
+    cursor: pointer;
+}
+
+/* Dropdown content (hidden by default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    min-width: 160px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    z-index: 1000;
+    padding: 8px 0;
+}
+
+/* Links inside dropdown */
+.dropdown-content a {
+    color: #1A1A1A;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    transition: background 0.2s;
+}
+
+.dropdown-content a:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Show dropdown on hover (desktop) */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Optional: Add a small arrow indicator */
+.dropdown .dropbtn::after {
+    content: ' ▼';
+    font-size: 10px;
+    vertical-align: middle;
+}
+
+/* Mobile drawer dropdown */
+.drawer-dropdown {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.drawer-dropdown-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 14px 20px;
+    background: none;
+    border: none;
+    color: #5A5A5A;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.drawer-dropdown-toggle:hover,
+.drawer-dropdown-toggle:focus {
+    background: #F9F9F6;
+    color: #0F3D2E;
+    outline: none;
+}
+
+.drawer-dropdown-toggle[aria-expanded="true"] .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.dropdown-arrow {
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+.drawer-dropdown-menu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: rgba(255,255,255,0.05);
+}
+
+.drawer-dropdown-menu a {
+    padding-left: 40px !important;  /* indent sub-links */
+    font-size: 14px;
+}
+
+.drawer-dropdown-menu a:hover {
+    background: rgba(15, 61, 46, 0.1);
+}
+
+/* When open */
+.drawer-dropdown.open .drawer-dropdown-menu {
+    max-height: 300px; /* enough to show all links */
+}
+
+/* ---------- Float Animation ---------- */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-7px); }
+}
+.float-anim {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* ---------- Pulse Animation (general use) ---------- */
+@keyframes soft-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(15, 61, 46, 0.15); }
+  50% { box-shadow: 0 0 0 8px rgba(15, 61, 46, 0); }
+}
+.pulse-ring {
+  animation: soft-pulse 2.5s ease-in-out infinite;
+}
+
+/* ---------- Touch Device Glass Adjustments ---------- */
+/* On touch screens, replace hover shimmer with a subtle tap flash */
+@media (hover: none) {
+  .glass-card:hover,
+  .glass:hover {
+    transform: none;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.2);
+  }
+  .glass-card:hover::after,
+  .glass:hover::after {
+    opacity: 0;
+  }
+  .glass-card:active::after,
+  .glass:active::after {
+    opacity: 1;
+    --shimmer-x: 50%;
+    --shimmer-y: 50%;
+  }
+  .hover-lift:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* ---------- Stagger helpers ---------- */
+.stagger-children > * {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.stagger-children.animated > *:nth-child(1) { animation: fade-up 0.5s 0.05s ease forwards; }
+.stagger-children.animated > *:nth-child(2) { animation: fade-up 0.5s 0.15s ease forwards; }
+.stagger-children.animated > *:nth-child(3) { animation: fade-up 0.5s 0.25s ease forwards; }
+.stagger-children.animated > *:nth-child(4) { animation: fade-up 0.5s 0.35s ease forwards; }
+.stagger-children.animated > *:nth-child(5) { animation: fade-up 0.5s 0.45s ease forwards; }
+@keyframes fade-up {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Prefers-Reduced-Motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .animate-on-scroll,
+  .animate-on-scroll.animated {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .hero-geo,
+  .hero-geo-2,
+  .float-anim {
+    animation: none !important;
+  }
+}
+
+
+/* Gallery list */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    margin: 30px 0;
+}
+.gallery-card {
+    display: block;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+.gallery-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+}
+.gallery-cover {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+.gallery-cover-placeholder {
+    width: 100%;
+    height: 200px;
+    background: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+}
+.gallery-info {
+    padding: 16px;
+}
+.gallery-info h3 {
+    margin-bottom: 4px;
+}
+.gallery-info p {
+    color: #555;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+.gallery-info span {
+    display: inline-block;
+    background: rgba(200,169,81,0.2);
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: #C8A951;
+}
+
+/* Detail page */
+.gallery-detail-page {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.gallery-date {
+    color: #777;
+    margin-bottom: 10px;
+}
+.gallery-description {
+    margin-bottom: 30px;
+}
+.active-caption {
+    text-align: center;
+    margin-top: 16px;
+    font-style: italic;
+    color: #555;
+}
+
+.home-gallery {
+    margin: 40px 0;
+}
+.gallery-swiper {
+    width: 100%;
+    height: 180px; /* smaller on mobile */
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.gallery-swiper .swiper-slide {
+    position: relative;
+}
+.gallery-swiper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+.gallery-swiper .swiper-slide:hover img {
+    transform: scale(1.02);
+}
+.gallery-swiper .slide-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.6));
+    color: white;
+    padding: 20px 15px 10px;
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+.swiper-pagination-bullet-active {
+    background: #C8A951;
+}
+.swiper-button-prev, .swiper-button-next {
+    color: white;
+    background: rgba(0,0,0,0.2);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+.swiper-button-prev::after, .swiper-button-next::after {
+    font-size: 14px;
+}
+@media (min-width: 768px) {
+    .gallery-swiper {
+        height: 220px; /* still compact on desktop */
+        max-width: 800px; /* optional: limit width for a more refined look */
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+
+.alert-success {
+    background-color: rgba(200, 169, 81, 0.2);
+    border-color: #C8A951;
+    color: #1A1A1A;
+}
+.alert-success .btn-close {
+    filter: invert(1);
+}
+
+
+/* Custom striped table */
+.custom-table-striped {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.custom-table-striped th,
+.custom-table-striped td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.custom-table-striped thead {
+    background-color: #f8f8f8;
+    font-weight: 600;
+    color: #0F3D2E;
+}
+
+/* Stripe effect: light gray on odd rows (tbody rows) */
+.custom-table-striped tbody tr:nth-child(odd) {
+    background-color: #f9f9f6;
+}
+
+.custom-table-striped tbody tr:hover {
+    background-color: #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+/* Subscription section */
+.home-subscription {
+    margin: 40px 0;
+}
+.subscription-card {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 40px;
+    text-align: center;
+}
+.subscription-intro {
+    margin-bottom: 25px;
+    color: #5A5A5A;
+}
+.subscription-form .form-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.subscription-input {
+    flex: 1 1 250px;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    background: white;
+}
+.subscription-form .btn {
+    padding: 12px 24px;
+    border-radius: 12px;
+}
+.preferences {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin: 20px 0;
+}
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.95rem;
+    color: #1A1A1A;
+    cursor: pointer;
+}
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #C8A951;
+}
+.subscription-note {
+    font-size: 0.85rem;
+    color: #777;
+    margin-top: 15px;
+}
+
+/* Mobile optimizations */
+@media (max-width: 600px) {
+    .subscription-card {
+        padding: 25px 15px;
+    }
+    .subscription-form .form-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .subscription-form .btn {
+        width: 100%;
+    }
+    .subscription-input {
+        width: 100%;
+        flex: 1;
+    }
+    .preferences {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding-left: 20px; /* indent checkboxes slightly */
+    }
+    .checkbox-label {
+        font-size: 1rem; /* slightly larger for easier tapping */
+    }
+    .subscription-note {
+        font-size: 0.8rem;
+    }
+}
+
+.unsubscribe-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.unsubscribe-form input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+}
+
+@media (max-width: 480px) {
+    .unsubscribe-form {
+        padding: 10px;
+    }
+    .unsubscribe-form .btn {
+        width: 100%;
+    }
+}
+
+/* Announcement Detail Page */
+.announcement-detail-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.announcement-detail-page .page-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.announcement-detail-page .badge {
+    display: inline-block;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    padding: 6px 16px;
+    border-radius: 30px;
+    background: rgba(200, 169, 81, 0.15);
+    color: #C8A951;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.announcement-detail-page .page-title {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: #1A1A1A;
+    line-height: 1.2;
+}
+
+.announcement-detail-page .title-underline {
+    width: 80px;
+    height: 3px;
+    background: #C8A951;
+    margin: 15px auto;
+    border-radius: 2px;
+}
+
+.announcement-detail-page .publish-date {
+    color: #777;
+    font-size: 1rem;
+    margin-top: 5px;
+}
+
+/* Glass card for content */
+.announcement-content {
+    padding: 40px;
+    margin-bottom: 40px;
+    background: rgba(255,255,255,0.3);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 24px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+/* Image styling */
+.content-image-wrapper {
+    margin: -40px -40px 30px -40px; /* bleed to edges of card */
+    border-radius: 24px 24px 0 0;
+    overflow: hidden;
+    max-height: 450px;
+}
+.content-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+
+.content-text {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #2a2a2a;
+}
+.content-text p {
+    margin-bottom: 1.2em;
+}
+
+/* Back link */
+.back-link-wrapper {
+    text-align: center;
+    margin-top: 20px;
+}
+.back-link-wrapper .btn-secondary {
+    background: transparent;
+    border: 1px solid #C8A951;
+    color: #C8A951;
+    padding: 10px 24px;
+    border-radius: 30px;
+    transition: all 0.2s;
+}
+.back-link-wrapper .btn-secondary:hover {
+    background: #C8A951;
+    color: #1A1A1A;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .announcement-detail-page .page-title {
+        font-size: 2rem;
+    }
+    .announcement-content {
+        padding: 25px;
+    }
+    .content-image-wrapper {
+        margin: -25px -25px 20px -25px;
+    }
+}
+@media (max-width: 480px) {
+    .announcement-detail-page {
+        padding: 15px;
+    }
+    .announcement-detail-page .page-title {
+        font-size: 1.8rem;
+    }
+    .announcement-content {
+        padding: 20px;
+    }
+    .content-image-wrapper {
+        margin: -20px -20px 15px -20px;
+    }
+    .content-text {
+        font-size: 1rem;
+    }
+}
+
+/* prayer time */
+@media (max-width: 600px) {
+    .top-bar-inner {
+        justify-content: flex-start; /* push content left */
+    }
+    .welcome-message {
+        display: none; /* optionally hide the welcome message on mobile */
+    }
+}
+@media (max-width: 600px) {
+    .next-prayer-link {
+        margin-left: 0;
+        text-align: left;
+    }
+}
+

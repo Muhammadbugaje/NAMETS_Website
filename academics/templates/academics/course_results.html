@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+    <style>
+        /* Custom striped table */
+        .custom-table-striped {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .custom-table-striped th,
+        .custom-table-striped td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .custom-table-striped thead {
+            background-color: #f8f8f8;
+            font-weight: 600;
+            color: #0F3D2E;
+        }
+
+        /* Stripe effect: light gray on odd rows (tbody rows) */
+        .custom-table-striped tbody tr:nth-child(odd) {
+            background-color: #f9f9f6;
+        }
+
+        .custom-table-striped tbody tr:hover {
+            background-color: #f0f0f0;
+            transition: background-color 0.2s;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}{{ course.name }} Results | NAMETS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ course.name }} – Results</h1>
+    <form method="get" style="margin-bottom: 17px; margin-top: 10px;">
+        <input type="text" name="student" placeholder="Filter by student name" value="{{ student_name }}" style="border-radius: 20px; border: 1px solid #d1f7bc; padding: 13.5px; margin-right: 10px;">
+        <button type="submit" style="border-radius: 23px;"class="btn btn-secondary">Filter</button>
+    </form>
+
+    {% if results %}
+        <table class="custom-table-striped">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Exam</th>
+                    <th>Marks</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                <tr>
+                    <td>{{ result.student_name }}</td>
+                    <td>{{ result.evaluation.title }}</td>
+                    <td>{{ result.marks_obtained }}</td>
+                    <td>{{ result.grade }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No results found.</p>
+    {% endif %}
+    <a href="{% url 'academics:course_detail' course.slug %}" class="btn btn-secondary" style="margin-top: 20px; border-radius:23px">Back to Course</a>
+</div>
+{% endblock %}

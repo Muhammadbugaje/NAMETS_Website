@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Prayer Times | NAMETS{% endblock %}
+{% block extra_css %}
+    <style>
+        .namets-striped-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .namets-striped-table th, .namets-striped-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .namets-striped-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .namets-striped-table th {
+            background-color: #43d148;
+            text-align: left;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<h2>Prayer Times for Engineering Mosque</h2>
+{% if schedule %}
+    <table class="namets-striped-table">
+        <thead>
+            <tr><th>Prayer</th><th>Adhan</th><th>Iqama</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Fajr</td><td>{{ schedule.fajr_adhan|time:"g:i A" }}</td><td>{{ schedule.fajr_iqama|time:"g:i A" }}</td></tr>
+            <tr><td>Dhuhr</td><td>{{ schedule.dhuhr_adhan|time:"g:i A" }}</td><td>{{ schedule.dhuhr_iqama|time:"g:i A" }}</td></tr>
+            <tr><td>Asr</td><td>{{ schedule.asr_adhan|time:"g:i A" }}</td><td>{{ schedule.asr_iqama|time:"g:i A" }}</td></tr>
+            <tr><td>Maghrib</td><td>{{ schedule.maghrib_adhan|time:"g:i A" }}</td><td>{{ schedule.maghrib_iqama|time:"g:i A" }}</td></tr>
+            <tr><td>Isha</td><td>{{ schedule.isha_adhan|time:"g:i A" }}</td><td>{{ schedule.isha_iqama|time:"g:i A" }}</td></tr>
+        </tbody>
+    </table>
+    <p class="text-muted">Created on {{ schedule.date|date:"l, F j, Y" }}</p>
+{% else %}
+    <p>Prayer schedule not available.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+<div class="card" style="max-width: 300px;">
+    {% if event.image %}
+        <img class="card-img" src="{{ event.image.url }}" alt="{{ event.title }}">
+    {% endif %}
+    <div class="card-body">
+        <span class="card-meta">
+            {% if event.category %}{{ event.category.name }} • {% endif %}
+            <span class="badge badge-{{ event.status }}">{{ event.status|title }}</span>
+        </span>
+        <h3 class="card-title">
+            <a href="{% url 'events:detail' event.slug %}">{{ event.title }}</a>
+        </h3>
+        <p class="card-desc">{{ event.description|truncatewords:20 }}</p>
+        <p class="text-muted">{{ event.start_datetime|date:"M j, g:i A" }}</p>
+    </div>
+    <div class="card-footer">
+        <a href="{% url 'events:detail' event.slug %}" class="btn btn-primary btn-sm">Details</a>
+    </div>
+</div>

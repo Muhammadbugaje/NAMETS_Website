@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Unsubscribe | NAMETS{% endblock %}
+{% block content %}
+<div class="container text-center">
+    <h1>Unsubscribe from Notifications</h1>
+    <p>Enter your email address to unsubscribe from all NAMETS notifications.</p>
+    <form method="post" class="unsubscribe-form">
+        {% csrf_token %}
+        <input type="email" name="email" placeholder="Your email address" required class="form-input">
+        <button type="submit" class="btn btn-danger">Unsubscribe</button>
+    </form>
+    <p class="text-muted mt-3">We'll permanently remove your email from our records.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Events | NAMETS{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/events.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="events-page">
+    <h1>Events</h1>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <a href="?filter=upcoming" class="filter-tab {% if filter == 'upcoming' %}active{% endif %}">Upcoming</a>
+        <a href="?filter=ongoing" class="filter-tab {% if filter == 'ongoing' %}active{% endif %}">Ongoing</a>
+        <a href="?filter=past" class="filter-tab {% if filter == 'past' %}active{% endif %}">Past</a>
+    </div>
+
+    <!-- Optional category filter (if you want to keep it) -->
+    {% if categories %}
+        <div class="category-filter">
+            <span>Filter by category:</span>
+            <ul>
+                <li><a href="?filter={{ filter }}" {% if not request.GET.category %}class="active"{% endif %}>All</a></li>
+                {% for cat in categories %}
+                    <li><a href="?filter={{ filter }}&category={{ cat.slug }}" {% if request.GET.category == cat.slug %}class="active"{% endif %}>{{ cat.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <!-- Event Grid -->
+    <div class="event-grid card-grid">
+        {% for event in events %}
+            <div class="card-reveal">
+                {% include "events/partials/event_card.html" %}
+            </div>
+        {% empty %}
+            <p>No {{ filter }} events found.</p>
+        {% endfor %}
+    </div>
+</div>    
+{% endblock %}

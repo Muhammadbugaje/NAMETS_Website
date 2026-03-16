@@ -1,0 +1,9 @@
+<div class="card">
+    <div class="card-body">
+        <h3 class="card-title">
+            <a href="{% url 'academics:course_detail' course.slug %}">{{ course.name }}</a>
+        </h3>
+        <p class="card-desc">{{ course.description|truncatewords:20 }}</p>
+        <a href="{% url 'academics:course_detail' course.slug %}" class="btn btn-sm btn-primary">View Course</a>
+    </div>
+</div>

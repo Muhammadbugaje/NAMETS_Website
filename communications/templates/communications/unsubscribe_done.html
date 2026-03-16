@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Unsubscribed | NAMETS{% endblock %}
+{% block content %}
+<div class="container text-center">
+    <h1>Unsubscribed</h1>
+    <p>You have been unsubscribed from NAMETS notifications.</p>
+    <a href="{% url 'core:homepage' %}" class="btn btn-primary">Return Home</a>
+</div>
+{% endblock %}
