@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Confirm Subscription Change | NAMETS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Confirm Preference Update</h1>
+
+    <p>You are already subscribed with the email <strong>{{ email }}</strong>.</p>
+
+    <h3>Current Preferences:</h3>
+    <ul>
+        <li>Announcements: {{ current_prefs.notify_announcements|yesno:"✅,❌" }}</li>
+        <li>Events: {{ current_prefs.notify_events|yesno:"✅,❌" }}</li>
+        <li>Prayer time changes: {{ current_prefs.notify_prayer_changes|yesno:"✅,❌" }}</li>
+    </ul>
+
+    <h3>New Preferences:</h3>
+    <ul>
+        <li>Announcements: {{ new_prefs.notify_announcements|yesno:"✅,❌" }}</li>
+        <li>Events: {{ new_prefs.notify_events|yesno:"✅,❌" }}</li>
+        <li>Prayer time changes: {{ new_prefs.notify_prayer_changes|yesno:"✅,❌" }}</li>
+    </ul>
+
+    <form method="post" action="{% url 'communications:confirm_subscription' %}">
+        {% csrf_token %}
+
+        <!-- Required hidden fields -->
+        <input type="hidden" name="email" value="{{ email }}">
+
+        <!-- IMPORTANT: send 'on' only if true -->
+        {% if new_prefs.notify_announcements %}
+            <input type="hidden" name="notify_announcements" value="on">
+        {% endif %}
+
+        {% if new_prefs.notify_events %}
+            <input type="hidden" name="notify_events" value="on">
+        {% endif %}
+
+        {% if new_prefs.notify_prayer_changes %}
+            <input type="hidden" name="notify_prayer_changes" value="on">
+        {% endif %}
+
+        <button type="submit" class="btn btn-secondary" style="border: none; border-radius:15px; background-color: rgb(2, 90, 6); color: white; padding:7px; margin-top: 10px;">Confirm Changes</button>
+    </form>
+
+    <a href="{% url 'communications:subscribe' %}" class="btn btn-secondary" style=" border: none; border-radius:15px; background-color: rgb(170, 28, 28); color: white; padding:7px; margin-top: 10px;">Cancel</a>
+</div>
+{% endblock %}

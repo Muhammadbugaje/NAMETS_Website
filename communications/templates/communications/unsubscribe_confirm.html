@@ -6,8 +6,8 @@
     <p>Are you sure you want to unsubscribe {{ subscriber.email }}? This will permanently remove your email from our records.</p>
     <form method="post">
         {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Yes, unsubscribe</button>
-        <a href="{% url 'core:homepage' %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-secondary" style=" border: none; border-radius:15px; background-color: rgb(170, 28, 28); color: white; padding:7px; margin-top: 10px;">Yes, unsubscribe</button>
+        <a href="{% url 'core:homepage' %}" class="btn btn-secondary" style=" border: none; border-radius:15px; background-color: rgb(7, 151, 62); color: white; padding:7px; margin-top: 10px;">Cancel</a>
     </form>
 </div>
 {% endblock %}

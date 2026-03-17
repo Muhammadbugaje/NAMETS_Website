@@ -13,7 +13,7 @@ def send_webhook(event_type, data):
     # Include token in the payload
     payload = {
         'event': event_type,
-        # 'token': settings.WEBHOOK_SECRET,   # ← your hardcoded token
+        # 'token': settings.WEBHOOK_SECRET,   # i removed it for now (Muhammad) 
         'data': data,
     }
 

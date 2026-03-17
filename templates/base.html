@@ -46,11 +46,11 @@
       <nav class="desktop-nav" aria-label="Main navigation">
         <a href="{% url 'core:homepage' %}">Home</a>
         <a href="{% url 'community:about' %}">About</a>
+        <a href="{% url 'communications:announcement_list' %}">Announcements</a>
         <a href="{% url 'events:list' %}">Events</a>
         <a href="{% url 'academics:tutorial_list' %}">Tutorials</a>
-        <a href="{% url 'communications:announcement_list' %}">Announcements</a>
-        <a href="{% url 'lostfound:list' %}">Lost &amp; Found</a>
         <a href="{% url 'academics:islamia_list' %}">Islamia</a>
+        <a href="{% url 'lostfound:list' %}">Lost &amp; Found</a>
         <a href="{% url 'community:question_list' %}">Q&amp;A</a>
         <a href="{% url 'gallery:list' %}">Gallery</a>
         <a href="{% url 'communications:mosque_info' %}">Mosque</a>
@@ -81,13 +81,15 @@
       <a href="{% url 'core:homepage' %}">Home</a>
       <a href="{% url 'events:list' %}">Events</a>
       <a href="{% url 'communications:announcement_list' %}">Announcements</a>
-      <a href="{% url 'academics:tutorial_list' %}">Tutorials</a>
       <a href="{% url 'academics:islamia_list' %}">Islamia</a>
-      <a href="{% url 'lostfound:list' %}">Lost &amp; Found</a>
+      <a href="{% url 'academics:tutorial_list' %}">Tutorials</a>
       <a href="{% url 'community:question_list' %}">Q&amp;A</a>
+      <a href="{% url 'lostfound:list' %}">Lost &amp; Found</a>
       <a href="{% url 'communications:donation_list' %}">Donations</a>
-      <a href="{% url 'communications:mosque_info' %}">Mosque</a>
+      <a href="{% url 'gallery:list' %}">Gallery</a>
       <a href="{% url 'community:about' %}">About</a>
+      <a href="{% url 'communications:prayer_times' %}">Prayer Times</a>
+      <a href="{% url 'communications:mosque_info' %}">Mosque</a>
       <a href="{% url 'community:executive_list' %}">Executives</a>
       <a href="{% url 'community:patron_list' %}">Patrons</a>
       <a href="{% url 'community:developer_list' %}">Developers</a>
@@ -118,31 +120,33 @@
     <div class="container footer-grid">
       <div class="footer-col">
         <h3 class="footer-heading">NAMETS</h3>
-        <p>The university-based Islamic student association fostering community, knowledge, and faith on campus.</p>
+        <p>The university-based Islamic student association fostering community, knowledge, and faith in Ahmadu Bello University, Zaria.</p>
       </div>
       <div class="footer-col">
         <h3 class="footer-heading">Quick Links</h3>
         <ul>
           <li><a href="{% url 'core:homepage' %}">Home</a></li>
+          <li><a href="{% url 'community:question_list' %}">Q&amp;A</a></li>
           <li><a href="{% url 'community:about' %}">About</a></li>
-          <li><a href="{% url 'communications:announcement_list' %}">Announcements</a></li>
-          <li><a href="{% url 'community:executive_list' %}">Executive</a></li>
-          <li><a href="{% url 'community:patron_list' %}">Patrons</a></li>
           <li><a href="{% url 'events:list' %}">Events</a></li>
-          <li><a href="{% url 'academics:tutorial_list' %}">Tutorials</a></li>
           <li><a href="{% url 'academics:islamia_list' %}">Islamia</a></li>
           <li><a href="{% url 'gallery:list' %}">Gallery</a></li>
-          <li><a href="{% url 'community:question_list' %}">Q&amp;A</a></li>
+          <li><a href="{% url 'community:patron_list' %}">Patrons</a></li>
           <li><a href="{% url 'communications:mosque_info' %}">Mosque</a></li>
+          <li><a href="{% url 'academics:tutorial_list' %}">Tutorials</a></li>
+          <li><a href="{% url 'community:executive_list' %}">Executive</a></li>
           <li><a href="{% url 'communications:donation_list' %}">Donations</a></li>
           <li><a href="{% url 'community:developer_list' %}">Developers</a></li>
           <li><a href="{% url 'communications:unsubscribe_by_email' %}">Unsubscribe</a></li>
+          <li><a href="{% url 'communications:prayer_times' %}">Prayer Times</a></li>
+          <li><a href="{% url 'lostfound:list' %}">Lost &amp; Found</a></li>
+          <li><a href="{% url 'communications:announcement_list' %}">Announcements</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h3 class="footer-heading">Contact</h3>
-        <p>University Campus, Main Campus</p>
-        <p>namets@abu.edu</p>
+        <p>Ahmadu Bello University, Faculty of Engineering, Main Campus</p>
+        <p><a href="mailto:nametsabu@gmail.com">nametsabu@gmail.com</a> | <a href="mailto:namets.notifications@gmail.com">namets.notifications@gmail.com</a></p>
         <p>+234 8088253483</p>
       </div>
     </div>
