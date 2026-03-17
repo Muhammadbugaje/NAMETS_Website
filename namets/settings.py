@@ -198,10 +198,11 @@ N8N_API_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YTYxNGQyMi0xNz
 N8N_WEBHOOK_URL = 'https://n8n-render-5s6o.onrender.com/webhook/namets-events'
 WEBHOOK_SECRET = 'qnonxhxlwftbyyqm'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok-free.dev']
-CSRF_TRUSTED_ORIGINS = ['https://thanklessly-skyborne-miyoko.ngrok-free.dev']
-# custome domain add to - CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
-
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok-free.dev', '.onrender.com']
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
+    'https://thanklessly-skyborne-miyoko.ngrok-free.dev'
+]
 
 # Clodinary configuration for media file storage
 import cloudinary
