@@ -1,0 +1,1 @@
+web: gunicorn namets.wsgi:application --workers 4 --log-level info
