@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Evaluations Closed{% endblock %}
+
+{% block extra_css %}
+<style>
+    .closed-container { min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .closed-card { max-width: 550px; width: 100%; background: var(--bg-card, rgba(255,255,255,0.3)); backdrop-filter: blur(12px); border: 1px solid var(--border-glass, rgba(255,255,255,0.4)); border-radius: 32px; padding: 40px 35px; text-align: center; box-shadow: var(--shadow-sm, 0 15px 35px rgba(0,0,0,0.1)); animation: fadeInUp 0.5s ease; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .closed-icon { font-size: 4rem; line-height: 1; margin-bottom: 15px; color: var(--accent, #C8A951); }
+    .closed-title { font-size: 2.2rem; font-weight: 700; color: var(--text-primary, #1A1A1A); margin-bottom: 15px; }
+    .closed-subtitle { font-size: 1.2rem; color: var(--text-secondary, #5A5A5A); margin-bottom: 20px; }
+    .closed-message { background: rgba(200,169,81,0.1); border-left: 4px solid var(--accent, #C8A951); padding: 16px 20px; border-radius: 16px; margin: 25px 0; text-align: left; }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--primary, #0F3D2E); color: white; padding: 14px 32px; border-radius: 50px; font-size: 1.1rem; font-weight: 600; text-decoration: none; transition: all 0.2s; margin-top: 10px; }
+    .back-btn:hover { background: #1a5a44; transform: translateY(-2px); color: white; }
+    @media (max-width: 480px) { .closed-card { padding: 30px 20px; } .closed-title { font-size: 1.8rem; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="closed-container">
+    <div class="closed-card">
+        <div class="closed-icon">📝</div>
+        <h1 class="closed-title">Evaluations Closed</h1>
+        <p class="closed-subtitle">Tutor evaluations are not currently open</p>
+        <div class="closed-message">
+            <p><strong>We appreciate your willingness to provide feedback!</strong></p>
+            <p>Evaluation periods are held at specific times during the semester.</p>
+            <p class="mb-0">Please check back later.</p>
+        </div>
+        <a href="{% url 'academics:course_detail' slug=course.slug %}" class="back-btn">
+            <i>←</i> Back to Course
+        </a>
+    </div>
+</div>
+{% endblock %}

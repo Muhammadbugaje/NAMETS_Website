@@ -3,6 +3,11 @@ from django.contrib import messages
 from . import selectors
 from .forms import AskQuestionForm
 
+from .models import TutorApplication, MembershipApplication
+from core.models import SiteSettings
+from .forms import TutorApplicationForm, MembershipApplicationForm
+from core.services.webhooks import send_webhook
+
 def patron_list(request):
     patrons = selectors.get_active_patrons()
     return render(request, 'community/patron_list.html', {'patrons': patrons})
@@ -51,3 +56,52 @@ def about_page(request):
 def developer_list(request):
     developers = selectors.get_active_developers()
     return render(request, 'community/developer_list.html', {'developers': developers})
+
+
+def tutor_application(request):
+    settings = SiteSettings.objects.first()
+    if not settings or not settings.tutor_applications_open:
+        return render(request, 'community/application_closed.html', {'type': 'tutor'})
+
+    if request.method == 'POST':
+        form = TutorApplicationForm(request.POST)
+        if form.is_valid():
+            application = form.save()
+            # Send webhook to n8n for email notification
+            send_webhook('tutor_application_submitted', {
+                'recipients': [application.email],
+                'name': application.name,
+                'email': application.email,
+                'phone': application.phone,
+                'preferred_course': application.preferred_course,
+            })
+            messages.success(request, 'Your application has been submitted. We will contact you soon.')
+            return redirect('core:homepage')
+    else:
+        form = TutorApplicationForm()
+
+    return render(request, 'community/tutor_application.html', {'form': form, 'intro': settings.tutor_intro_text})
+
+def membership_application(request):
+    settings = SiteSettings.objects.first()
+    if not settings or not settings.membership_applications_open:
+        return render(request, 'community/application_closed.html', {'type': 'membership'})
+
+    if request.method == 'POST':
+        form = MembershipApplicationForm(request.POST)
+        if form.is_valid():
+            application = form.save()
+            send_webhook('membership_application_submitted', {
+                'recipients': [application.email],
+                'name': application.name,
+                'email': application.email,
+                'phone': application.phone,
+                'gender': application.gender,
+                'skills': ', '.join([skill.name for skill in application.skills.all()])
+            })
+            messages.success(request, 'Your membership application has been submitted. We will contact you soon.')
+            return redirect('core:homepage')
+    else:
+        form = MembershipApplicationForm()
+
+    return render(request, 'community/membership_application.html', {'form': form, 'intro': settings.membership_intro_text})

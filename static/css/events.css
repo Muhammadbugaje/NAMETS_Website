@@ -12,6 +12,12 @@
     border-radius: 12px 12px 0 0;
 }
 
+.event_date {
+    font-size: 20px;
+    color: #5A5A5A;
+    margin-bottom: 4px;
+}
+
 /* Event date badge */
 .event-date-badge {
     display: inline-flex;

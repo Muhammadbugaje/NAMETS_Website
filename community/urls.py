@@ -10,4 +10,6 @@ urlpatterns = [
     path('ask/', views.ask_question, name='ask_question'),
     path('about/', views.about_page, name='about'),
     path('developers/', views.developer_list, name='developer_list'),
+    path('apply/tutor/', views.tutor_application, name='tutor_apply'),
+    path('apply/membership/', views.membership_application, name='membership_apply'),
 ]

@@ -38,8 +38,6 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-dev-key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ["*"]
-
 
 # Application definition
 
@@ -52,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     # my local apps
+    'django.contrib.staticfiles',
     'core',
     'communications',
     'events',
@@ -63,8 +62,7 @@ INSTALLED_APPS = [
     'api',
     'storages', # for django-storages for image cloud buket storage
     'cloudinary_storage',  # cloudinary storage backend for media files
-    'cloudinary',  
-    'django.contrib.staticfiles',        
+    'cloudinary',          
 ]
 
 MIDDLEWARE = [
@@ -92,6 +90,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'community.context_processors.developers',
+                'community.context_processors.contact_phones',
             ],
         },
     },
@@ -198,10 +197,19 @@ N8N_API_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YTYxNGQyMi0xNz
 N8N_WEBHOOK_URL = 'https://n8n-render-5s6o.onrender.com/webhook/namets-events'
 WEBHOOK_SECRET = 'qnonxhxlwftbyyqm'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok-free.dev']
-CSRF_TRUSTED_ORIGINS = ['https://thanklessly-skyborne-miyoko.ngrok-free.dev']
-# custome domain add to - CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
-
+# for online cloud server
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+"""
+# for local server do this 
+ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.ngrok-free.dev',
+    'https://*.onrender.com',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+]
+"""
 
 # Clodinary configuration for media file storage
 import cloudinary

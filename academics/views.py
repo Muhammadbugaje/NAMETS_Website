@@ -14,6 +14,7 @@ from .selectors import get_all_results
 from .models import Course
 from cloudinary.utils import cloudinary_url
 
+from core.models import SiteSettings
 # Create your views here.
 
 def course_list(request):
@@ -40,11 +41,13 @@ def course_detail(request, slug):
     sessions = selectors.get_upcoming_sessions(course)
     materials = selectors.get_course_materials(course)
     evaluations = selectors.get_course_evaluations(course)
+    settings = SiteSettings.objects.first()   # add this
     context = {
         'course': course,
         'sessions': sessions,
         'materials': materials,
         'evaluations': evaluations,
+        'settings': settings,
     }
     return render(request, 'academics/course_detail.html', context)
 
@@ -141,6 +144,12 @@ def all_results(request):
 
 
 def evaluate_tutor(request, slug):
+    settings = SiteSettings.objects.first()
+    if not settings or not settings.tutor_evaluations_open:
+        # Show a closed page (reuse your existing template)
+        return render(request, 'academics/evaluation_closed.html', {'type': 'tutor'})
+
+    # ... rest of your view (existing code) ...
     course = get_object_or_404(Course, slug=slug, is_active=True)
     if request.method == 'POST':
         form = TutorEvaluationForm(request.POST, course=course)
@@ -152,8 +161,11 @@ def evaluate_tutor(request, slug):
             return redirect('academics:course_detail', slug=course.slug)
     else:
         form = TutorEvaluationForm(course=course)
-    return render(request, 'academics/evaluate_tutor.html', {'form': form, 'course': course})
-
+    return render(request, 'academics/evaluate_tutor.html', {
+        'form': form,
+        'course': course,
+        'intro': settings.evaluation_intro_text,
+    })
 
 def download_material(request, material_id):
     material = get_object_or_404(Material, id=material_id, is_active=True)

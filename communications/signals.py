@@ -47,6 +47,27 @@ def subscriber_saved_handler(sender, instance, created, **kwargs):
         }
         send_webhook('subscriber_joined', payload)
 
+@receiver(post_save, sender=Subscriber)
+def subscriber_updated_handler(sender, instance, created, **kwargs):
+    # Only act on updates, not creations
+    if created:
+        return
+
+    # Check if this save was triggered by a preference update
+    update_fields = kwargs.get('update_fields')
+    if update_fields:
+        prefs = {'notify_announcements', 'notify_events', 'notify_prayer_changes'}
+        if prefs.intersection(set(update_fields)):
+            # This is a preference update
+            send_webhook('subscriber_updated', {
+                'email': instance.email,
+                'preferences': {
+                    'announcements': instance.notify_announcements,
+                    'events': instance.notify_events,
+                    'prayer': instance.notify_prayer_changes,
+                }
+            })
+
 @receiver(post_delete, sender=Subscriber)
 def subscriber_deleted_handler(sender, instance, **kwargs):
     payload = {

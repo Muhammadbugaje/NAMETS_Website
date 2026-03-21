@@ -16,6 +16,7 @@ urlpatterns = [
     path('subscribe/success/', views.subscribe_success, name='subscribe_success'),
     path('unsubscribe/<uuid:token>/', views.unsubscribe, name='unsubscribe'),
     path('unsubscribe/', views.unsubscribe_by_email, name='unsubscribe_by_email'),
+    path('confirm-subscription/', views.confirm_subscription, name='confirm_subscription'),
     # path('admin/communications/send-custom-message/', send_custom_message, name='admin_send_custom_message'),
     # path('send-custom-message/', views_admin.send_custom_message, name='admin_send_custom_message')
 ]

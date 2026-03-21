@@ -3,22 +3,295 @@
 
 {% block title %}{{ event.title }} | NAMETS{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ===== Event Detail Page – Refined Mobile Version ===== */
+.event-detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 15px;
+}
+
+/* Glass card */
+.event-card {
+    background: var(--bg-card, rgba(255,255,255,0.3));
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-glass, rgba(255,255,255,0.4));
+    border-radius: 24px;
+    padding: 25px;
+    box-shadow: var(--shadow-sm, 0 8px 20px rgba(0,0,0,0.05));
+    margin-bottom: 5px;
+    margin-top: -35px;
+}
+
+/* Header */
+.event-header {
+    margin-bottom: 5px;
+    border-bottom: 1px solid var(--border-light, #E2E0D8);
+    padding-bottom: 15px;
+}
+.event-category {
+    display: inline-block;
+    background: var(--accent-light, rgba(200,169,81,0.15));
+    color: var(--accent, #C8A951);
+    padding: 5px 14px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1px;
+    margin-top: -5px;
+}
+.event-title {
+    font-family: 'Georgia, serif';
+    font-weight: bold;
+    font-size: 2.4rem;
+    color: var(--text-primary, #1A1A1A);
+    margin-bottom: 2px;
+    line-height: 1.2;
+}
+
+/* Date & time section – left aligned, compact */
+.event-datetime {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 5px;
+}
+.event-date-block {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+/* Refined date badge – wider, taller, left aligned */
+.event-date-badge {
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-width: 100px;
+    background: var(--primary, #0F3D2E);
+    color: white;
+    border-radius: 16px;
+    padding: 12px 15px;
+    padding-top: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.event-date-badge .month {
+    font-size: 1rem;
+    text-transform: uppercase;
+    font-weight: 400;
+    opacity: 0.9;
+    letter-spacing: 1px;
+}
+.event-date-badge .day {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin: 2px 0;
+}
+.event-date-badge .year {
+    font-size: 1rem;
+    opacity: 0.8;
+}
+.event-time-detail {
+    flex: 1;
+    font-size: 1rem;
+    color: var(--text-secondary, #947f0b);
+    line-height: 1.4;
+}
+.event-time-detail strong {
+    color: var(--text-primary, #1A1A1A);
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Location with label */
+.event-location {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 1rem;
+    color: var(--text-secondary, #2c2929);
+    margin-bottom: 5px;
+    padding: 5px 0;
+}
+.event-location i {
+    color: var(--accent, #C8A951);
+    font-style: normal;
+    font-size: 1.1rem;
+}
+.location-label {
+    font-weight: 600;
+    color: var(--text-primary, #1A1A1A);
+    margin-right: 5px;
+}
+
+/* Calendar button */
+.calendar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background: var(--accent-light, rgba(200,169,81,0.15));
+    border: 1px solid var(--accent, #C8A951);
+    color: var(--accent, #C8A951);
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-bottom: 3px;
+    width: fit-content;
+}
+.calendar-btn:hover {
+    background: var(--accent, #C8A951);
+    color: white;
+}
+.calendar-btn i {
+    font-size: 1.2rem;
+}
+
+/* Event image */
+.event-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 16px;
+    margin: 15px 0 15px;
+    box-shadow: var(--shadow-sm, 0 4px 12px rgba(0,0,0,0.1));
+}
+
+/* Description */
+.event-description {
+    font-size: 1.2rem;
+    font-family: 'Optima, sans-serif';
+    line-height: 1.2;
+    color: var(--text-secondary, #0f0f0f);
+    margin: 20px 0;
+}
+.event-description p {
+    margin-bottom: 1em;
+}
+
+/* Back button */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary, #0F3D2E);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+    width: fit-content;
+}
+.back-btn:hover {
+    background: #1a5a44;
+    color: white;
+    text-decoration: none;
+}
+.back-btn i {
+    font-size: 1.1rem;
+}
+
+/* Mobile specific overrides – already compact, but ensure minimal gaps */
+@media (max-width: 600px) {
+    .event-detail-container {
+        padding: 10px;
+    }
+    .event-card {
+        padding: 18px;
+    }
+    .event-title {
+        font-size: 2.2rem;
+    }
+    .event-date-block {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .event-date-badge {
+        min-width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        max-height: 60px;
+    }
+    .event-date-badge .month, .event-date-badge .year {
+        font-size: 1rem;
+    }
+    .event-date-badge .day {
+        font-size: 1.8rem;
+        margin: 0;
+    }
+    .event-time-detail {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<article class="event-detail">
-    <h1>{{ event.title }}</h1>
-    <p class="text-muted">
-        {{ event.start_datetime|date:"l, F j, Y g:i A" }} – {{ event.end_datetime|date:"g:i A" }}<br>
-        Location: {{ event.location }}
-    </p>
+<div class="event-detail-container">
+    <div class="event-card card-reveal">
+        <div class="event-header">
+            {% if event.category %}
+                <span class="event-category">{{ event.category.name }}</span>
+            {% endif %}
+            <h1 class="event-title">{{ event.title }}</h1>
+        </div>
 
-    {% if event.image %}
-        <img src="{{ event.image.url }}" alt="{{ event.title }}" style="max-width:70%; margin:20px 0;">
-    {% endif %}
+        <!-- Date & time section -->
+        <div class="event-datetime">
+            <div class="event-date-block">
+                <div class="event-date-badge">
+                    <span class="month">{{ event.start_datetime|date:"M" }}</span>
+                    <span class="day">{{ event.start_datetime|date:"d" }}</span>
+                    <span class="year">{{ event.start_datetime|date:"Y" }}</span>
+                </div>
+                <div class="event-time-detail">
+                    {% if event.start_datetime.date == event.end_datetime.date %}
+                        <strong>{{ event.start_datetime|date:"l, F j, Y" }}</strong><br>
+                        {{ event.start_datetime|time:"g:i A" }} – {{ event.end_datetime|time:"g:i A" }}
+                    {% else %}
+                        <strong>Starts:</strong> {{ event.start_datetime|date:"l, F j, Y" }} at {{ event.start_datetime|time:"g:i A" }}<br>
+                        <strong>Ends:</strong> {{ event.end_datetime|date:"l, F j, Y" }} at {{ event.end_datetime|time:"g:i A" }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-    <div class="event-description">
-        {{ event.description|linebreaks }}
+        <!-- Location with label -->
+        <div class="event-location">
+            <i>📍</i>
+            <span><span class="location-label">Location:</span> {{ event.location|default:"TBA" }}</span>
+        </div>
+
+        <!-- Calendar reminder link -->
+        <a href="{% url 'events:calendar_ics' event.slug %}" class="calendar-btn">
+            <i>📅</i> Add to Calendar
+        </a>
+
+        <!-- Event image -->
+        {% if event.image %}
+            <img src="{{ event.image.url }}" alt="{{ event.title }}" class="event-image">
+        {% endif %}
+
+        <!-- Description -->
+        <div class="event-description">
+            {{ event.description|linebreaks }}
+        </div>
+
+        <!-- Back button -->
+        <a href="{% url 'events:list' %}" class="back-btn">
+            <i>←</i> Back to Events
+        </a>
     </div>
-
-    <a href="{% url 'events:list' %}" class="btn btn-link">&larr; Back to Events</a>
-</article>
+</div>
 {% endblock %}

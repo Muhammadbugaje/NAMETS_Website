@@ -7,7 +7,7 @@
     <form method="post" class="unsubscribe-form">
         {% csrf_token %}
         <input type="email" name="email" placeholder="Your email address" required class="form-input">
-        <button type="submit" class="btn btn-danger">Unsubscribe</button>
+        <button type="submit" class="btn btn-secondary" style=" border: none; border-radius:12px; background-color: rgb(170, 28, 28); color: white; padding:7px;">Unsubscribe</button>
     </form>
     <p class="text-muted mt-3">We'll permanently remove your email from our records.</p>
 </div>
