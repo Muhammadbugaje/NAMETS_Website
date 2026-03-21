@@ -197,11 +197,11 @@ N8N_API_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YTYxNGQyMi0xNz
 N8N_WEBHOOK_URL = 'https://n8n-render-5s6o.onrender.com/webhook/namets-events'
 WEBHOOK_SECRET = 'qnonxhxlwftbyyqm'
 
-# for online cloud server
+# for hosting on render and allowing render to send requests to our webhook endpoint, we need to allow render's domain in the allowed hosts and csrf trusted origins.
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
 """
-# for local server do this 
+# for local server and testing do this 
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [
     'https://*.ngrok-free.dev',
