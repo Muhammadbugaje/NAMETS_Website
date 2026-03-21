@@ -1209,3 +1209,25 @@ img {
 .namets-striped-table tbody tr:hover {
     background-color: #F0EDE6;       /* subtle hover */
 }
+
+/* Quick links – two columns */
+.footer-col ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+    padding-left: 0;
+    list-style: none;
+    margin-top: 10px;
+}
+
+/* Prevent list items from breaking inside the grid */
+.footer-col li {
+    break-inside: avoid;
+}
+
+/* On mobile, revert to single column for better readability */
+@media (max-width: 768px) {
+    .footer-col ul {
+        grid-template-columns: 1fr;
+    }
+}

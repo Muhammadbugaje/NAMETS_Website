@@ -4,103 +4,253 @@
 {% block title %}Events | NAMETS{% endblock %}
 
 {% block extra_css %}
-    <style>
-        /* ========================================
-        NAMETS – Event-specific styles
-        (Loaded in-line)
-        ======================================== */
+<style>
+/* ===== Events page – Responsive grid, proper gaps ===== */
+.events-page {
+    padding: 20px;
+}
 
-        /* Event card image aspect ratio */
-        .event-card-img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            display: block;
-            border-radius: 12px 12px 0 0;
-        }
+/* Filter tabs – larger on mobile */
+.filter-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 20px 0 30px;
+}
+.filter-tab {
+    padding: 12px 24px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 40px;
+    color: #1A1A1A;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    font-size: 1rem;
+}
+.filter-tab.active {
+    background: #0F3D2E;
+    color: white;
+}
+.filter-tab:hover {
+    background: #C8A951;
+    color: #1A1A1A;
+}
+/* Category filter */
+.category-filter {
+    margin-bottom: 30px;
+    padding: 16px 20px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    border-radius: 60px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.category-filter label {
+    font-weight: 600;
+}
+.category-filter select {
+    background: rgba(255,255,255,0.8);
+    border: 1px solid #ddd;
+    padding: 10px 16px;
+    border-radius: 40px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+/* ---------- GRID (explicit) ---------- */
+.card-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 1fr;  /* 1 column on mobile */
+}
+@media (min-width: 640px) {
+    .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (min-width: 1024px) {
+    .card-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+/* Event card – matches announcement card style */
+.event-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+.event-card-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+.event-card-body {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.event-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.event-date-badge {
+    background: #0F3D2E;
+    color: white;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.event-category {
+    font-size: 0.7rem;
+    background: #F0EDE6;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+.event-card-title {
+    font-size: 1.25rem;
+    margin: 8px 0 4px;
+    font-weight: 700;
+}
+.event-card-meta {
+    color: #777;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.event-card-description {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    flex: 1;
+}
+.event-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+}
+.badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.badge-upcoming { background: #0F3D2E20; color: #0F3D2E; border: 1px solid #0F3D2E; }
+.badge-ongoing { background: #C8A95120; color: #C8A951; border: 1px solid #C8A951; }
+.badge-past { background: #eee; color: #777; border: 1px solid #ccc; }
 
-        /* Event meta row */
-        .event-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            font-size: 12px;
-            color: #5A5A5A;
-            margin-top: 6px;
-        }
-
-        /* Filter tabs styling (consistent with lost & found) */
-        .filter-tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px 0;
-            border-bottom: 1px solid #E2E0D8;
-            padding-bottom: 10px;
-        }
-
-        .filter-tab {
-            padding: 8px 20px;
-            background: #F0EDE6;
-            border-radius: 30px;
-            color: #1A1A1A;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .filter-tab:hover {
-            background: #C8A951;
-            color: #1A1A1A;
-        }
-
-        .filter-tab.active {
-            background: #0F3D2E;  /* primary green */
-            color: #FFFFFF;
-        }
-    </style>
+/* Mobile specific */
+@media (max-width: 600px) {
+    .events-page {
+        padding: 12px;
+    }
+    .filter-tabs {
+        gap: 8px;
+        margin: 15px 0 20px;
+    }
+    .filter-tab {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+    .category-filter {
+        flex-direction: column;
+        align-items: stretch;
+        border-radius: 30px;
+        padding: 14px;
+    }
+    .category-filter select {
+        width: 100%;
+    }
+    .event-card-image {
+        height: 140px;
+    }
+    .event-card-body {
+        padding: 15px;
+    }
+    .event-card-title {
+        font-size: 1.1rem;
+    }
+    .btn-sm {
+        padding: 6px 14px;
+    }
+}
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="events-page">
-    <h1>Events</h1>
-
-    <!-- Filter Tabs -->
+    <!-- Status tabs -->
     <div class="filter-tabs">
-        <a href="?filter=upcoming" class="filter-tab {% if filter == 'upcoming' %}active{% endif %}">Upcoming</a>
+        <a href="?filter=upcoming" class="filter-tab {% if filter == 'upcoming' or not filter %}active{% endif %}">Upcoming</a>
         <a href="?filter=ongoing" class="filter-tab {% if filter == 'ongoing' %}active{% endif %}">Ongoing</a>
         <a href="?filter=past" class="filter-tab {% if filter == 'past' %}active{% endif %}">Past</a>
     </div>
 
-<!-- Category Filter – Professional Dropdown -->
-<div class="category-filter glass-card" style="margin-bottom: 30px; padding: 20px;">
-    <form method="get" id="category-filter-form" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-        <!-- Preserve existing GET parameters (like filter) -->
-        <input type="hidden" name="filter" value="{{ filter }}">
-        
-        <label for="category" style="font-weight: 600; color: var(--text-primary, #1A1A1A);">Filter by category:</label>
-        <select name="category" id="category" onchange="this.form.submit()" 
-                style="flex: 1; min-width: 200px; padding: 10px 16px; border: 1px solid var(--border-glass, rgba(255,255,255,0.4)); border-radius: 30px; background: var(--bg-glass, rgba(255,255,255,0.2)); backdrop-filter: blur(8px); color: var(--text-primary, #1A1A1A); font-size: 1rem; cursor: pointer;">
-            <option value="" {% if not request.GET.category %}selected{% endif %}>All Categories</option>
-            {% for cat in categories %}
-                <option value="{{ cat.slug }}" {% if request.GET.category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
-            {% endfor %}
-        </select>
-        
-        <noscript><button type="submit" class="btn btn-primary">Apply</button></noscript>
-    </form>
-</div>
+    <!-- Category filter -->
+    <div class="category-filter">
+        <form method="get" id="category-filter-form" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%;">
+            <input type="hidden" name="filter" value="{{ filter }}">
+            <label for="category">Filter by category:</label>
+            <select name="category" id="category" onchange="this.form.submit()" style="flex: 1;">
+                <option value="" {% if not request.GET.category %}selected{% endif %}>All Categories</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.slug }}" {% if request.GET.category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <noscript><button type="submit" class="btn btn-primary">Apply</button></noscript>
+        </form>
+    </div>
 
-    <!-- Event Grid -->
-    <div class="event-grid card-grid">
+    <!-- Event grid – uses the .card-grid class defined above -->
+    <div class="card-grid">
         {% for event in events %}
-            <div class="card-reveal">
-                {% include "events/partials/event_card.html" %}
+        <div class="event-card card-reveal">
+            {% if event.image %}
+                <img src="{{ event.image.url }}" alt="{{ event.title }}" class="event-card-image">
+            {% endif %}
+            <div class="event-card-body">
+                <div class="event-card-header">
+                    <div class="event-date-badge">{{ event.start_datetime|date:"M d" }}</div>
+                    {% if event.category %}<span class="event-category">{{ event.category.name }}</span>{% endif %}
+                </div>
+                <h3 class="event-card-title">{{ event.title }}</h3>
+                <div class="event-card-meta">
+                    <span>{{ event.start_datetime|date:"g:i A" }} – {{ event.end_datetime|date:"g:i A" }}</span>
+                    <span>📍 {{ event.location|default:"TBA" }}</span>
+                </div>
+                <p class="event-card-description">{{ event.description|truncatewords:15 }}</p>
+                <div class="event-card-footer">
+                    <a href="{% url 'events:detail' event.slug %}" class="btn btn-primary btn-sm">Details</a>
+                    <span class="badge badge-{{ event.status }}">{{ event.status|title }}</span>
+                </div>
             </div>
+        </div>
         {% empty %}
-            <p>No {{ filter }} events found.</p>
+        <p class="no-results">No events found in this category.</p>
         {% endfor %}
     </div>
-</div>    
+</div>
 {% endblock %}

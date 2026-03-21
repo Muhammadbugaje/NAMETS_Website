@@ -4,12 +4,177 @@
 {% block title %}Executives | NAMETS{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/global.css' %}">
-    <link rel="stylesheet" href="{% static 'community/css/community.css' %}">
+<link rel="stylesheet" href="{% static 'css/global.css' %}">
+<style>
+.executive-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Year filter – consistent */
+.year-filter {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 40px;
+    padding: 12px 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    margin: 20px 0 30px;
+    flex-wrap: wrap;
+}
+.year-filter label {
+    font-weight: 600;
+    color: var(--text-primary, #1A1A1A);
+}
+.year-filter select {
+    background: rgba(255,255,255,0.8);
+    border: 1px solid #ddd;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* Horizontal card */
+.executive-card {
+    background: #FFFFFF;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    height: 140px;  /* fixed height for consistency */
+}
+.executive-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+}
+
+/* Image container – square-ish, fixed width */
+.card-image-wrapper {
+    width: 120px;
+    flex-shrink: 0;
+    background: #F0EDE6;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;  /* cover works well for portraits */
+}
+.image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #C8A951;
+    background: #F0EDE6;
+}
+
+/* Text area */
+.card-body {
+    padding: 12px 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #1A1A1A;
+}
+.card-meta {
+    font-size: 0.8rem;
+    color: #C8A951;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+.card-desc {
+    font-size: 0.75rem;
+    color: #5A5A5A;
+    line-height: 1.4;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Grid layout */
+.executive-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 1fr;
+    margin: 20px 0 30px;
+}
+@media (min-width: 640px) {
+    .executive-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (min-width: 1024px) {
+    .executive-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Membership button */
+.membership-btn {
+    text-align: center;
+    margin-top: 20px;
+}
+.membership-btn .btn {
+    padding: 12px 28px;
+    font-size: 1rem;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+    .executive-page {
+        padding: 12px;
+    }
+    .year-filter {
+        padding: 8px 16px;
+        gap: 10px;
+        width: 100%;
+        justify-content: space-between;
+    }
+    .year-filter select {
+        flex: 1;
+    }
+    .executive-card {
+        height: 120px;  /* slightly smaller on mobile */
+    }
+    .card-image-wrapper {
+        width: 100px;
+    }
+    .card-body {
+        padding: 10px 12px;
+    }
+    .card-title {
+        font-size: 0.9rem;
+    }
+    .card-meta {
+        font-size: 0.7rem;
+    }
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="community-page">
+<div class="executive-page">
     <h1 class="page-title animate-on-scroll">Past Executives</h1>
 
     <!-- Year Filter -->
@@ -22,27 +187,37 @@
         </select>
     </div>
 
+    <!-- Executive Grid -->
     <div class="executive-grid">
         {% for exec in executives %}
-            <div class="card card-grid-1 animate-on-scroll" style="margin-bottom: 40px;">
+        <div class="executive-card animate-on-scroll">
+            <div class="card-image-wrapper">
                 {% if exec.photo %}
-                    <img src="{{ exec.photo.url }}" alt="{{ exec.name }}" class="card-img">
+                    <img src="{{ exec.photo.url }}" alt="{{ exec.name }}" class="card-image">
                 {% else %}
-                    <div class="card-img-placeholder" style="height:200px; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">No Photo</div>
+                    <div class="image-placeholder">
+                        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#C8A951" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                    </div>
                 {% endif %}
-                <div class="card-body">
-                    <h3 class="card-title">{{ exec.name }}</h3>
-                    <p class="card-meta">{{ exec.role }}</p>
-                    {% if exec.contribution_summary %}
-                        <p class="card-desc">{{ exec.contribution_summary|truncatewords:20 }}</p>
-                    {% endif %}
-                </div>
             </div>
+            <div class="card-body">
+                <h3 class="card-title">{{ exec.name }}</h3>
+                <p class="card-meta">{{ exec.role }}</p>
+                {% if exec.contribution_summary %}
+                    <p class="card-desc">{{ exec.contribution_summary|truncatewords:15 }}</p>
+                {% endif %}
+            </div>
+        </div>
         {% empty %}
-            <p>No executives for this year.</p>
+        <p>No executives for this year.</p>
         {% endfor %}
     </div>
-    <div>
+
+    <!-- Membership Button -->
+    <div class="membership-btn">
         <a href="{% url 'community:membership_apply' %}" class="btn btn-primary">Apply for Membership</a>
     </div>
 </div>

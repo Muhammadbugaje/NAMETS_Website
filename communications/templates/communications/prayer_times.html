@@ -2,43 +2,150 @@
 {% load static %}
 
 {% block title %}Prayer Times | NAMETS{% endblock %}
+
 {% block extra_css %}
-    <style>
-        .namets-striped-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .namets-striped-table th, .namets-striped-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-        .namets-striped-table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .namets-striped-table th {
-            background-color: #43d148;
-            text-align: left;
-        }
-    </style>
+<style>
+.prayer-page {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.prayer-card {
+    background: rgba(255,255,255,0.3);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 24px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+.prayer-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+.prayer-header h2 {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    color: var(--text-primary, #1A1A1A);
+}
+.prayer-header p {
+    color: var(--text-secondary, #5A5A5A);
+    font-size: 0.9rem;
+}
+.prayer-table-wrapper {
+    overflow-x: auto;
+}
+.prayer-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1rem;
+}
+.prayer-table th,
+.prayer-table td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.prayer-table th {
+    background: var(--primary, #0F3D2E);
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+}
+.prayer-table th:first-child {
+    border-top-left-radius: 12px;
+}
+.prayer-table th:last-child {
+    border-top-right-radius: 12px;
+}
+.prayer-table tr:last-child td {
+    border-bottom: none;
+}
+.prayer-table tbody tr:hover {
+    background: rgba(0,0,0,0.02);
+}
+.prayer-table td:first-child {
+    font-weight: 500;
+    color: var(--primary, #0F3D2E);
+}
+.prayer-table td {
+    color: var(--text-primary, #1A1A1A);
+}
+.date-note {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 0.85rem;
+    color: var(--text-secondary, #5A5A5A);
+}
+@media (max-width: 600px) {
+    .prayer-page {
+        padding: 12px;
+    }
+    .prayer-card {
+        padding: 16px;
+    }
+    .prayer-table th,
+    .prayer-table td {
+        padding: 10px 8px;
+        font-size: 0.85rem;
+    }
+}
+</style>
 {% endblock %}
+
 {% block content %}
-<h2>Prayer Times for Engineering Mosque</h2>
-{% if schedule %}
-    <table class="namets-striped-table">
-        <thead>
-            <tr><th>Prayer</th><th>Adhan</th><th>Iqama</th></tr>
-        </thead>
-        <tbody>
-            <tr><td>Fajr</td><td>{{ schedule.fajr_adhan|time:"g:i A" }}</td><td>{{ schedule.fajr_iqama|time:"g:i A" }}</td></tr>
-            <tr><td>Dhuhr</td><td>{{ schedule.dhuhr_adhan|time:"g:i A" }}</td><td>{{ schedule.dhuhr_iqama|time:"g:i A" }}</td></tr>
-            <tr><td>Asr</td><td>{{ schedule.asr_adhan|time:"g:i A" }}</td><td>{{ schedule.asr_iqama|time:"g:i A" }}</td></tr>
-            <tr><td>Maghrib</td><td>{{ schedule.maghrib_adhan|time:"g:i A" }}</td><td>{{ schedule.maghrib_iqama|time:"g:i A" }}</td></tr>
-            <tr><td>Isha</td><td>{{ schedule.isha_adhan|time:"g:i A" }}</td><td>{{ schedule.isha_iqama|time:"g:i A" }}</td></tr>
-        </tbody>
-    </table>
-    <p class="text-muted">Created on {{ schedule.date|date:"l, F j, Y" }}</p>
-{% else %}
-    <p>Prayer schedule not available.</p>
-{% endif %}
+<div class="prayer-page">
+    <div class="prayer-card card-reveal">
+        <div class="prayer-header">
+            <h2>🕌 Engineering Mosque</h2>
+            <p>Prayer Timetable</p>
+        </div>
+
+        {% if schedule %}
+        <div class="prayer-table-wrapper">
+            <table class="prayer-table">
+                <thead>
+                    <tr>
+                        <th>Prayer</th>
+                        <th>Adhan</th>
+                        <th>Iqama</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Fajr</td>
+                        <td>{{ schedule.fajr_adhan|time:"g:i A" }}</td>
+                        <td>{{ schedule.fajr_iqama|time:"g:i A" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Dhuhr</td>
+                        <td>{{ schedule.dhuhr_adhan|time:"g:i A" }}</td>
+                        <td>{{ schedule.dhuhr_iqama|time:"g:i A" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Asr</td>
+                        <td>{{ schedule.asr_adhan|time:"g:i A" }}</td>
+                        <td>{{ schedule.asr_iqama|time:"g:i A" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Maghrib</td>
+                        <td>{{ schedule.maghrib_adhan|time:"g:i A" }}</td>
+                        <td>{{ schedule.maghrib_iqama|time:"g:i A" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Isha</td>
+                        <td>{{ schedule.isha_adhan|time:"g:i A" }}</td>
+                        <td>{{ schedule.isha_iqama|time:"g:i A" }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="date-note">
+            Schedule for {{ schedule.date|date:"l, F j, Y" }}
+        </div>
+        {% else %}
+        <p class="text-muted">Prayer schedule not available.</p>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
