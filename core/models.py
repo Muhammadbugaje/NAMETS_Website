@@ -4,6 +4,8 @@ from django.db import models
 class SiteSettings(models.Model):
     tutor_applications_open = models.BooleanField(default=False, help_text="Allow tutor applications?")
     membership_applications_open = models.BooleanField(default=False, help_text="Allow membership applications?")
+    islamiyya_registration_open = models.BooleanField(default=False)
+    islamiyya_whatsapp_link = models.URLField(blank=True, null=True, help_text="Default WhatsApp group link for Islamiyya after verification")
     tutor_evaluations_open = models.BooleanField(
         default=False,
         help_text="Allow students to submit tutor evaluations?"

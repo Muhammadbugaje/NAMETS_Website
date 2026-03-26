@@ -17,4 +17,8 @@ urlpatterns = [
     path('exams/<int:exam_id>/', views.exam_detail, name='exam_detail'),
     path('results/', views.all_results, name='all_results'),
     path('material/<int:material_id>/download/', views.download_material, name='download_material'),
+    path('islamiyya/register/', views.islamiyya_register, name='islamiyya_register'),
+    path('islamiyya/status/', views.islamiyya_check_status, name='islamiyya_check_status'),
+    path('islamiyya/dashboard/', views.islamiyya_dashboard, name='islamiyya_dashboard'),
+    path('islamiyya/download/', views.islamiyya_download_slip, name='islamiyya_download_slip'),
 ]

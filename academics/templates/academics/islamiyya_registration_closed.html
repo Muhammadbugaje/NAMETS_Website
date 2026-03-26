@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Registration Closed{% endblock %}
+
+{% block extra_css %}
+<style>
+    .closed-container {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .closed-card {
+        max-width: 550px;
+        width: 100%;
+        background: rgba(255,255,255,0.3);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 32px;
+        padding: 40px 35px;
+        text-align: center;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        /* No animation to avoid disappearance */
+    }
+    .closed-icon {
+        font-size: 4rem;
+        line-height: 1;
+        margin-bottom: 15px;
+        color: #C8A951;
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    }
+    .closed-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #1A1A1A;
+        margin-bottom: 15px;
+        letter-spacing: -0.5px;
+    }
+    .closed-subtitle {
+        font-size: 1.2rem;
+        color: #5A5A5A;
+        margin-bottom: 20px;
+        font-weight: 500;
+    }
+    .closed-message {
+        background: rgba(200,169,81,0.1);
+        border-left: 4px solid #C8A951;
+        padding: 16px 20px;
+        border-radius: 16px;
+        margin: 25px 0;
+        text-align: left;
+        color: #1A1A1A;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    .closed-message p:last-child {
+        margin-bottom: 0;
+    }
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: #0F3D2E;
+        color: white;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        margin-top: 10px;
+        box-shadow: 0 8px 20px rgba(15,61,46,0.2);
+    }
+    .back-btn:hover {
+        background: #1a5a44;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(15,61,46,0.3);
+        color: white;
+        text-decoration: none;
+    }
+    .back-btn i {
+        font-size: 1.2rem;
+        transition: transform 0.2s;
+    }
+    .back-btn:hover i {
+        transform: translateX(-4px);
+    }
+    @media (max-width: 600px) {
+        .closed-card {
+            padding: 30px 20px;
+        }
+        .closed-title {
+            font-size: 1.8rem;
+        }
+        .closed-icon {
+            font-size: 3.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="closed-container">
+    <div class="closed-card">
+        <div class="closed-icon">📅</div>
+        <h1 class="closed-title">Registration Closed</h1>
+        <p class="closed-subtitle">Islamiyyah registration is not currently open</p>
+        <div class="closed-message">
+            <p><strong>We appreciate your interest!</strong></p>
+            <p>Registration for Islamiyyah classes is currently closed.</p>
+            <p class="mb-0">Please check back later for the next registration period or contact the NAMETS admin for updates.</p>
+        </div>
+        <a href="{% url 'academics:islamia_list' %}" class="back-btn">
+            <i>←</i> Back to Islamiyya
+        </a>
+    </div>
+</div>
+{% endblock %}

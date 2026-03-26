@@ -152,3 +152,62 @@ class TimetableEntry(models.Model):
 
     def __str__(self):
         return f"{self.get_entry_type_display()}: {self.course_name} - {self.get_day_display()} {self.time_start}"
+    
+    
+
+class IslamiyyaCourse(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+class IslamiyyaRegistration(models.Model):
+    LEVEL_CHOICES = [
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advanced', 'Advanced'),
+    ]
+
+    # Personal details
+    name = models.CharField(max_length=200)
+    registration_number = models.CharField(max_length=50, help_text="Student ID or identification")
+    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=20)
+
+    # Academic details
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default='beginner')
+    courses = models.ManyToManyField(IslamiyyaCourse, blank=True, help_text="Select one or more courses")
+    other_course = models.CharField(max_length=200, blank=True, help_text="If other, specify")
+
+    # Application metadata
+    application_id = models.CharField(max_length=100, unique=True, editable=False)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False, help_text="Payment verified")
+    verified_at = models.DateTimeField(blank=True, null=True)
+    whatsapp_link = models.URLField(blank=True, null=True, help_text="WhatsApp group link (shown after verification)")
+
+    # Admin control
+    is_active = models.BooleanField(default=True, help_text="User's enrollment active (if false, they are deleted or expired)")
+
+    class Meta:
+        ordering = ['-submitted_at']
+
+    def save(self, *args, **kwargs):
+        if not self.application_id:
+            # Generate unique ID: ISL-YYYY-XXXX (year and sequential)
+            last = IslamiyyaRegistration.objects.order_by('-id').first()
+            if last and last.application_id.startswith(f'ISL-{timezone.now().year}'):
+                try:
+                    num = int(last.application_id.split('-')[-1]) + 1
+                except:
+                    num = 1
+            else:
+                num = 1
+            self.application_id = f"ISL-{timezone.now().year}-{num:04d}"
+        if self.is_verified and not self.verified_at:
+            self.verified_at = timezone.now()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.application_id})"

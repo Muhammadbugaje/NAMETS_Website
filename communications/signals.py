@@ -1,12 +1,12 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from .models import Announcement, Subscriber, PrayerSchedule
+from .models import Announcement, DonationCampaign, Subscriber, PrayerSchedule
 from core.services.webhooks import send_webhook
 from community.models import Patron
-
+from django.core.cache import cache
 from events.models import Event
-from communications.models import Subscriber
 
+# ==================== WEBHOOK SIGNALS ====================
 
 @receiver(post_save, sender=Announcement)
 def announcement_saved_handler(sender, instance, created, **kwargs):
@@ -102,6 +102,8 @@ def prayer_saved_handler(sender, instance, created, **kwargs):
     }
     send_webhook('prayer_updated', payload)
 
+
+# -------------------- Event --------------------
 @receiver(post_save, sender=Event)
 def event_saved_handler(sender, instance, created, **kwargs):
     if not created or not instance.send_email:
@@ -130,3 +132,22 @@ def event_saved_handler(sender, instance, created, **kwargs):
         'end_datetime': instance.end_datetime.isoformat() if instance.end_datetime else None,
         'location': instance.location,
     })
+    
+    # ==================== CACHE INVALIDATION SIGNALS ====================
+
+@receiver(post_save, sender=Announcement)
+@receiver(post_delete, sender=Announcement)
+def announcement_cache_invalidator(sender, instance, **kwargs):
+    cache.delete('hp_announcements')
+
+
+@receiver(post_save, sender=PrayerSchedule)
+@receiver(post_delete, sender=PrayerSchedule)
+def prayer_cache_invalidator(sender, instance, **kwargs):
+    cache.delete('hp_prayer')
+
+
+@receiver(post_save, sender=DonationCampaign)
+@receiver(post_delete, sender=DonationCampaign)
+def campaign_cache_invalidator(sender, instance, **kwargs):
+    cache.delete('hp_campaigns')

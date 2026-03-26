@@ -27,6 +27,11 @@ class TutorApplicationForm(forms.ModelForm):
             'past_experience': forms.Textarea(attrs={'rows':3}),
             'availability': forms.Textarea(attrs={'rows':3}),
         }
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if TutorApplication.objects.filter(email=email).exists():
+            raise forms.ValidationError("An application with this email already exists. Please check your status or use a different email.")
+        return email
 
 class MembershipApplicationForm(forms.ModelForm):
     skills = forms.ModelMultipleChoiceField(
@@ -43,3 +48,8 @@ class MembershipApplicationForm(forms.ModelForm):
             'how_work_with_people': forms.Textarea(attrs={'rows':3}),
             'recommendations': forms.Textarea(attrs={'rows':3}),
         }
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if MembershipApplication.objects.filter(email=email).exists():
+            raise forms.ValidationError("An application with this email already exists. Please check your status or use a different email.")
+        return email

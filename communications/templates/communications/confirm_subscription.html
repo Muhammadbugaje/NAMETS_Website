@@ -3,48 +3,151 @@
 
 {% block title %}Confirm Subscription Change | NAMETS{% endblock %}
 
+{% block extra_css %}
+<style>
+    .confirm-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .confirm-card {
+        background: rgba(255,255,255,0.3);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+    .confirm-card h1 {
+        text-align: center;
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        color: var(--text-primary, #1A1A1A);
+    }
+    .pref-comparison {
+        margin: 20px 0;
+    }
+    .pref-box {
+        background: rgba(255,255,255,0.2);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+    .pref-box h3 {
+        font-size: 1.2rem;
+        margin-bottom: 12px;
+        color: var(--accent, #C8A951);
+        border-left: 3px solid var(--accent, #C8A951);
+        padding-left: 12px;
+    }
+    .pref-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .pref-list li {
+        margin-bottom: 8px;
+        font-size: 1rem;
+    }
+    .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 25px;
+        flex-wrap: wrap;
+    }
+    .btn-confirm, .btn-cancel {
+        display: inline-block;
+        padding: 12px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+    .btn-confirm {
+        background: var(--primary, #0F3D2E);
+        color: white;
+    }
+    .btn-confirm:hover {
+        background: #1a5a44;
+        transform: translateY(-2px);
+    }
+    .btn-cancel {
+        background: rgba(170, 28, 28, 0.9);
+        color: white;
+    }
+    .btn-cancel:hover {
+        background: #b32d2d;
+        transform: translateY(-2px);
+    }
+    @media (max-width: 600px) {
+        .confirm-container {
+            padding: 12px;
+        }
+        .confirm-card {
+            padding: 20px;
+        }
+        .pref-box {
+            padding: 12px;
+        }
+        .button-group {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .btn-confirm, .btn-cancel {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h1>Confirm Preference Update</h1>
+<div class="confirm-container">
+    <div class="confirm-card">
+        <h1>Confirm Preference Update</h1>
+        <p class="text-center">You are already subscribed with the email <strong>{{ email }}</strong>.</p>
 
-    <p>You are already subscribed with the email <strong>{{ email }}</strong>.</p>
+        <div class="pref-comparison">
+            <div class="pref-box">
+                <h3>Current Preferences</h3>
+                <ul class="pref-list">
+                    <li>📢 Announcements: {{ current_prefs.notify_announcements|yesno:"✅,❌" }}</li>
+                    <li>📅 Events: {{ current_prefs.notify_events|yesno:"✅,❌" }}</li>
+                    <li>🕌 Prayer time changes: {{ current_prefs.notify_prayer_changes|yesno:"✅,❌" }}</li>
+                </ul>
+            </div>
+            <div class="pref-box">
+                <h3>New Preferences</h3>
+                <ul class="pref-list">
+                    <li>📢 Announcements: {{ new_prefs.notify_announcements|yesno:"✅,❌" }}</li>
+                    <li>📅 Events: {{ new_prefs.notify_events|yesno:"✅,❌" }}</li>
+                    <li>🕌 Prayer time changes: {{ new_prefs.notify_prayer_changes|yesno:"✅,❌" }}</li>
+                </ul>
+            </div>
+        </div>
 
-    <h3>Current Preferences:</h3>
-    <ul>
-        <li>Announcements: {{ current_prefs.notify_announcements|yesno:"✅,❌" }}</li>
-        <li>Events: {{ current_prefs.notify_events|yesno:"✅,❌" }}</li>
-        <li>Prayer time changes: {{ current_prefs.notify_prayer_changes|yesno:"✅,❌" }}</li>
-    </ul>
+        <form method="post" action="{% url 'communications:confirm_subscription' %}">
+            {% csrf_token %}
+            <input type="hidden" name="email" value="{{ email }}">
+            {% if new_prefs.notify_announcements %}
+                <input type="hidden" name="notify_announcements" value="on">
+            {% endif %}
+            {% if new_prefs.notify_events %}
+                <input type="hidden" name="notify_events" value="on">
+            {% endif %}
+            {% if new_prefs.notify_prayer_changes %}
+                <input type="hidden" name="notify_prayer_changes" value="on">
+            {% endif %}
 
-    <h3>New Preferences:</h3>
-    <ul>
-        <li>Announcements: {{ new_prefs.notify_announcements|yesno:"✅,❌" }}</li>
-        <li>Events: {{ new_prefs.notify_events|yesno:"✅,❌" }}</li>
-        <li>Prayer time changes: {{ new_prefs.notify_prayer_changes|yesno:"✅,❌" }}</li>
-    </ul>
-
-    <form method="post" action="{% url 'communications:confirm_subscription' %}">
-        {% csrf_token %}
-
-        <!-- Required hidden fields -->
-        <input type="hidden" name="email" value="{{ email }}">
-
-        <!-- IMPORTANT: send 'on' only if true -->
-        {% if new_prefs.notify_announcements %}
-            <input type="hidden" name="notify_announcements" value="on">
-        {% endif %}
-
-        {% if new_prefs.notify_events %}
-            <input type="hidden" name="notify_events" value="on">
-        {% endif %}
-
-        {% if new_prefs.notify_prayer_changes %}
-            <input type="hidden" name="notify_prayer_changes" value="on">
-        {% endif %}
-
-        <button type="submit" class="btn btn-secondary" style="border: none; border-radius:15px; background-color: rgb(2, 90, 6); color: white; padding:7px; margin-top: 10px;">Confirm Changes</button>
-    </form>
-
-    <a href="{% url 'communications:subscribe' %}" class="btn btn-secondary" style=" border: none; border-radius:15px; background-color: rgb(170, 28, 28); color: white; padding:7px; margin-top: 10px;">Cancel</a>
+            <div class="button-group">
+                <button type="submit" class="btn-confirm">Confirm Changes</button>
+                <a href="{% url 'communications:subscribe' %}" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

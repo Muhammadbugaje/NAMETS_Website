@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Your Islamiyya Registration{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    .dashboard-card { background: rgba(255,255,255,0.3); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.4); border-radius: 24px; padding: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+    .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-weight: 600; }
+    .status-verified { background: #d4edda; color: #155724; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .payment-instruction { background: #e2e3e5; border-left: 4px solid #0F3D2E; padding: 15px; margin: 20px 0; border-radius: 8px; }
+    .btn-download { background: #0F3D2E; color: white; padding: 10px 20px; border-radius: 30px; text-decoration: none; display: inline-block; margin-top: 10px; }
+    .whatsapp-link { margin-top: 20px; padding: 15px; background: #25D36610; border-left: 4px solid #25D366; }
+    @media (max-width: 600px) { .dashboard-card { padding: 20px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-card">
+        <h1>Registration Details</h1>
+
+        <p><strong>Application ID:</strong> {{ registration.application_id }}</p>
+        <p><strong>Name:</strong> {{ registration.name }}</p>
+        <p><strong>Registration Number:</strong> {{ registration.registration_number }}</p>
+        <p><strong>Email:</strong> {{ registration.email }}</p>
+        <p><strong>Phone:</strong> {{ registration.phone }}</p>
+        <p><strong>Level:</strong> {{ registration.get_level_display }}</p>
+        <p><strong>Courses Selected:</strong>
+            {% for course in registration.courses.all %}
+                {{ course.name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+
+        <p><strong>Status:</strong>
+            {% if registration.is_verified %}
+                <span class="status-badge status-verified">✅ Verified (Payment confirmed)</span>
+            {% else %}
+                <span class="status-badge status-pending">⏳ Pending Verification</span>
+            {% endif %}
+        </p>
+
+        {% if not registration.is_verified %}
+            <div class="payment-instruction">
+                <p><strong>Payment Instructions</strong></p>
+                <p>Please visit the <strong>Imam's Office at the Engineering Mosque</strong> to make payment and verify your registration. After verification, you will gain access to the WhatsApp group.</p>
+            </div>
+        {% endif %}
+
+        <!-- Download button -->
+        <a href="{% url 'academics:islamiyya_download_slip' %}" class="btn-download">Download Application Slip</a>
+
+        {% if whatsapp_link %}
+            <div class="whatsapp-link">
+                <p><strong>Join the Islamiyya WhatsApp Group</strong></p>
+                <a href="{{ whatsapp_link }}" target="_blank" class="btn btn-success">Join Group</a>
+                {% if expired %}
+                    <p class="text-danger">Note: This link is only valid for one year from verification. Please contact admin if expired.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <div style="margin-top: 20px;">
+            <a href="{% url 'academics:islamia_list' %}" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

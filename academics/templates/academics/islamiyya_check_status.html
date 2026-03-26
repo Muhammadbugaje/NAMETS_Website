@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Check Islamiyya Status{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .status-card {
+        background: rgba(255,255,255,0.3);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+    .status-card h1 {
+        text-align: center;
+        margin-bottom: 15px;
+        font-size: 1.8rem;
+        color: var(--text-primary, #1A1A1A);
+    }
+    .status-card p {
+        text-align: center;
+        color: var(--text-secondary, #5A5A5A);
+        margin-bottom: 25px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: var(--text-primary, #1A1A1A);
+    }
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.8);
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--accent, #C8A951);
+    }
+    .errorlist {
+        color: #c00;
+        list-style: none;
+        margin: 5px 0 0;
+        padding: 0;
+        font-size: 0.85rem;
+    }
+    .btn-check {
+        width: 100%;
+        padding: 12px;
+        background: var(--primary, #0F3D2E);
+        color: white;
+        border: none;
+        border-radius: 40px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-check:hover {
+        background: #1a5a44;
+    }
+    @media (max-width: 600px) {
+        .status-container {
+            padding: 12px;
+        }
+        .status-card {
+            padding: 20px;
+        }
+        .status-card h1 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="status-container">
+    <div class="status-card">
+        <h1>Check Your Islamiyya Status</h1>
+        <p>Enter your email address or registration number to view your status and download your slip.</p>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="errorlist">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn-check">Check</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

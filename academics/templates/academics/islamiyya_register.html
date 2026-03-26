@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Islamiyya Registration{% endblock %}
+
+{% block extra_css %}
+<style>
+.islamiyya-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.islamiyya-card {
+    background: var(--bg-card, rgba(255,255,255,0.3));
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-glass, rgba(255,255,255,0.4));
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: var(--shadow-sm, 0 8px 20px rgba(0,0,0,0.05));
+}
+.islamiyya-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.islamiyya-header h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+.islamiyya-header p {
+    color: var(--text-secondary, #5A5A5A);
+}
+.form-section {
+    margin-bottom: 24px;
+    border: 1px solid var(--border-light, #E2E0D8);
+    border-radius: 20px;
+    padding: 20px;
+}
+.form-section h2 {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    border-left: 3px solid var(--accent, #C8A951);
+    padding-left: 12px;
+}
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+.form-group {
+    flex: 1;
+    min-width: 200px;
+}
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-glass, rgba(255,255,255,0.4));
+    border-radius: 12px;
+    background: var(--bg-glass, rgba(255,255,255,0.2));
+    backdrop-filter: blur(4px);
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--accent, #C8A951);
+    outline: none;
+}
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+}
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: normal;
+    cursor: pointer;
+}
+.checkbox-group input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent, #C8A951);
+}
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary, #0F3D2E);
+    color: white;
+    border: none;
+    border-radius: 40px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.submit-btn:hover {
+    background: #1a5a44;
+}
+@media (max-width: 600px) {
+    .islamiyya-container { padding: 12px; }
+    .islamiyya-card { padding: 20px; }
+    .form-section { padding: 15px; }
+    .form-row { flex-direction: column; gap: 12px; }
+    .checkbox-group { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="islamiyya-container">
+    <div class="islamiyya-card">
+        <div class="islamiyya-header">
+            <h1>Islamiyya Registration</h1>
+            <p>Join our Islamiyya program – deepen your understanding of Islam.</p>
+        </div>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="form-section">
+                <h2>Personal Information</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.name.id_for_label }}">Full Name *</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}<div class="errorlist">{{ form.name.errors }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.registration_number.id_for_label }}">Registration Number *</label>
+                        {{ form.registration_number }}
+                        {% if form.registration_number.errors %}<div class="errorlist">{{ form.registration_number.errors }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}">Email *</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}<div class="errorlist">{{ form.email.errors }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.phone.id_for_label }}">Phone Number *</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}<div class="errorlist">{{ form.phone.errors }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="form-section">
+                <h2>Academic Details</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.level.id_for_label }}">Level of Knowledge *</label>
+                        {{ form.level }}
+                        {% if form.level.errors %}<div class="errorlist">{{ form.level.errors }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Select Courses (you can choose multiple) *</label>
+                    <div class="checkbox-group">
+                        {{ form.courses }}
+                    </div>
+                    {% if form.courses.errors %}<div class="errorlist">{{ form.courses.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.other_course.id_for_label }}">If other, specify</label>
+                    {{ form.other_course }}
+                    {% if form.other_course.errors %}<div class="errorlist">{{ form.other_course.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">Submit Application</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

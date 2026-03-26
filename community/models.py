@@ -122,7 +122,7 @@ class TutorApplication(models.Model):
     reg_number = models.CharField(max_length=50)
     department = models.CharField(max_length=200)
     cgpa = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True)
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20)
     campus_residence = models.BooleanField(default=True, help_text="Live on campus?")
 
@@ -163,7 +163,7 @@ class MembershipApplication(models.Model):
     ]
 
     name = models.CharField(max_length=200)
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     reg_number = models.CharField(max_length=50, blank=True, help_text="For students")
@@ -199,3 +199,28 @@ class ContactPhone(models.Model):
 
     def __str__(self):
         return f"{self.label}: {self.phone_number}"
+    
+
+class SocialMediaLink(models.Model):
+    PLATFORM_CHOICES = [
+        ('facebook', 'Facebook'),
+        ('twitter', 'Twitter'),
+        ('instagram', 'Instagram'),
+        ('tiktok', 'TikTok'),
+        ('youtube', 'YouTube'),
+        ('linkedin', 'LinkedIn'),
+        ('github', 'GitHub'),
+        ('whatsapp', 'WhatsApp'),
+        ('telegram', 'Telegram'),
+    ]
+
+    platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
+    url = models.URLField(max_length=200)
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.get_platform_display()} - {self.url}"

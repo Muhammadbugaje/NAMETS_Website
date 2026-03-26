@@ -1,11 +1,11 @@
 from django.contrib import admin
 from .models import ContactPhone, Patron, ExecutiveYear, Executive, Developer, Question, Answer, AboutPage, Skill, TutorApplication, MembershipApplication
 from utils.admin_helpers import cloudinary_thumbnail
-
 from django.http import HttpResponse
 import openpyxl
 from openpyxl.utils import get_column_letter
 from datetime import datetime
+from .models import SocialMediaLink
 # Register your models here.
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
@@ -182,3 +182,11 @@ admin.site.register(MembershipApplication, MembershipApplicationAdmin)
 class ContactPhoneAdmin(admin.ModelAdmin):
     list_display = ['label', 'phone_number', 'order', 'is_active']
     list_editable = ['order', 'is_active']
+    
+    
+@admin.register(SocialMediaLink)
+class SocialMediaLinkAdmin(admin.ModelAdmin):
+    list_display = ('platform', 'url', 'order', 'is_active')
+    list_editable = ('order', 'is_active')
+    list_filter = ('platform', 'is_active')
+    search_fields = ('url',)

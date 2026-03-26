@@ -15,6 +15,8 @@
 
   <!-- Swiper CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 
   {% block extra_css %}{% endblock %}
 </head>
@@ -47,8 +49,9 @@
         <a href="{% url 'community:about' %}">About</a>
         <a href="{% url 'communications:announcement_list' %}">Announcements</a>
         <a href="{% url 'events:list' %}">Events</a>
+        <a href="{% url 'academics:course_list' %}">Academics</a>
         <a href="{% url 'academics:tutorial_list' %}">Tutorials</a>
-        <a href="{% url 'academics:islamia_list' %}">Islamia</a>
+        <a href="{% url 'academics:islamia_list' %}">Islamiyyah</a>
         <a href="{% url 'lostfound:list' %}">Lost &amp; Found</a>
         <a href="{% url 'community:question_list' %}">Q&amp;A</a>
         <a href="{% url 'gallery:list' %}">Gallery</a>
@@ -80,7 +83,8 @@
       <a href="{% url 'core:homepage' %}">Home</a>
       <a href="{% url 'events:list' %}">Events</a>
       <a href="{% url 'communications:announcement_list' %}">Announcements</a>
-      <a href="{% url 'academics:islamia_list' %}">Islamia</a>
+      <a href="{% url 'academics:course_list' %}">Academics</a>
+      <a href="{% url 'academics:islamia_list' %}">Islamiyyah</a>
       <a href="{% url 'academics:tutorial_list' %}">Tutorials</a>
       <a href="{% url 'community:question_list' %}">Q&amp;A</a>
       <a href="{% url 'lostfound:list' %}">Lost &amp; Found</a>
@@ -98,22 +102,47 @@
     </div>
   </aside>
 
-  <!-- Main Content -->
+<!-- Main Content -->
 <main class="main-content">
     <div class="container">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div id="django-modal-overlay" style="display:flex; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center; background:rgba(0,0,0,0.45);">
+                <div style="background:var(--bs-body-bg, #fff); border-radius:16px; padding:2rem 2.5rem; max-width:420px; width:90%; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+                    {% if 'error' in message.tags or 'danger' in message.tags %}
+                        <div style="width:56px;height:56px;border-radius:50%;background:#FCEBEB;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        </div>
+                        <h5 style="color:#A32D2D;margin-bottom:.5rem;font-weight:600;">Error</h5>
+                    {% elif 'success' in message.tags %}
+                        <div style="width:56px;height:56px;border-radius:50%;background:#EAF3DE;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3B6D11" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                        </div>
+                        <h5 style="color:#3B6D11;margin-bottom:.5rem;font-weight:600;">Success</h5>
+                    {% elif 'warning' in message.tags %}
+                        <div style="width:56px;height:56px;border-radius:50%;background:#FAEEDA;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </div>
+                        <h5 style="color:#854F0B;margin-bottom:.5rem;font-weight:600;">Warning</h5>
+                    {% else %}
+                        <div style="width:56px;height:56px;border-radius:50%;background:#E6F1FB;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        </div>
+                        <h5 style="color:#185FA5;margin-bottom:.5rem;font-weight:600;">Notice</h5>
+                    {% endif %}
+                    <p style="color:#444;margin-bottom:1.5rem;font-size:15px;line-height:1.6;">{{ message }}</p>
+                    <button onclick="document.getElementById('django-modal-overlay').style.display='none'" 
+                        style="background:#1a3c2e;color:#fff;border:none;border-radius:8px;padding:.6rem 2rem;font-size:15px;cursor:pointer;width:100%;">
+                        OK
+                    </button>
                 </div>
+            </div>
             {% endfor %}
         {% endif %}
 
         {% block content %}{% endblock %}
     </div>
 </main>
-
   <!-- Site Footer -->
   <footer class="site-footer card-reveal">
     <div class="container footer-grid">
@@ -128,20 +157,21 @@
           <li><a href="{% url 'community:question_list' %}">Q&amp;A</a></li>
           <li><a href="{% url 'community:about' %}">About</a></li>
           <li><a href="{% url 'events:list' %}">Events</a></li>
-          <li><a href="{% url 'academics:islamia_list' %}">Islamia</a></li>
           <li><a href="{% url 'gallery:list' %}">Gallery</a></li>
           <li><a href="{% url 'community:patron_list' %}">Patrons</a></li>
           <li><a href="{% url 'communications:mosque_info' %}">Mosque</a></li>
           <li><a href="{% url 'academics:tutorial_list' %}">Tutorials</a></li>
           <li><a href="{% url 'community:executive_list' %}">Executive</a></li>
           <li><a href="{% url 'communications:donation_list' %}">Donations</a></li>
+          <li><a href="{% url 'academics:islamia_list' %}">Islamiyyah</a></li>
+          <li><a href="{% url 'academics:course_list' %}">Academics</a></li>
           <li><a href="{% url 'community:developer_list' %}">Developers</a></li>
           <li><a href="{% url 'communications:unsubscribe_by_email' %}">Unsubscribe</a></li>
           <li><a href="{% url 'communications:prayer_times' %}">Prayer Times</a></li>
           <li><a href="{% url 'lostfound:list' %}">Lost &amp; Found</a></li>
           <li><a href="{% url 'communications:announcement_list' %}">Announcements</a></li>
         </ul>
-      </div>
+      </div> 
       <div class="footer-col">
         <h3 class="footer-heading">Contact</h3>
         <p>Ahmadu Bello University, Faculty of Engineering, Main Campus</p>
@@ -154,6 +184,40 @@
                 {% endfor %}
             </ul>
         </div>
+        <!-- Social Media Links -->
+        {% if social_links %}
+        <div class="social-links-section">
+            <div class="container">
+                <div class="social-icons">
+                    {% for link in social_links %}
+                        <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="social-icon">
+                            {% if link.platform == 'facebook' %}
+                                <i class="fab fa-facebook-f"></i>
+                            {% elif link.platform == 'twitter' %}
+                                <i class="fab fa-twitter"></i>
+                            {% elif link.platform == 'instagram' %}
+                                <i class="fab fa-instagram"></i>
+                            {% elif link.platform == 'tiktok' %}
+                                <i class="fab fa-tiktok"></i>
+                            {% elif link.platform == 'youtube' %}
+                                <i class="fab fa-youtube"></i>
+                            {% elif link.platform == 'linkedin' %}
+                                <i class="fab fa-linkedin-in"></i>
+                            {% elif link.platform == 'github' %}
+                                <i class="fab fa-github"></i>
+                            {% elif link.platform == 'whatsapp' %}
+                                <i class="fab fa-whatsapp"></i>
+                            {% elif link.platform == 'telegram' %}
+                                <i class="fab fa-telegram"></i>
+                            {% else %}
+                                <i class="fas fa-link"></i>
+                            {% endif %}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
       </div>
     </div>
     <div class="footer-bottom">

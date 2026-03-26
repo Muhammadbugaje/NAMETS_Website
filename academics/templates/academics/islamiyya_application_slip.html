@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Application Slip - {{ registration.name }}</title>
+    <style>
+        body {
+            font-family: 'DejaVu Sans', sans-serif;
+            margin: 2cm;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logos {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-height: 80px;
+        }
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .details {
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            padding: 15px;
+        }
+        .details p {
+            margin: 5px 0;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+        }
+        .signature {
+            margin-top: 40px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logos">
+            <img src="file://{{ static_path }}/images/namets_logo.png" class="logo" alt="NAMETS Logo">
+            <img src="file://{{ static_path }}/images/abu_logo.png" class="logo" alt="ABU Logo">
+        </div>
+        <div class="title">ISLAMIYYA REGISTRATION SLIP</div>
+        <div class="subtitle">Ahmadu Bello University, Zaria – NAMETS</div>
+    </div>
+    <div class="details">
+        <p><strong>Application ID:</strong> {{ registration.application_id }}</p>
+        <p><strong>Name:</strong> {{ registration.name }}</p>
+        <p><strong>Registration Number:</strong> {{ registration.registration_number }}</p>
+        <p><strong>Email:</strong> {{ registration.email }}</p>
+        <p><strong>Phone:</strong> {{ registration.phone }}</p>
+        <p><strong>Level:</strong> {{ registration.get_level_display }}</p>
+        <p><strong>Courses:</strong> 
+            {% for course in registration.courses.all %}{{ course.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            {% if registration.other_course %}{% if registration.courses.all %}, {% endif %}{{ registration.other_course }}{% endif %}
+        </p>
+        <p><strong>Registration Date:</strong> {{ registration.submitted_at|date:"F j, Y" }}</p>
+        <p><strong>Payment Status:</strong> {% if registration.is_verified %}✅ Paid & Verified{% else %}⏳ Pending Verification{% endif %}</p>
+    </div>
+    <div class="signature">
+        ____________________<br>
+        NAMETS Coordinator
+    </div>
+    <div class="footer">
+        <p>Please present this slip at the mosque after payment verification. For any inquiries, contact the NAMETS administration.</p>
+    </div>
+</body>
+</html>

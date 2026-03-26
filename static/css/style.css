@@ -57,10 +57,12 @@ ul {
   list-style: none;
 }
 
+/* 
 img {
   max-width: 100%;
   display: block;
 }
+*/
 
 /* ---------- Container ---------- */
 .container {
@@ -180,6 +182,7 @@ img {
   height: 64px;
 }
 
+/*
 .logo {
   display: flex;
   align-items: center;
@@ -194,7 +197,7 @@ img {
   width: 20%;
   height: 20%;
 }
-
+*/
 
 .desktop-nav {
   display: none;
@@ -445,7 +448,7 @@ img {
 }
 
 .footer-bottom {
-  margin-top: 40px;
+  margin-top: 16px;
   padding: 16px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   text-align: center;

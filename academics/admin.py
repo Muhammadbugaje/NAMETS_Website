@@ -11,6 +11,8 @@ from openpyxl.utils import get_column_letter
 from datetime import datetime
 from .models import TimetableEntry
 from .views import upload_timetable_excel
+from .models import IslamiyyaRegistration, IslamiyyaCourse
+
 
 # Register your models here.
 
@@ -197,4 +199,56 @@ class TimetableEntryAdmin(admin.ModelAdmin):
         extra_context = extra_context or {}
         extra_context['upload_button'] = True
         return super().changelist_view(request, extra_context=extra_context)
+  
+
+@admin.register(IslamiyyaCourse)
+class IslamiyyaCourseAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_active')
+    list_editable = ('is_active',)
+    search_fields = ('name',)
+
+def export_islamiyya_registrations_to_excel(modeladmin, request, queryset):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename=islamiyya_registrations_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Islamiyya Registrations"
+
+    headers = ['Application ID', 'Name', 'Registration Number', 'Email', 'Phone', 'Level', 'Courses', 'Other Course', 'Submitted At', 'Verified', 'WhatsApp Link']
+    for col_num, header in enumerate(headers, 1):
+        col_letter = get_column_letter(col_num)
+        ws[f'{col_letter}1'] = header
+        ws[f'{col_letter}1'].font = openpyxl.styles.Font(bold=True)
+
+    for row_num, obj in enumerate(queryset, 2):
+        ws[f'A{row_num}'] = obj.application_id
+        ws[f'B{row_num}'] = obj.name
+        ws[f'C{row_num}'] = obj.registration_number
+        ws[f'D{row_num}'] = obj.email
+        ws[f'E{row_num}'] = obj.phone
+        ws[f'F{row_num}'] = obj.get_level_display()
+        courses_str = ', '.join([c.name for c in obj.courses.all()])
+        ws[f'G{row_num}'] = courses_str
+        ws[f'H{row_num}'] = obj.other_course
+        ws[f'I{row_num}'] = obj.submitted_at.strftime('%Y-%m-%d %H:%M')
+        ws[f'J{row_num}'] = 'Yes' if obj.is_verified else 'No'
+        ws[f'K{row_num}'] = obj.whatsapp_link or ''
+    wb.save(response)
+    return response
+export_islamiyya_registrations_to_excel.short_description = "Export selected to Excel"
+
+@admin.register(IslamiyyaRegistration)
+class IslamiyyaRegistrationAdmin(admin.ModelAdmin):
+    list_display = ('application_id', 'name', 'email', 'level', 'submitted_at', 'is_verified')
+    list_filter = ('is_verified', 'level', 'courses')
+    search_fields = ('name', 'email', 'application_id', 'registration_number')
+    filter_horizontal = ('courses',)
+    actions = [export_islamiyya_registrations_to_excel, 'mark_verified']
+
+    def mark_verified(self, request, queryset):
+        for obj in queryset:
+            obj.is_verified = True
+            obj.save()
+    mark_verified.short_description = "Mark selected as verified (payment confirmed)"
     

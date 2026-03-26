@@ -91,6 +91,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'community.context_processors.developers',
                 'community.context_processors.contact_phones',
+                'community.context_processors.social_links',
             ],
         },
     },
@@ -125,7 +126,6 @@ DATABASES = {
         'OPTIONS': dict(parse_qsl(tmpPostgres.query)),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -191,10 +191,10 @@ class N8NAuthentication(BaseAuthentication):
     
     
 # API token for n8n authentication
-N8N_API_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YTYxNGQyMi0xNzM1LTQwYjYtYmQ0Yy00YjFlNDRjZGFkYTgiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiNmE3MDljOWMtNGU1Yi00M2VjLTgzYzYtMDhhNzcyNTgwNzQ5IiwiaWF0IjoxNzcyODgzNTgyfQ.7kn03qH9ytLD-laIc36cFdV1quyrPrdEn8dH6rasPP4' 
+N8N_API_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlZDhmZTI0Ny1mYjU2LTQ5NDYtOGQxOS05ZTQ1MmFhY2E0YjIiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiYTg4OTkzN2UtNmZiYy00NzZhLThmN2YtNTU2NGI4NWFjOTkwIiwiaWF0IjoxNzc0MzI5NjQxfQ.uhm4T81lzsZ33zXwcJnChH6lV06_jpj6EuYedyhGiko' 
 
 
-N8N_WEBHOOK_URL = 'https://n8n-render-5s6o.onrender.com/webhook/namets-events'
+N8N_WEBHOOK_URL = 'https://namets-n8n.onrender.com/webhook/namets-events'
 WEBHOOK_SECRET = 'qnonxhxlwftbyyqm'
 """
 # for hosting on render and allowing render to send requests to our webhook endpoint, we need to allow render's domain in the allowed hosts and csrf trusted origins.
@@ -232,6 +232,12 @@ CLOUDINARY_STORAGE = {
 # Tell Django to use Cloudinary for media files in production
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'namets-homepage-cache',
+    }
+}
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)

@@ -8,13 +8,20 @@ import openpyxl
 from .models import TimetableEntry
 from django.http import FileResponse, Http404
 import os
-from datetime import datetime
-
+from datetime import datetime, timedelta
 from .selectors import get_all_results
 from .models import Course
 from cloudinary.utils import cloudinary_url
-
 from core.models import SiteSettings
+from .forms import IslamiyyaRegistrationForm, CheckStatusForm
+from .models import IslamiyyaRegistration
+from .utils import render_to_pdf
+from django.urls import reverse
+from django.http import HttpResponse
+from django.utils import timezone
+from django.conf import settings
+from django.db.models import Q
+
 # Create your views here.
 
 def course_list(request):
@@ -294,3 +301,96 @@ def upload_timetable_excel(request):
         'title': 'Upload Timetable Excel',
     }
     return render(request, 'admin/academics/timetable_upload.html', context)
+
+
+
+def islamiyya_registration_open(request):
+    settings = SiteSettings.objects.first()
+    return settings and settings.islamiyya_registration_open
+
+def islamiyya_register(request):
+    if not islamiyya_registration_open(request):
+        return render(request, 'academics/islamiyya_registration_closed.html')
+
+    if request.method == 'POST':
+        form = IslamiyyaRegistrationForm(request.POST)
+        if form.is_valid():
+            registration = form.save()
+            request.session['islamiyya_app_id'] = registration.application_id
+            messages.success(request, 'Registration successful! You can now download your application slip from your dashboard.')
+            return redirect('academics:islamiyya_dashboard')
+    else:
+        form = IslamiyyaRegistrationForm()
+    return render(request, 'academics/islamiyya_register.html', {'form': form})
+
+def islamiyya_check_status(request):
+    if request.method == 'POST':
+        form = CheckStatusForm(request.POST)
+        if form.is_valid():
+            identifier = form.cleaned_data['identifier']
+            try:
+                registration = IslamiyyaRegistration.objects.get(email=identifier)
+            except IslamiyyaRegistration.DoesNotExist:
+                try:
+                    registration = IslamiyyaRegistration.objects.get(registration_number=identifier)
+                except IslamiyyaRegistration.DoesNotExist:
+                    registration = None
+            if registration:
+                # Store in session to allow download later
+                request.session['islamiyya_app_id'] = registration.application_id
+                return redirect('academics:islamiyya_dashboard')
+            else:
+                messages.error(request, 'No registration found with that email or registration number.')
+                return redirect('academics:islamiyya_check_status')
+    else:
+        form = CheckStatusForm()
+    return render(request, 'academics/islamiyya_check_status.html', {'form': form})
+
+def islamiyya_dashboard(request):
+    app_id = request.session.get('islamiyya_app_id')
+    if not app_id:
+        messages.error(request, 'Please check your status first.')
+        return redirect('academics:islamiyya_check_status')
+    registration = get_object_or_404(IslamiyyaRegistration, application_id=app_id)
+
+    # Get global WhatsApp link from SiteSettings
+    settings_obj = SiteSettings.objects.first()
+    default_whatsapp = settings_obj.islamiyya_whatsapp_link if settings_obj else None
+
+    if registration.is_verified:
+        whatsapp_link = registration.whatsapp_link or default_whatsapp
+        if registration.verified_at and registration.verified_at < timezone.now() - timedelta(days=365):
+            whatsapp_link = None
+            expired = True
+        else:
+            expired = False
+    else:
+        whatsapp_link = None
+        expired = False
+
+    return render(request, 'academics/islamiyya_dashboard.html', {
+        'registration': registration,
+        'whatsapp_link': whatsapp_link,
+        'expired': expired,
+    })
+
+def islamiyya_download_slip(request):
+    app_id = request.session.get('islamiyya_app_id')
+    if not app_id:
+        messages.error(request, 'Please check your status first.')
+        return redirect('academics:islamiyya_check_status')
+    registration = get_object_or_404(IslamiyyaRegistration, application_id=app_id)
+
+    # Build absolute static URL for logos
+    static_url = request.build_absolute_uri('/static/')
+    pdf = render_to_pdf('academics/islamiyya_application_slip.html', {
+        'registration': registration,
+        'static_url': static_url,
+    })
+    if pdf:
+        response = pdf
+        response['Content-Disposition'] = f'attachment; filename="application_{registration.application_id}.pdf"'
+        return response
+    else:
+        messages.error(request, 'Error generating PDF.')
+        return redirect('academics:islamiyya_dashboard')

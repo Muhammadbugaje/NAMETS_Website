@@ -496,6 +496,11 @@
     }
     .scale-select {
         width: 100%;
+        padding: 8px 12px;
+        flex: 0;
+    }
+    .form-group {
+    flex: 0;
     }
     .custom-grade-grid {
         grid-template-columns: 1fr 1fr;
@@ -602,6 +607,14 @@
         overflow-x: visible;
         background: none;
     }
+    .isamiyyah-entroll {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0 -5px;
+    }
 }
 
 .scroll-hint {
@@ -626,4 +639,13 @@
 }
 .scroll-hint.hidden {
     opacity: 0;
+}
+
+.isamiyyah-entroll {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0 -5px;
 }

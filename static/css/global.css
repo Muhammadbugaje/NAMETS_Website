@@ -955,3 +955,85 @@ body.menu-open .drawer-nav a:nth-child(15) { transition-delay: 0.8s; }
     background: var(--bg-primary, #F9F9F6);
     color: var(--text-primary, #1A1A1A);
 }
+
+/* Logo styling – round and refined */
+.logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--primary, #0F3D2E);
+}
+
+.logo-icon {
+    width: 45px;
+    height: 47px;
+    border-radius: 50%;          /* Makes the image round */
+    object-fit: cover;           /* Ensures the image fills the circle */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.logo-icon:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.logo-text {
+    font-family: 'Merriweather', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* Adjust for mobile */
+@media (max-width: 600px) {
+    .logo-icon {
+        width: 45px;
+        height: 47px;
+    }
+    .logo-text {
+        font-size: 1.3rem;
+    }
+}
+
+/* Social links section */
+.social-links-section {
+    text-align: center;
+    padding: 20px 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    color: white;
+    font-size: 1.2rem;
+    transition: background 0.2s, transform 0.2s;
+    text-decoration: none;
+}
+.social-icon:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+    color: white;
+}
+@media (max-width: 600px) {
+    .social-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+    .social-icons {
+        gap: 15px;
+    }
+}
