@@ -1,70 +1,441 @@
-{% extends "base.html" %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAMETS Islamia Registration Slip</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #f0ebe3;
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            gap: 1rem;
+        }
+        .print-btn {
+            background: #1a3c2e; color: #c9a84c; border: none;
+            padding: 0.7rem 2rem; font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;
+            font-weight: 600; cursor: pointer; border-radius: 2px;
+            display: flex; align-items: center; gap: 0.5rem; transition: opacity 0.2s;
+        }
+        .print-btn:hover { opacity: 0.85; }
+        @media print {
+            .print-btn { display: none !important; }
+            body { background: white; padding: 0; }
+            .slip { box-shadow: none !important; }
+        }
+        .slip {
+            width: 794px; background: #fff;
+            position: relative; overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+        }
+        .slip::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                repeating-linear-gradient(60deg, transparent, transparent 30px, rgba(26,60,46,0.025) 30px, rgba(26,60,46,0.025) 31px),
+                repeating-linear-gradient(-60deg, transparent, transparent 30px, rgba(26,60,46,0.025) 30px, rgba(26,60,46,0.025) 31px);
+            pointer-events: none; z-index: 0;
+        }
+        .slip::after {
+            content: ''; position: absolute;
+            left: 0; top: 0; bottom: 0; width: 6px;
+            background: linear-gradient(180deg, #1a3c2e 0%, #c9a84c 50%, #1a3c2e 100%);
+            z-index: 2;
+        }
+        /* Header */
+        .header {
+            background: #1a3c2e;
+            padding: 1.4rem 2.4rem 1.2rem 2.8rem;
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative; z-index: 1;
+        }
+        .header-logos { display: flex; align-items: center; gap: 1.2rem; }
+        .logo-circle {
+            width: 62px; height: 62px; border-radius: 50%;
+            background: rgba(255,255,255,0.12);
+            border: 2px solid rgba(201,168,76,0.6);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 9px; color: #c9a84c; font-weight: 600;
+            text-align: center; letter-spacing: 0.5px; line-height: 1.3; flex-shrink: 0;
+        }
+        .logo-divider { width: 1px; height: 50px; background: rgba(201,168,76,0.4); }
+        .header-center { flex: 1; text-align: center; padding: 0 1rem; }
+        .arabic-title {
+            font-family: 'Amiri', serif; font-size: 1.5rem;
+            color: #c9a84c; letter-spacing: 1px; line-height: 1; margin-bottom: 0.2rem;
+        }
+        .org-name {
+            font-family: 'Playfair Display', serif; font-size: 1.05rem;
+            color: #fff; letter-spacing: 3px; font-weight: 600; text-transform: uppercase;
+        }
+        .org-sub {
+            font-size: 0.65rem; color: rgba(255,255,255,0.65);
+            letter-spacing: 1.5px; text-transform: uppercase; margin-top: 0.2rem;
+        }
+        /* Gold band */
+        .gold-band {
+            background: #c9a84c; padding: 0.45rem 2.8rem;
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative; z-index: 1;
+        }
+        .gold-band-text {
+            font-family: 'Playfair Display', serif; font-size: 0.85rem;
+            color: #1a3c2e; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .gold-band-line { flex: 1; height: 1px; background: rgba(26,60,46,0.3); margin: 0 1rem; }
+        /* App ID + STATUS */
+        .app-id-banner {
+            background: #f8f5f0; border-bottom: 1px solid #e8e0d0;
+            padding: 1rem 2.8rem;
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative; z-index: 1;
+        }
+        .app-id-label { font-size: 0.7rem; color: #888; letter-spacing: 2px; text-transform: uppercase; font-weight: 500; }
+        .app-id-value {
+            font-family: 'Playfair Display', serif; font-size: 1.4rem;
+            color: #1a3c2e; font-weight: 700; letter-spacing: 3px;
+        }
+        .status-block { text-align: right; }
+        .status-label { font-size: 0.6rem; color: #aaa; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.4rem; }
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1.4rem; border-radius: 3px;
+            font-size: 0.85rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .status-pending { background: #fff8e6; color: #a07800; border: 2px solid #e6c84c; }
+        .status-approved { background: #eaf7f0; color: #1a6b3c; border: 2px solid #5ecb8d; }
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: currentColor; animation: pulse 1.5s infinite;
+        }
+        .status-approved .status-dot { animation: none; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        /* Body */
+        .body { padding: 1.4rem 2.8rem 1.4rem; position: relative; z-index: 1; }
+        .section-title {
+            font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
+            color: #1a3c2e; font-weight: 600; margin-bottom: 0.8rem;
+            display: flex; align-items: center; gap: 0.6rem;
+        }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: #e0d8cc; }
+        .personal-row { display: flex; gap: 1.5rem; align-items: flex-start; margin-bottom: 1.2rem; }
+        .personal-fields { flex: 1; }
+        .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem 2rem; }
+        .fields-grid.three-col { grid-template-columns: 1fr 1fr 1fr; }
+        .fields-grid.mb { margin-bottom: 1.2rem; }
+        .field { border-bottom: 1px solid #e8e0d0; padding-bottom: 0.5rem; }
+        .field-label { font-size: 0.6rem; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; font-weight: 500; margin-bottom: 0.2rem; }
+        .field-value { font-size: 0.88rem; color: #1a1a1a; font-weight: 500; }
+        .field-value.green { color: #1a3c2e; font-weight: 600; }
+        /* Photo */
+        .photo-box { width: 90px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+        .photo-frame {
+            width: 90px; height: 110px; border: 2px dashed #c9a84c;
+            background: #f8f5f0; display: flex;
+            align-items: center; justify-content: center;
+            overflow: hidden; position: relative;
+        }
+        .photo-frame img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .photo-frame svg {
+            width: 48px; height: 48px; stroke: #1a3c2e; stroke-width: 1.2;
+        }
+        .photo-caption {
+            font-size: 0.55rem; color: #bbb; letter-spacing: 1px; text-transform: uppercase;
+        }
+        /* Knowledge bar */
+        .knowledge-bar { display: flex; gap: 3px; margin-top: 0.3rem; }
+        .knowledge-bar span { height: 6px; flex: 1; border-radius: 1px; background: #e8e0d0; }
+        .knowledge-bar span.active { background: #c9a84c; }
+        /* Subjects */
+        .subjects-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.3rem; }
+        .subject-tag {
+            padding: 0.2rem 0.7rem; background: #f0f7f4;
+            border: 1px solid #c5ddd4; color: #1a3c2e;
+            font-size: 0.72rem; font-weight: 500; border-radius: 2px; letter-spacing: 0.5px;
+        }
+        /* Ornament */
+        .ornament-divider {
+            text-align: center; color: #c9a84c;
+            font-size: 1rem; letter-spacing: 8px; margin: 0.9rem 0; position: relative;
+        }
+        .ornament-divider::before, .ornament-divider::after {
+            content: ''; position: absolute; top: 50%; width: 35%; height: 1px;
+        }
+        .ornament-divider::before { left: 0; background: linear-gradient(90deg, transparent, #e0d0b0); }
+        .ornament-divider::after { right: 0; background: linear-gradient(90deg, #e0d0b0, transparent); }
+        /* Notice */
+        .notice {
+            background: #f0f7f4;
+            border: 1px solid #c5ddd4;
+            border-left: 3px solid #1a3c2e;
+            padding: 0.8rem 1.2rem;
+            border-radius: 0 3px 3px 0;
+            display: flex; align-items: flex-start; gap: 0.8rem;
+        }
+        .notice svg { flex-shrink: 0; margin-top: 1px; }
+        .notice p { font-size: 0.72rem; color: #444; line-height: 1.7; }
+        .notice strong { color: #1a3c2e; }
+        /* Verify row */
+        .verify-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 1rem; padding: 0.8rem 1rem;
+            background: #f8f5f0; border: 1px solid #e8e0d0;
+        }
+        .verify-url-label { font-size: 0.58rem; color: #aaa; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.2rem; }
+        .verify-url { font-size: 0.78rem; color: #1a3c2e; font-weight: 600; letter-spacing: 0.5px; }
+        .qr-placeholder {
+            width: 52px; height: 52px; border: 2px solid rgba(26,60,46,0.2);
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; padding: 4px;
+        }
+        .qr-placeholder span { background: rgba(26,60,46,0.3); border-radius: 1px; }
+        .qr-placeholder span:nth-child(2),
+        .qr-placeholder span:nth-child(4),
+        .qr-placeholder span:nth-child(6) { background: transparent; }
+        /* Footer */
+        .footer {
+            background: #1a3c2e; padding: 0.9rem 2.8rem;
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative; z-index: 1; margin-top: 1rem;
+        }
+        .footer-namets { font-family: 'Playfair Display', serif; font-size: 0.8rem; color: #c9a84c; letter-spacing: 2px; }
+        .footer-text { font-size: 0.65rem; color: rgba(255,255,255,0.5); letter-spacing: 1px; margin-top: 3px; }
+        /* Watermark */
+        .watermark {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-35deg);
+            font-family: 'Playfair Display', serif; font-size: 5rem; font-weight: 700;
+            color: rgba(26,60,46,0.04); letter-spacing: 8px;
+            pointer-events: none; white-space: nowrap; z-index: 0; text-transform: uppercase;
+        }
+        .logo-icon {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;          /* Makes the image round */
+            object-fit: cover;           /* Ensures the image fills the circle */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+    </style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Save as PDF
+</button>
+<div class="slip">
+    <div class="watermark">NAMETS</div>
 
-{% block title %}Your Islamiyya Registration{% endblock %}
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-logos">
+            <div class="logo-circle"><img src="{% static 'images/ABU logo_1.jpg' %}" class="logo-icon"></div>
+            <div class="logo-divider"></div>
+            <div class="logo-circle"><img src="{% static 'images\Namets.jpg' %}" class="logo-icon"></div>
+        </div>
+        <div class="header-center">
+            <div class="arabic-title">بسم الله الرحمن الرحيم</div>
+            <div class="org-name">NAMETS</div>
+            <div class="org-sub">National Association of Muslim Engineering &amp; Technology Students</div>
+            <div class="org-sub" style="color:rgba(201,168,76,0.8); margin-top:2px;">Ahmadu Bello University, Zaria · Islamia Department</div>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-size:0.6rem; color:rgba(255,255,255,0.45); letter-spacing:1px; text-transform:uppercase;">Issued</div>
+            <div style="font-size:0.8rem; color:#c9a84c; font-weight:500; margin-top:2px;">{{ registration.submitted_at|date:"d M Y" }}</div>
+            <div style="font-size:0.6rem; color:rgba(255,255,255,0.35); margin-top:4px;">Session {{ registration.submitted_at|date:"Y" }}/{{ registration.submitted_at|date:"Y"|add:"1" }}</div>
+        </div>
+    </div>
 
-{% block extra_css %}
-<style>
-    .dashboard-container { max-width: 800px; margin: 0 auto; padding: 20px; }
-    .dashboard-card { background: rgba(255,255,255,0.3); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.4); border-radius: 24px; padding: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
-    .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-weight: 600; }
-    .status-verified { background: #d4edda; color: #155724; }
-    .status-pending { background: #fff3cd; color: #856404; }
-    .payment-instruction { background: #e2e3e5; border-left: 4px solid #0F3D2E; padding: 15px; margin: 20px 0; border-radius: 8px; }
-    .btn-download { background: #0F3D2E; color: white; padding: 10px 20px; border-radius: 30px; text-decoration: none; display: inline-block; margin-top: 10px; }
-    .whatsapp-link { margin-top: 20px; padding: 15px; background: #25D36610; border-left: 4px solid #25D366; }
-    @media (max-width: 600px) { .dashboard-card { padding: 20px; } }
-</style>
-{% endblock %}
+    <!-- GOLD BAND -->
+    <div class="gold-band">
+        <div class="gold-band-text">Islamia Registration Slip</div>
+        <div class="gold-band-line"></div>
+        <div class="gold-band-text">Official Document</div>
+    </div>
 
-{% block content %}
-<div class="dashboard-container">
-    <div class="dashboard-card">
-        <h1>Registration Details</h1>
-
-        <p><strong>Application ID:</strong> {{ registration.application_id }}</p>
-        <p><strong>Name:</strong> {{ registration.name }}</p>
-        <p><strong>Registration Number:</strong> {{ registration.registration_number }}</p>
-        <p><strong>Email:</strong> {{ registration.email }}</p>
-        <p><strong>Phone:</strong> {{ registration.phone }}</p>
-        <p><strong>Level:</strong> {{ registration.get_level_display }}</p>
-        <p><strong>Courses Selected:</strong>
-            {% for course in registration.courses.all %}
-                {{ course.name }}{% if not forloop.last %}, {% endif %}
-            {% endfor %}
-        </p>
-
-        <p><strong>Status:</strong>
+    <!-- APP ID + STATUS -->
+    <div class="app-id-banner">
+        <div>
+            <div class="app-id-label">Application ID</div>
+            <div class="app-id-value">{{ registration.application_id }}</div>
+        </div>
+        <div class="status-block">
+            <div class="status-label">Application Status</div>
             {% if registration.is_verified %}
-                <span class="status-badge status-verified">✅ Verified (Payment confirmed)</span>
+                <div class="status-badge status-approved">
+                    ✓ &nbsp; Marhaba! Verified
+                </div>
             {% else %}
-                <span class="status-badge status-pending">⏳ Pending Verification</span>
+                <div class="status-badge status-pending">
+                    <span class="status-dot"></span>
+                    Pending Verification
+                </div>
             {% endif %}
-        </p>
+        </div>
+    </div>
 
-        {% if not registration.is_verified %}
-            <div class="payment-instruction">
-                <p><strong>Payment Instructions</strong></p>
-                <p>Please visit the <strong>Imam's Office at the Engineering Mosque</strong> to make payment and verify your registration. After verification, you will gain access to the WhatsApp group.</p>
+    <!-- BODY -->
+    <div class="body">
+        <div class="section-title">Personal Information</div>
+        <div class="personal-row">
+            <div class="personal-fields">
+                <div class="fields-grid mb">
+                    <div class="field">
+                        <div class="field-label">Full Name</div>
+                        <div class="field-value green">{{ registration.name }}</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Student Registration No.</div>
+                        <div class="field-value green">{{ registration.registration_number }}</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Email Address</div>
+                        <div class="field-value">{{ registration.email }}</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Phone Number</div>
+                        <div class="field-value">{{ registration.phone }}</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Department</div>
+                        <div class="field-value">{{ registration.department|default:"Not specified" }}</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Level</div>
+                        <div class="field-value">{{ registration.get_level_display }}</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Gender</div>
+                        <div class="field-value">{{ registration.get_gender_display|default:"Not specified" }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="photo-box">
+                <div class="photo-frame">
+                    {% if registration.photo %}
+                        <img src="{{ registration.photo.url }}" alt="Passport Photo">
+                    {% else %}
+                        {% if registration.gender == 'F' %}
+                            <!-- Female silhouette (with hijab) -->
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M12 4c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z"/>
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <path d="M14 12l-2 3-2-3" stroke="currentColor"/>
+                            </svg>
+                        {% else %}
+                            <!-- Male silhouette -->
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <div class="photo-caption">Passport Photo</div>
+            </div>
+        </div>
+
+        <div class="section-title">Islamia Details</div>
+        <div class="fields-grid three-col mb">
+            <div class="field">
+                <div class="field-label">Islamic Knowledge Level</div>
+                <div class="field-value">{{ registration.get_level_display }}</div>
+                <div class="knowledge-bar">
+                    {% with level=registration.level %}
+                        <span class="{% if level == 'beginner' %}active{% endif %}"></span>
+                        <span class="{% if level == 'intermediate' or level == 'advanced' %}active{% endif %}"></span>
+                        <span class="{% if level == 'advanced' %}active{% endif %}"></span>
+                        <span></span><span></span>
+                    {% endwith %}
+                </div>
+            </div>
+            <div class="field">
+                <div class="field-label">Focus Area</div>
+                <div class="field-value">
+                    {% if registration.course_focus == 'other' %}
+                        {{ registration.other_course }}
+                    {% else %}
+                        {{ registration.get_course_focus_display }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="field">
+                <div class="field-label">Preferred Session Time</div>
+                <div class="field-value">To be announced</div>
+            </div>
+        </div>
+
+        <div class="field" style="margin-bottom:0.9rem;">
+            <div class="field-label">Subjects Offered / Areas of Interest</div>
+            <div class="subjects-row">
+                {% for course in registration.courses.all %}
+                    <span class="subject-tag">{{ course.name }}</span>
+                {% empty %}
+                    <span class="subject-tag">Not specified</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="ornament-divider">✦ ✦ ✦</div>
+
+        <!-- NOTICE: Conditional based on verification status -->
+        {% if registration.is_verified %}
+            <div class="notice">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3c2e" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <p>
+                    <strong>Marhaba! Welcome to the Islamiyya family.</strong><br>
+                    Your registration has been verified. Please check the <strong>Islamiyya WhatsApp group</strong> and the schedule for class timings. May Allah accept your efforts.
+                </p>
+            </div>
+        {% else %}
+            <div class="notice">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3c2e" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                <p>
+                    <strong>Action Required:</strong> Please visit the <strong>Imam's Office at the Engineering Mosque</strong> with this slip to complete your payment. Once verified, your status will be updated to <strong>Verified</strong> and you will receive access to the Islamiyya WhatsApp group. No further email will be sent – check your dashboard for updates.
+                </p>
             </div>
         {% endif %}
 
-        <!-- Download button -->
-        <a href="{% url 'academics:islamiyya_download_slip' %}" class="btn-download">Download Application Slip</a>
-
-        {% if whatsapp_link %}
-            <div class="whatsapp-link">
-                <p><strong>Join the Islamiyya WhatsApp Group</strong></p>
-                <a href="{{ whatsapp_link }}" target="_blank" class="btn btn-success">Join Group</a>
-                {% if expired %}
-                    <p class="text-danger">Note: This link is only valid for one year from verification. Please contact admin if expired.</p>
-                {% endif %}
+        <!-- VERIFY ROW -->
+        <div class="verify-row">
+            <div>
+                <div class="verify-url-label">Verify this document online</div>
+                <div class="verify-url">namets.org/verify/{{ registration.application_id }}</div>
             </div>
-        {% endif %}
+            <div style="display:flex; align-items:center; gap:1rem;">
+                <div style="font-size:0.65rem; color:#aaa; text-align:right; line-height:1.6;">
+                    Scan to verify<br>authenticity
+                </div>
+                <div class="qr-placeholder">
+                    <span></span><span></span><span></span>
+                    <span></span><span></span><span></span>
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <div style="margin-top: 20px;">
-            <a href="{% url 'academics:islamia_list' %}" class="btn btn-secondary">Back to Home</a>
+    <!-- FOOTER -->
+    <div class="footer">
+        <div>
+            <div class="footer-namets">NAMETS · Islamia</div>
+            <div class="footer-text">ABU Zaria · Session {{ registration.submitted_at|date:"Y" }}/{{ registration.submitted_at|date:"Y"|add:"1" }} · This is a system-generated document</div>
+        </div>
+        <div style="font-size:0.65rem; color:rgba(255,255,255,0.4); text-align:right; letter-spacing:0.5px;">
+            Generated on {{ registration.submitted_at|date:"d M Y" }}<br>
+            <span style="color:rgba(201,168,76,0.6);">namets.org</span>
         </div>
     </div>
 </div>
-{% endblock %}
+</body>
+</html>

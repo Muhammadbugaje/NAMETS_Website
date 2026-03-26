@@ -172,6 +172,9 @@ class IslamiyyaRegistration(models.Model):
     # Personal details
     name = models.CharField(max_length=200)
     registration_number = models.CharField(max_length=50, help_text="Student ID or identification")
+    gender = models.CharField(max_length=1, choices=[('M','Male'),('F','Female')], blank=True, null=True)
+    photo = CloudinaryField('photo', folder='islamiyya_photos', blank=True, null=True)
+    department = models.CharField(max_length=200, blank=True, null=True)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20)
 
