@@ -239,29 +239,85 @@
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        /* Mobile responsive adjustments */
-        @media (max-width: 768px) {
-            .slip {
-                width: 100%;
-                margin: 0 auto;
-                box-shadow: none;
-            }
-            .header {
-                flex-direction: column;
-                text-align: center;
+        /* Mobile adjustments */
+        @media (max-width: 600px) {
+            body {
                 padding: 1rem;
             }
+            .slip {
+                width: 100%;
+                margin: 0;
+                box-shadow: none;
+            }
+            /* Header */
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                text-align: center;
+                gap: 0.8rem;
+            }
             .header-logos {
+                gap: 0.8rem;
                 justify-content: center;
-                margin-bottom: 0.5rem;
+            }
+            .logo-circle {
+                width: 50px;
+                height: 50px;
+            }
+            .logo-icon {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .logo-divider {
+                height: 40px;
             }
             .header-center {
-                margin: 0.5rem 0;
+                padding: 0;
             }
+            .arabic-title {
+                font-size: 1.2rem;
+            }
+            .org-name {
+                font-size: 0.9rem;
+            }
+            .org-sub {
+                font-size: 0.55rem;
+            }
+            /* Gold band */
+            .gold-band {
+                padding: 0.3rem 1rem;
+                flex-direction: column;
+                gap: 0.2rem;
+                text-align: center;
+            }
+            .gold-band-text {
+                font-size: 0.7rem;
+            }
+            .gold-band-line {
+                display: none;
+            }
+            /* App ID banner */
             .app-id-banner {
                 flex-direction: column;
                 text-align: center;
+                padding: 0.8rem 1rem;
                 gap: 0.5rem;
+            }
+            .app-id-value {
+                font-size: 1.1rem;
+            }
+            .status-badge {
+                padding: 0.3rem 0.8rem;
+                font-size: 0.7rem;
+            }
+            /* Body */
+            .body {
+                padding: 1rem;
+            }
+            .section-title {
+                font-size: 0.55rem;
+                margin-bottom: 0.6rem;
             }
             .personal-info-grid {
                 grid-template-columns: 1fr;
@@ -270,22 +326,88 @@
             .photo-box {
                 order: 2;
                 align-self: center;
-                margin-top: 0.5rem;
             }
-            .fields-grid,
-            .fields-grid.three-col {
-                grid-template-columns: 1fr;
+            .photo-frame {
+                width: 80px;
+                height: 100px;
+            }
+            .fields-grid {
+                gap: 0.5rem;
+            }
+            .field-label {
+                font-size: 0.55rem;
+            }
+            .field-value {
+                font-size: 0.75rem;
+            }
+            .knowledge-bar {
+                margin-top: 0.2rem;
+            }
+            .knowledge-bar span {
+                height: 4px;
+            }
+            .subject-tag {
+                font-size: 0.6rem;
+                padding: 0.1rem 0.5rem;
+            }
+            .notice {
+                padding: 0.6rem 0.8rem;
+            }
+            .notice p {
+                font-size: 0.65rem;
             }
             .verify-row {
                 flex-direction: column;
                 text-align: center;
-                gap: 1rem;
+                gap: 0.8rem;
+                padding: 0.8rem;
             }
             .qr-placeholder {
+                width: 40px;
+                height: 40px;
                 align-self: center;
             }
+            .verify-url {
+                font-size: 0.7rem;
+            }
+            .footer {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.3rem;
+                padding: 0.8rem;
+            }
+            .footer-namets {
+                font-size: 0.7rem;
+            }
+            .footer-text {
+                font-size: 0.55rem;
+            }
+            .watermark {
+                font-size: 3rem;
+                letter-spacing: 4px;
+            }
+            /* Make the issued block horizontal on mobile */
+            .header > div:last-child {
+                display: flex;
+                flex-direction: row;
+                align-items: baseline;
+                justify-content: center;
+                gap: 6px;
+                flex-wrap: wrap;
+                margin-top: -10px;
+                margin-bottom: -10px
+            }
+            .header > div:last-child > div {
+                margin-top: 0 !important;
+            }
+            .issued-date {
+                font-size: 0.7rem;
+            }
+            .issued-session {
+                font-size: 0.6rem;
+            }
         }
-    </style>
+        </style>
 </head>
 <body>
     <!-- The print button is placed outside the slip container to avoid any potential styling issues when printing. It will be hidden in the print view using a media query. 
@@ -311,9 +433,9 @@
                 <div class="org-sub" style="color:rgba(201,168,76,0.8); margin-top:2px;">Ahmadu Bello University, Zaria · Islamia Department</div>
             </div>
             <div style="text-align:right;">
-                <div style="font-size:0.6rem; color:rgba(255,255,255,0.45); letter-spacing:1px; text-transform:uppercase;">Issued</div>
-                <div style="font-size:0.8rem; color:#c9a84c; font-weight:500; margin-top:2px;">{{ registration.submitted_at|date:"d M Y" }}</div>
-                <div style="font-size:0.6rem; color:rgba(255,255,255,0.35); margin-top:4px;">Session {{ registration.submitted_at|date:"Y" }}/{{ registration.submitted_at|date:"Y"|add:"1" }}</div>
+                <div class="issued-label" style="font-size:0.6rem; color:rgba(255,255,255,0.45); letter-spacing:1px; text-transform:uppercase;">Issued</div>
+                <div class="issued-date" style="font-size:0.8rem; color:#c9a84c; font-weight:500; margin-top:2px;">{{ registration.submitted_at|date:"d M Y" }}</div>
+                <div class="issued-session" style="font-size:0.6rem; color:rgba(255,255,255,0.35); margin-top:4px;">Session {{ registration.submitted_at|date:"Y" }}/{{ registration.submitted_at|date:"Y"|add:"1" }}</div>
             </div>
         </div>
 
