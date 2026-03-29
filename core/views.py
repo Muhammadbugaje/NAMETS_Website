@@ -16,7 +16,7 @@ def get_cached(key, func, timeout=60):
 
 def homepage(request):
     context = {
-        'next_prayer': get_cached('hp_prayer', get_next_prayer, 60 * 60 * 6),
+        'next_prayer': get_next_prayer(),
         'pinned_announcements': get_cached('hp_announcements', lambda: get_pinned_announcements()[:3], 60 * 2),
         'featured_event': get_cached('hp_featured_event', lambda: get_featured_events().first(), 60 * 3),
         'upcoming_events': get_cached('hp_upcoming_events', lambda: get_upcoming_events()[:3], 60 * 3),
