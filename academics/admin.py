@@ -6,6 +6,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from .forms import ExcelUploadForm
 import openpyxl
+from openpyxl.styles import PatternFill, Font
 from django.utils.html import format_html
 from openpyxl.utils import get_column_letter
 from datetime import datetime
@@ -207,48 +208,99 @@ class IslamiyyaCourseAdmin(admin.ModelAdmin):
     list_editable = ('is_active',)
     search_fields = ('name',)
 
+import openpyxl
+from openpyxl.styles import PatternFill, Font
+from django.http import HttpResponse
+
 def export_islamiyya_registrations_to_excel(modeladmin, request, queryset):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = f'attachment; filename=islamiyya_registrations_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
-
+    response['Content-Disposition'] = 'attachment; filename=islamiyya_registrations.xlsx'
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Islamiyya Registrations"
 
-    headers = ['Application ID', 'Name', 'Registration Number', 'Email', 'Phone', 'Level', 'Courses', 'Other Course', 'Submitted At', 'Verified', 'WhatsApp Link']
-    for col_num, header in enumerate(headers, 1):
-        col_letter = get_column_letter(col_num)
-        ws[f'{col_letter}1'] = header
-        ws[f'{col_letter}1'].font = openpyxl.styles.Font(bold=True)
+    gold_fill = PatternFill(start_color="C9A84C", end_color="C9A84C", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF")
+    normal_font = Font()
 
-    for row_num, obj in enumerate(queryset, 2):
-        ws[f'A{row_num}'] = obj.application_id
-        ws[f'B{row_num}'] = obj.name
-        ws[f'C{row_num}'] = obj.registration_number
-        ws[f'D{row_num}'] = obj.email
-        ws[f'E{row_num}'] = obj.phone
-        ws[f'F{row_num}'] = obj.get_level_display()
-        courses_str = ', '.join([c.name for c in obj.courses.all()])
-        ws[f'G{row_num}'] = courses_str
-        ws[f'H{row_num}'] = obj.other_course
-        ws[f'I{row_num}'] = obj.submitted_at.strftime('%Y-%m-%d %H:%M')
-        ws[f'J{row_num}'] = 'Yes' if obj.is_verified else 'No'
-        ws[f'K{row_num}'] = obj.whatsapp_link or ''
+    # Define sections and their columns
+    sections = [
+        ("Personal Information", ['Name', 'Registration Number', 'Gender', 'Email', 'Phone', 'Department', 'Photo URL']),
+        ("Academic Details", ['Level']),
+        ("Islamia Details", ['Courses', 'Other Course']),
+        ("Application Status", ['Application ID', 'Submitted At', 'Verified', 'Verified At', 'WhatsApp Link']),
+    ]
+
+    # Column mapping (order must match the sections above)
+    # We'll build a flat list of all columns first
+    columns = []
+    for _, cols in sections:
+        columns.extend(cols)
+
+    # Write section headers and column headers
+    current_row = 1
+    for section_title, section_cols in sections:
+        # Merge cells for section title across the number of columns in this section
+        start_col = columns.index(section_cols[0]) + 1
+        end_col = columns.index(section_cols[-1]) + 1
+        ws.merge_cells(start_row=current_row, start_column=start_col, end_row=current_row, end_column=end_col)
+        cell = ws.cell(row=current_row, column=start_col, value=section_title)
+        cell.fill = gold_fill
+        cell.font = header_font
+        current_row += 1
+        # Write column headers for this section
+        for col_idx, col_name in enumerate(section_cols, start=start_col):
+            ws.cell(row=current_row, column=col_idx, value=col_name).font = Font(bold=True)
+        current_row += 1
+
+    # Write data rows
+    for obj in queryset:
+        data = [
+            obj.name,
+            obj.registration_number,
+            obj.get_gender_display() if obj.gender else '',
+            obj.email,
+            obj.phone,
+            obj.department or '',
+            obj.photo.url if obj.photo else '',
+            obj.get_level_display(),
+            ', '.join([c.name for c in obj.courses.all()]),
+            obj.other_course or '',
+            obj.application_id,
+            obj.submitted_at.strftime('%Y-%m-%d %H:%M'),
+            'Yes' if obj.is_verified else 'No',
+            obj.verified_at.strftime('%Y-%m-%d %H:%M') if obj.verified_at else '',
+            obj.whatsapp_link or '',
+        ]
+        ws.append(data)
+
+    # Adjust column widths
+    for col in ws.columns:
+        max_length = 0
+        col_letter = col[0].column_letter
+        for cell in col:
+            try:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+            except:
+                pass
+        adjusted_width = min(max_length + 2, 50)
+        ws.column_dimensions[col_letter].width = adjusted_width
+
     wb.save(response)
     return response
+
 export_islamiyya_registrations_to_excel.short_description = "Export selected to Excel"
 
 @admin.register(IslamiyyaRegistration)
 class IslamiyyaRegistrationAdmin(admin.ModelAdmin):
-    list_display = ('application_id', 'name', 'email', 'level', 'submitted_at', 'is_verified')
-    list_filter = ('is_verified', 'level', 'courses')
-    search_fields = ('name', 'email', 'application_id', 'registration_number')
+    list_display = ('application_id', 'name', 'email', 'level', 'is_verified', 'submitted_at')
+    list_filter = ('is_verified', 'level')
+    search_fields = ('name', 'email', 'application_id')
+    actions = [export_islamiyya_registrations_to_excel]
     filter_horizontal = ('courses',)
-    actions = [export_islamiyya_registrations_to_excel, 'mark_verified']
 
     def mark_verified(self, request, queryset):
-        for obj in queryset:
-            obj.is_verified = True
-            obj.save()
+        queryset.update(is_verified=True)
     mark_verified.short_description = "Mark selected as verified (payment confirmed)"
     

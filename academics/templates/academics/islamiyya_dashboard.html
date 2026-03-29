@@ -24,7 +24,9 @@
             padding: 0.7rem 2rem; font-family: 'DM Sans', sans-serif;
             font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;
             font-weight: 600; cursor: pointer; border-radius: 2px;
-            display: flex; align-items: center; gap: 0.5rem; transition: opacity 0.2s;
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            transition: opacity 0.2s;
+            text-decoration: none;
         }
         .print-btn:hover { opacity: 0.85; }
         @media print {
@@ -33,23 +35,16 @@
             .slip { box-shadow: none !important; }
         }
         .slip {
-            width: 794px; background: #fff;
-            position: relative; overflow: hidden;
+            width: 794px;
+            background: #fff;
+            position: relative;
+            overflow: hidden;
             box-shadow: 0 20px 60px rgba(0,0,0,0.18);
         }
-        .slip::before {
-            content: '';
-            position: absolute; inset: 0;
-            background-image:
-                repeating-linear-gradient(60deg, transparent, transparent 30px, rgba(26,60,46,0.025) 30px, rgba(26,60,46,0.025) 31px),
-                repeating-linear-gradient(-60deg, transparent, transparent 30px, rgba(26,60,46,0.025) 30px, rgba(26,60,46,0.025) 31px);
-            pointer-events: none; z-index: 0;
-        }
+        /* Removed the decorative pattern and left stripe to avoid color shifts */
+        .slip::before,
         .slip::after {
-            content: ''; position: absolute;
-            left: 0; top: 0; bottom: 0; width: 6px;
-            background: linear-gradient(180deg, #1a3c2e 0%, #c9a84c 50%, #1a3c2e 100%);
-            z-index: 2;
+            display: none;
         }
         /* Header */
         .header {
@@ -64,8 +59,7 @@
             background: rgba(255,255,255,0.12);
             border: 2px solid rgba(201,168,76,0.6);
             display: flex; align-items: center; justify-content: center;
-            font-size: 9px; color: #c9a84c; font-weight: 600;
-            text-align: center; letter-spacing: 0.5px; line-height: 1.3; flex-shrink: 0;
+            overflow: hidden;
         }
         .logo-divider { width: 1px; height: 50px; background: rgba(201,168,76,0.4); }
         .header-center { flex: 1; text-align: center; padding: 0 1rem; }
@@ -127,8 +121,46 @@
             display: flex; align-items: center; gap: 0.6rem;
         }
         .section-title::after { content: ''; flex: 1; height: 1px; background: #e0d8cc; }
-        .personal-row { display: flex; gap: 1.5rem; align-items: flex-start; margin-bottom: 1.2rem; }
-        .personal-fields { flex: 1; }
+        /* New grid for personal info */
+        .personal-info-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1.5rem;
+            margin-bottom: 1.2rem;
+        }
+        .personal-fields {
+            flex: 1;
+        }
+        .photo-box {
+            width: 110px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .photo-frame {
+            width: 100px;
+            height: 120px;
+            border: 2px dashed #c9a84c;
+            background: #f8f5f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .photo-caption {
+            font-size: 0.55rem;
+            color: #bbb;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        /* Keep existing field styles */
         .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem 2rem; }
         .fields-grid.three-col { grid-template-columns: 1fr 1fr 1fr; }
         .fields-grid.mb { margin-bottom: 1.2rem; }
@@ -136,23 +168,6 @@
         .field-label { font-size: 0.6rem; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; font-weight: 500; margin-bottom: 0.2rem; }
         .field-value { font-size: 0.88rem; color: #1a1a1a; font-weight: 500; }
         .field-value.green { color: #1a3c2e; font-weight: 600; }
-        /* Photo */
-        .photo-box { width: 90px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
-        .photo-frame {
-            width: 90px; height: 110px; border: 2px dashed #c9a84c;
-            background: #f8f5f0; display: flex;
-            align-items: center; justify-content: center;
-            overflow: hidden; position: relative;
-        }
-        .photo-frame img {
-            width: 100%; height: 100%; object-fit: cover;
-        }
-        .photo-frame svg {
-            width: 48px; height: 48px; stroke: #1a3c2e; stroke-width: 1.2;
-        }
-        .photo-caption {
-            font-size: 0.55rem; color: #bbb; letter-spacing: 1px; text-transform: uppercase;
-        }
         /* Knowledge bar */
         .knowledge-bar { display: flex; gap: 3px; margin-top: 0.3rem; }
         .knowledge-bar span { height: 6px; flex: 1; border-radius: 1px; background: #e8e0d0; }
@@ -183,7 +198,6 @@
             border-radius: 0 3px 3px 0;
             display: flex; align-items: flex-start; gap: 0.8rem;
         }
-        .notice svg { flex-shrink: 0; margin-top: 1px; }
         .notice p { font-size: 0.72rem; color: #444; line-height: 1.7; }
         .notice strong { color: #1a3c2e; }
         /* Verify row */
@@ -210,7 +224,6 @@
         }
         .footer-namets { font-family: 'Playfair Display', serif; font-size: 0.8rem; color: #c9a84c; letter-spacing: 2px; }
         .footer-text { font-size: 0.65rem; color: rgba(255,255,255,0.5); letter-spacing: 1px; margin-top: 3px; }
-        /* Watermark */
         .watermark {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%) rotate(-35deg);
@@ -221,221 +234,277 @@
         .logo-icon {
             width: 100%;
             height: 100%;
-            border-radius: 50%;          /* Makes the image round */
-            object-fit: cover;           /* Ensures the image fills the circle */
+            border-radius: 50%;
+            object-fit: cover;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s, box-shadow 0.2s;
+        }
+        /* Mobile responsive adjustments */
+        @media (max-width: 768px) {
+            .slip {
+                width: 100%;
+                margin: 0 auto;
+                box-shadow: none;
+            }
+            .header {
+                flex-direction: column;
+                text-align: center;
+                padding: 1rem;
+            }
+            .header-logos {
+                justify-content: center;
+                margin-bottom: 0.5rem;
+            }
+            .header-center {
+                margin: 0.5rem 0;
+            }
+            .app-id-banner {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+            .personal-info-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .photo-box {
+                order: 2;
+                align-self: center;
+                margin-top: 0.5rem;
+            }
+            .fields-grid,
+            .fields-grid.three-col {
+                grid-template-columns: 1fr;
+            }
+            .verify-row {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            .qr-placeholder {
+                align-self: center;
+            }
         }
     </style>
 </head>
 <body>
-<button class="print-btn" onclick="window.print()">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-    Save as PDF
-</button>
-<div class="slip">
-    <div class="watermark">NAMETS</div>
+    <!-- The print button is placed outside the slip container to avoid any potential styling issues when printing. It will be hidden in the print view using a media query. 
+    <a href="{% url 'academics:islamiyya_download_slip' %}" class="print-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Download PDF
+    </a>
+    -->
+    <div class="slip">
+        <div class="watermark">NAMETS</div>
 
-    <!-- HEADER -->
-    <div class="header">
-        <div class="header-logos">
-            <div class="logo-circle"><img src="{% static 'images/ABU logo_1.jpg' %}" class="logo-icon"></div>
-            <div class="logo-divider"></div>
-            <div class="logo-circle"><img src="{% static 'images\Namets.jpg' %}" class="logo-icon"></div>
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-logos">
+                <div class="logo-circle"><img src="{% static 'images/ABU logo_1.jpg' %}" class="logo-icon"></div>
+                <div class="logo-divider"></div>
+                <div class="logo-circle"><img src="{% static 'images/Namets.jpg' %}" class="logo-icon"></div>
+            </div>
+            <div class="header-center">
+                <div class="arabic-title">بسم الله الرحمن الرحيم</div>
+                <div class="org-name">NAMETS</div>
+                <div class="org-sub">National Association of Muslim Engineering &amp; Technology Students</div>
+                <div class="org-sub" style="color:rgba(201,168,76,0.8); margin-top:2px;">Ahmadu Bello University, Zaria · Islamia Department</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:0.6rem; color:rgba(255,255,255,0.45); letter-spacing:1px; text-transform:uppercase;">Issued</div>
+                <div style="font-size:0.8rem; color:#c9a84c; font-weight:500; margin-top:2px;">{{ registration.submitted_at|date:"d M Y" }}</div>
+                <div style="font-size:0.6rem; color:rgba(255,255,255,0.35); margin-top:4px;">Session {{ registration.submitted_at|date:"Y" }}/{{ registration.submitted_at|date:"Y"|add:"1" }}</div>
+            </div>
         </div>
-        <div class="header-center">
-            <div class="arabic-title">بسم الله الرحمن الرحيم</div>
-            <div class="org-name">NAMETS</div>
-            <div class="org-sub">National Association of Muslim Engineering &amp; Technology Students</div>
-            <div class="org-sub" style="color:rgba(201,168,76,0.8); margin-top:2px;">Ahmadu Bello University, Zaria · Islamia Department</div>
-        </div>
-        <div style="text-align:right;">
-            <div style="font-size:0.6rem; color:rgba(255,255,255,0.45); letter-spacing:1px; text-transform:uppercase;">Issued</div>
-            <div style="font-size:0.8rem; color:#c9a84c; font-weight:500; margin-top:2px;">{{ registration.submitted_at|date:"d M Y" }}</div>
-            <div style="font-size:0.6rem; color:rgba(255,255,255,0.35); margin-top:4px;">Session {{ registration.submitted_at|date:"Y" }}/{{ registration.submitted_at|date:"Y"|add:"1" }}</div>
-        </div>
-    </div>
 
-    <!-- GOLD BAND -->
-    <div class="gold-band">
-        <div class="gold-band-text">Islamia Registration Slip</div>
-        <div class="gold-band-line"></div>
-        <div class="gold-band-text">Official Document</div>
-    </div>
-
-    <!-- APP ID + STATUS -->
-    <div class="app-id-banner">
-        <div>
-            <div class="app-id-label">Application ID</div>
-            <div class="app-id-value">{{ registration.application_id }}</div>
+        <!-- GOLD BAND -->
+        <div class="gold-band">
+            <div class="gold-band-text">Islamia Registration Slip</div>
+            <div class="gold-band-line"></div>
+            <div class="gold-band-text">Official Document</div>
         </div>
-        <div class="status-block">
-            <div class="status-label">Application Status</div>
+
+        <!-- APP ID + STATUS -->
+        <div class="app-id-banner">
+            <div>
+                <div class="app-id-label">Application ID</div>
+                <div class="app-id-value">{{ registration.application_id }}</div>
+            </div>
+            <div class="status-block">
+                <div class="status-label">Application Status</div>
+                {% if registration.is_verified %}
+                    <div class="status-badge status-approved">
+                        ✓ &nbsp; Marhaba! Verified
+                    </div>
+                {% else %}
+                    <div class="status-badge status-pending">
+                        <span class="status-dot"></span>
+                        Pending Verification
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="body">
+            <div class="section-title">Personal Information</div>
+
+            <div class="personal-info-grid">
+                <div class="personal-fields">
+                    <div class="fields-grid mb">
+                        <div class="field">
+                            <div class="field-label">Full Name</div>
+                            <div class="field-value green">{{ registration.name }}</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">Student Registration No.</div>
+                            <div class="field-value green">{{ registration.registration_number }}</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">Email Address</div>
+                            <div class="field-value">{{ registration.email }}</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">Phone Number</div>
+                            <div class="field-value">{{ registration.phone }}</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">Department</div>
+                            <div class="field-value">{{ registration.department|default:"Not specified" }}</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">Level</div>
+                            <div class="field-value">{{ registration.get_level_display }}</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">Gender</div>
+                            <div class="field-value">{{ registration.get_gender_display|default:"Not specified" }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="photo-box">
+                    <div class="photo-frame">
+                        {% if registration.photo %}
+                            <img src="{{ registration.photo.url }}" alt="Passport Photo">
+                        {% else %}
+                            {% if registration.gender == 'F' %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M12 4c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z"/>
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <path d="M14 12l-2 3-2-3" stroke="currentColor"/>
+                                </svg>
+                            {% else %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="photo-caption">Passport Photo</div>
+                </div>
+            </div>
+
+            <div class="section-title">Islamia Details</div>
+            <div class="fields-grid three-col mb">
+                <div class="field">
+                    <div class="field-label">Islamic Knowledge Level</div>
+                    <div class="field-value">{{ registration.get_level_display }}</div>
+                    <div class="knowledge-bar">
+                        {% with level=registration.level %}
+                            <span class="{% if level == 'beginner' %}active{% endif %}"></span>
+                            <span class="{% if level == 'intermediate' or level == 'advanced' %}active{% endif %}"></span>
+                            <span class="{% if level == 'advanced' %}active{% endif %}"></span>
+                            <span></span><span></span>
+                        {% endwith %}
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="field-label">Focus Area</div>
+                    <div class="field-value">
+                        {% if registration.course_focus == 'other' %}
+                            {{ registration.other_course }}
+                        {% else %}
+                            {{ registration.get_course_focus_display }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="field-label">Preferred Session Time</div>
+                    <div class="field-value">To be announced</div>
+                </div>
+            </div>
+
+            <div class="field" style="margin-bottom:0.9rem;">
+                <div class="field-label">Subjects Offered / Areas of Interest</div>
+                <div class="subjects-row">
+                    {% for course in registration.courses.all %}
+                        <span class="subject-tag">{{ course.name }}</span>
+                    {% empty %}
+                        <span class="subject-tag">Not specified</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="ornament-divider">✦ ✦ ✦</div>
+
+            <!-- NOTICE: Conditional based on verification status -->
             {% if registration.is_verified %}
-                <div class="status-badge status-approved">
-                    ✓ &nbsp; Marhaba! Verified
+                <div class="notice">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3c2e" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <p>
+                        <strong>Marhaba! Welcome to the Islamiyya family.</strong><br>
+                        Your registration has been verified. Please check the 
+                        {% if whatsapp_link %}
+                            <a href="{{ whatsapp_link }}" target="_blank" rel="noopener noreferrer"><strong>Islamiyya WhatsApp group</strong></a>
+                        {% else %}
+                            <strong>Islamiyya WhatsApp group</strong>
+                        {% endif %}
+                        for updates and the schedule for class timings. May Allah accept your efforts.
+                    </p>
                 </div>
             {% else %}
-                <div class="status-badge status-pending">
-                    <span class="status-dot"></span>
-                    Pending Verification
+                <!-- pending notice unchanged -->
+                <div class="notice">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3c2e" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                    <p>
+                        <strong>Action Required:</strong> Please visit the <strong>Imam's Office at the Engineering Mosque</strong> with this slip to complete your payment(no need to print it out!). Once verified, your status will be updated to <strong>Verified</strong> and you will receive access to the Islamiyya WhatsApp group. Please check your dashboard for updates on verification status.
+                    </p>
                 </div>
             {% endif %}
-        </div>
-    </div>
 
-    <!-- BODY -->
-    <div class="body">
-        <div class="section-title">Personal Information</div>
-        <div class="personal-row">
-            <div class="personal-fields">
-                <div class="fields-grid mb">
-                    <div class="field">
-                        <div class="field-label">Full Name</div>
-                        <div class="field-value green">{{ registration.name }}</div>
+            <!-- VERIFY ROW 
+            <div class="verify-row">
+                <div>
+                    <div class="verify-url-label">Verify this document online</div>
+                    <div class="verify-url">namets.org/verify/{{ registration.application_id }}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <div style="font-size:0.65rem; color:#aaa; text-align:right; line-height:1.6;">
+                        Scan to verify<br>authenticity
                     </div>
-                    <div class="field">
-                        <div class="field-label">Student Registration No.</div>
-                        <div class="field-value green">{{ registration.registration_number }}</div>
-                    </div>
-                    <div class="field">
-                        <div class="field-label">Email Address</div>
-                        <div class="field-value">{{ registration.email }}</div>
-                    </div>
-                    <div class="field">
-                        <div class="field-label">Phone Number</div>
-                        <div class="field-value">{{ registration.phone }}</div>
-                    </div>
-                    <div class="field">
-                        <div class="field-label">Department</div>
-                        <div class="field-value">{{ registration.department|default:"Not specified" }}</div>
-                    </div>
-                    <div class="field">
-                        <div class="field-label">Level</div>
-                        <div class="field-value">{{ registration.get_level_display }}</div>
-                    </div>
-                    <div class="field">
-                        <div class="field-label">Gender</div>
-                        <div class="field-value">{{ registration.get_gender_display|default:"Not specified" }}</div>
+                    <div class="qr-placeholder">
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
                     </div>
                 </div>
             </div>
-            <div class="photo-box">
-                <div class="photo-frame">
-                    {% if registration.photo %}
-                        <img src="{{ registration.photo.url }}" alt="Passport Photo">
-                    {% else %}
-                        {% if registration.gender == 'F' %}
-                            <!-- Female silhouette (with hijab) -->
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path d="M12 4c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z"/>
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                <path d="M14 12l-2 3-2-3" stroke="currentColor"/>
-                            </svg>
-                        {% else %}
-                            <!-- Male silhouette -->
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                <circle cx="12" cy="7" r="4"/>
-                            </svg>
-                        {% endif %}
-                    {% endif %}
-                </div>
-                <div class="photo-caption">Passport Photo</div>
-            </div>
+            -->
         </div>
 
-        <div class="section-title">Islamia Details</div>
-        <div class="fields-grid three-col mb">
-            <div class="field">
-                <div class="field-label">Islamic Knowledge Level</div>
-                <div class="field-value">{{ registration.get_level_display }}</div>
-                <div class="knowledge-bar">
-                    {% with level=registration.level %}
-                        <span class="{% if level == 'beginner' %}active{% endif %}"></span>
-                        <span class="{% if level == 'intermediate' or level == 'advanced' %}active{% endif %}"></span>
-                        <span class="{% if level == 'advanced' %}active{% endif %}"></span>
-                        <span></span><span></span>
-                    {% endwith %}
-                </div>
-            </div>
-            <div class="field">
-                <div class="field-label">Focus Area</div>
-                <div class="field-value">
-                    {% if registration.course_focus == 'other' %}
-                        {{ registration.other_course }}
-                    {% else %}
-                        {{ registration.get_course_focus_display }}
-                    {% endif %}
-                </div>
-            </div>
-            <div class="field">
-                <div class="field-label">Preferred Session Time</div>
-                <div class="field-value">To be announced</div>
-            </div>
-        </div>
-
-        <div class="field" style="margin-bottom:0.9rem;">
-            <div class="field-label">Subjects Offered / Areas of Interest</div>
-            <div class="subjects-row">
-                {% for course in registration.courses.all %}
-                    <span class="subject-tag">{{ course.name }}</span>
-                {% empty %}
-                    <span class="subject-tag">Not specified</span>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="ornament-divider">✦ ✦ ✦</div>
-
-        <!-- NOTICE: Conditional based on verification status -->
-        {% if registration.is_verified %}
-            <div class="notice">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3c2e" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <p>
-                    <strong>Marhaba! Welcome to the Islamiyya family.</strong><br>
-                    Your registration has been verified. Please check the <strong>Islamiyya WhatsApp group</strong> and the schedule for class timings. May Allah accept your efforts.
-                </p>
-            </div>
-        {% else %}
-            <div class="notice">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3c2e" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
-                <p>
-                    <strong>Action Required:</strong> Please visit the <strong>Imam's Office at the Engineering Mosque</strong> with this slip to complete your payment. Once verified, your status will be updated to <strong>Verified</strong> and you will receive access to the Islamiyya WhatsApp group. No further email will be sent – check your dashboard for updates.
-                </p>
-            </div>
-        {% endif %}
-
-        <!-- VERIFY ROW -->
-        <div class="verify-row">
+        <!-- FOOTER -->
+        <div class="footer">
             <div>
-                <div class="verify-url-label">Verify this document online</div>
-                <div class="verify-url">namets.org/verify/{{ registration.application_id }}</div>
+                <div class="footer-namets">NAMETS · Islamia</div>
+                <div class="footer-text">ABU Zaria · Session {{ registration.submitted_at|date:"Y" }}/{{ registration.submitted_at|date:"Y"|add:"1" }} · This is a system-generated document</div>
             </div>
-            <div style="display:flex; align-items:center; gap:1rem;">
-                <div style="font-size:0.65rem; color:#aaa; text-align:right; line-height:1.6;">
-                    Scan to verify<br>authenticity
-                </div>
-                <div class="qr-placeholder">
-                    <span></span><span></span><span></span>
-                    <span></span><span></span><span></span>
-                    <span></span><span></span><span></span>
-                </div>
+            <div style="font-size:0.65rem; color:rgba(255,255,255,0.4); text-align:right; letter-spacing:0.5px;">
+                Generated on {{ registration.submitted_at|date:"d M Y" }}<br>
+                <span style="color:rgba(201,168,76,0.6); margin-top:15px;">NAMETS TEAM</span>
             </div>
         </div>
     </div>
-
-    <!-- FOOTER -->
-    <div class="footer">
-        <div>
-            <div class="footer-namets">NAMETS · Islamia</div>
-            <div class="footer-text">ABU Zaria · Session {{ registration.submitted_at|date:"Y" }}/{{ registration.submitted_at|date:"Y"|add:"1" }} · This is a system-generated document</div>
-        </div>
-        <div style="font-size:0.65rem; color:rgba(255,255,255,0.4); text-align:right; letter-spacing:0.5px;">
-            Generated on {{ registration.submitted_at|date:"d M Y" }}<br>
-            <span style="color:rgba(201,168,76,0.6);">namets.org</span>
-        </div>
-    </div>
-</div>
 </body>
 </html>
