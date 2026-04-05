@@ -241,16 +241,11 @@ class UserResourceSubmission(models.Model):
 class CompetitionResult(models.Model):
     event_name = models.CharField(max_length=200, help_text="e.g., NAMETS Week 2024")
     category = models.CharField(max_length=100, blank=True, help_text="e.g., Musabaqah 60 Hizb, Quiz Competition")
-    position = models.CharField(max_length=50, choices=[
-        ('1st', '1st Place'),
-        ('2nd', '2nd Place'),
-        ('3rd', '3rd Place'),
-        ('participant', 'Participant'),
-    ], default='participant')
+    position = models.CharField(max_length=50,blank=True, help_text="e.g 1st, 2nd, 3rd", default='participant')
     participant_name = models.CharField(max_length=200)
     department = models.CharField(max_length=200, blank=True)
     points = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    year = models.CharField(max_length=20, blank=True, help_text="e.g., 2023/2024")
+    year = models.CharField(max_length=20, blank=True, help_text="e.g., 2025/2026")
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0, help_text="Lower numbers appear first within category")
 

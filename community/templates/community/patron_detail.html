@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ patron.name }} | NAMETS Patrons{% endblock %}
+
+{% block extra_css %}
+<style>
+    .patron-detail {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .patron-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .patron-image {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin: 0 auto 1rem;
+        border: 4px solid var(--accent, #C8A951);
+    }
+    .patron-name {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .patron-designation {
+        color: var(--accent, #C8A951);
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+    .patron-bio {
+        background: rgba(255,255,255,0.3);
+        backdrop-filter: blur(8px);
+        border-radius: 24px;
+        padding: 2rem;
+        line-height: 1.7;
+    }
+    .back-link {
+        display: inline-block;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="patron-detail card-reveal">
+    <div class="patron-header">
+        {% if patron.image %}
+            <img src="{{ patron.image.url }}" alt="{{ patron.name }}" class="patron-image">
+        {% endif %}
+        <h1 class="patron-name">{{ patron.name }}</h1>
+        <div class="patron-designation">{{ patron.designation }}</div>
+    </div>
+    <div class="patron-bio glass-card">
+        {{ patron.bio|linebreaks|default:"No additional biography provided." }}
+    </div>
+    <div class="back-link">
+        <a href="{% url 'community:patron_list' %}" class="btn btn-secondary">← Back to All Patrons</a>
+    </div>
+</div>
+{% endblock %}

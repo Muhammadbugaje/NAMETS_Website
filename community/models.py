@@ -11,6 +11,7 @@ User = get_user_model()
 
 class Patron(models.Model):
     name = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True, blank=True)
     designation = models.CharField(max_length=200, help_text="e.g., HOD Mechanical Engineering")
     bio = models.TextField(blank=True)
     image = CloudinaryField('image', folder='patrons', blank=True, null=True)
@@ -18,6 +19,11 @@ class Patron(models.Model):
     is_active = models.BooleanField(default=True)
     email = models.EmailField(blank=True, help_text="For notifications")
     receive_notifications = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ['hierarchy_order', 'name']

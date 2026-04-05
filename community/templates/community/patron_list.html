@@ -133,27 +133,29 @@
     <h1 class="page-title animate-on-scroll">Our Patrons</h1>
     <div class="patron-grid">
         {% for patron in patrons %}
-        <div class="patron-card animate-on-scroll">
-            <div class="card-image-wrapper">
-                {% if patron.image %}
-                    <img src="{{ patron.image.url }}" alt="{{ patron.name }}" class="card-image">
-                {% else %}
-                    <div class="image-placeholder">
-                        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#C8A951" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                            <circle cx="12" cy="7" r="4" />
-                        </svg>
-                    </div>
-                {% endif %}
+        <a href="{% url 'community:patron_detail' patron.slug %}" style="text-decoration: none; color: inherit;">
+            <div class="patron-card animate-on-scroll">
+                <div class="card-image-wrapper">
+                    {% if patron.image %}
+                        <img src="{{ patron.image.url }}" alt="{{ patron.name }}" class="card-image">
+                    {% else %}
+                        <div class="image-placeholder">
+                            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#C8A951" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">{{ patron.name }}</h3>
+                    <p class="card-meta">{{ patron.designation }}</p>
+                    {% if patron.bio %}
+                        <p class="card-desc">{{ patron.bio|truncatewords:30 }}</p>
+                    {% endif %}
+                </div>
             </div>
-            <div class="card-body">
-                <h3 class="card-title">{{ patron.name }}</h3>
-                <p class="card-meta">{{ patron.designation }}</p>
-                {% if patron.bio %}
-                    <p class="card-desc">{{ patron.bio|truncatewords:30 }}</p>
-                {% endif %}
-            </div>
-        </div>
+
         {% empty %}
         <p class="no-results">No patrons listed yet.</p>
         {% endfor %}

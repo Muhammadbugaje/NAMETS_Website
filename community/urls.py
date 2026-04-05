@@ -12,4 +12,5 @@ urlpatterns = [
     path('developers/', views.developer_list, name='developer_list'),
     path('apply/tutor/', views.tutor_application, name='tutor_apply'),
     path('apply/membership/', views.membership_application, name='membership_apply'),
+    path('patrons/<slug:slug>/', views.patron_detail, name='patron_detail'),
 ]

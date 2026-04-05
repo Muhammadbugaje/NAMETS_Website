@@ -1,33 +1,133 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ issue.title }} | NAMETS{% endblock %}
+{% block title %}Al-Irshad Magazine | NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .magazine-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .magazine-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .magazine-header h1 {
+        font-size: 2.5rem;
+        color: var(--primary, #0F3D2E);
+    }
+    .magazine-grid {
+        display: grid;
+        gap: 2rem;
+        grid-template-columns: 1fr;
+    }
+    @media (min-width: 640px) {
+        .magazine-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media (min-width: 1024px) {
+        .magazine-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    .magazine-card {
+        background: rgba(255,255,255,0.3);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 24px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+    }
+    .magazine-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    }
+    .magazine-cover {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        background: #f0f0f0;
+    }
+    .magazine-body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .magazine-title {
+        font-size: 1.4rem;
+        margin-bottom: 0.5rem;
+        font-family: 'Merriweather', serif;
+    }
+    .magazine-date {
+        color: #C8A951;
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+    }
+    .magazine-description {
+        color: #5A5A5A;
+        margin-bottom: 1.5rem;
+        flex: 1;
+    }
+    .download-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--primary, #0F3D2E);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 40px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.2s;
+        width: fit-content;
+    }
+    .download-btn:hover {
+        background: #1a5a44;
+        color: white;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>{{ issue.title }}</h1>
-    <p>{{ issue.description }}</p>
-    {% if issue.pdf_file %}
-        <div class="text-center mb-4">
-            <a href="{{ issue.pdf_file.url }}" class="btn btn-primary" download>📥 Download Full PDF</a>
-        </div>
-    {% endif %}
+<div class="magazine-page">
+    <div class="magazine-header">
+        <h1>Al-Irshad Magazine</h1>
+        <p class="text-muted">Official publications of NAMETS – exploring Islam, science, and community</p>
+    </div>
 
-    <h2>Articles</h2>
-    <div class="card-grid">
-        {% for article in articles %}
-            <div class="card glass-card card-reveal">
-                {% if article.image %}
-                    <img src="{{ article.image.url }}" class="card-img" alt="{{ article.title }}">
-                {% endif %}
-                <div class="card-body">
-                    <span class="card-meta">{{ article.category|default:"Article" }}</span>
-                    <h3 class="card-title">
-                        <a href="{% url 'communications:article_detail' article.slug %}">{{ article.title }}</a>
-                    </h3>
-                    <p class="card-desc">{{ article.content|striptags|truncatewords:30 }}</p>
+    <div class="magazine-grid">
+        {% for issue in issues %}
+        <div class="magazine-card card-reveal">
+            {% if issue.cover_image %}
+                <img src="{{ issue.cover_image.url }}" class="magazine-cover" alt="{{ issue.title }}">
+            {% else %}
+                <div class="magazine-cover" style="background: #e0e0e0; display: flex; align-items: center; justify-content: center;">
+                    📖
                 </div>
+            {% endif %}
+            <div class="magazine-body">
+                <h2 class="magazine-title">{{ issue.title }}</h2>
+                <div class="magazine-date">{{ issue.published_date|date:"F Y" }}</div>
+                <p class="magazine-description">{{ issue.description|truncatewords:25 }}</p>
+                {% if issue.pdf_file %}
+                    <a href="{{ issue.pdf_file.url }}" class="download-btn" download>
+                        📥 Download PDF
+                    </a>
+                {% else %}
+                    <span class="btn btn-secondary disabled">PDF coming soon</span>
+                {% endif %}
             </div>
+        </div>
+        {% empty %}
+        <div class="glass-card text-center" style="padding: 3rem; grid-column: 1 / -1;">
+            <p>No magazine issues available yet. Check back soon!</p>
+        </div>
         {% endfor %}
     </div>
 </div>

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from . import selectors
 from .forms import AskQuestionForm
-from .models import TutorApplication, MembershipApplication, NAMETSDocument
+from .models import ExecutiveYear, Patron, TutorApplication, MembershipApplication, NAMETSDocument
 from core.models import SiteSettings
 from .forms import TutorApplicationForm, MembershipApplicationForm
 from core.services.webhooks import send_webhook
@@ -12,6 +12,10 @@ from django.db.models import Q
 def patron_list(request):
     patrons = selectors.get_active_patrons()
     return render(request, 'community/patron_list.html', {'patrons': patrons})
+
+def patron_detail(request, slug):
+    patron = get_object_or_404(Patron, slug=slug, is_active=True)
+    return render(request, 'community/patron_detail.html', {'patron': patron})
 
 def executive_list(request):
     years = selectors.get_executive_years()
