@@ -27,7 +27,7 @@ class Patron(models.Model):
 
 
 class ExecutiveYear(models.Model):
-    year_label = models.CharField(max_length=50, help_text="e.g., 2024/2025")
+    year_label = models.CharField(max_length=50, help_text="e.g., 2025/2026")
     description = models.TextField(blank=True)
     display_order = models.PositiveIntegerField(default=0, help_text="Most recent years should have lower numbers")
     is_active = models.BooleanField(default=True)

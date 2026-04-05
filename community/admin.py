@@ -30,13 +30,9 @@ class PatronAdmin(admin.ModelAdmin):
 
 @admin.register(ExecutiveYear)
 class ExecutiveYearAdmin(admin.ModelAdmin):
-    list_display = ('image_thumbnail', 'year_label', 'display_order', 'is_active')
+    list_display = ('year_label', 'display_order', 'is_active')
     list_editable = ('display_order', 'is_active')
     inlines = [ExecutiveInline]
-
-    def image_thumbnail(self, obj):
-        return cloudinary_thumbnail(obj.photo)
-    image_thumbnail.short_description = 'Photo'    
 
 @admin.register(Executive)
 class ExecutiveAdmin(admin.ModelAdmin):
