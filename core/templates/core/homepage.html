@@ -3,13 +3,16 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/global.css' %}">
+  <link rel="stylesheet" href="{% static 'css/prayer_topbar.css' %}">
+  <link href="{% static 'js/prayer_topbar.js' %}"
 {% endblock %}
 
 {% block title %}Home | NAMETS{% endblock %}
+{% block prayer_topbar %}
+  {% include 'core/partials/prayer_topbar.html' %}
+{% endblock %}
 
 {% block content %}
-
-  <!-- Hero -->
   <section class="hero-section">
     <div class="hero-geo" aria-hidden="true"></div>
     <div class="hero-geo-2" aria-hidden="true"></div>
@@ -24,7 +27,6 @@
       <a href="{% url 'community:about' %}" class="btn btn-secondary btn-lg" style="border-radius:13px">About Us</a>
     </div>
   </section>
-
   <!-- Announcements Section -->
   {% if pinned_announcements %}
     <div class="section-heading reveal">
@@ -83,7 +85,7 @@
         <a href="{% url 'events:list' %}" class="btn btn-link">View All Events →</a>
     </div>
 {% endif %}
-
+{% include "core/partials/quran_section.html" %}
 <!-- Recent Lost Items -->
 {% if recent_items %}
     <div class="section-heading reveal">
@@ -184,6 +186,7 @@
 
 {% endblock %}
 {% block extra_js %}
+  <script src="{% static 'js/prayer_topbar.js' %}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const gallerySwiper = new Swiper('.gallery-swiper', {
@@ -204,5 +207,125 @@
             speed: 800,
         });
     });
+  // ---------- Get prayer times from Django context ----------
+    // Define prayerTimes ONCE – use 'var' to avoid redeclaration errors
+    var prayerTimes = {{ prayer_times_json|safe }};
+
+  // ---------- Helper functions ----------
+  function parseTimeToToday(timeStr) {
+      if (!timeStr) return null;
+      const [hour, minute] = timeStr.split(':').map(Number);
+      const date = new Date();
+      date.setHours(hour, minute, 0, 0);
+      return date;
+  }
+
+  function formatTime(date) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // ---------- Get prayer schedule as objects ----------
+  function getPrayerSchedule() {
+      const schedule = [];
+      if (prayerTimes.fajr) schedule.push({ name: "Fajr", time: parseTimeToToday(prayerTimes.fajr) });
+      if (prayerTimes.dhuhr) schedule.push({ name: "Dhuhr", time: parseTimeToToday(prayerTimes.dhuhr) });
+      if (prayerTimes.asr) schedule.push({ name: "Asr", time: parseTimeToToday(prayerTimes.asr) });
+      if (prayerTimes.maghrib) schedule.push({ name: "Maghrib", time: parseTimeToToday(prayerTimes.maghrib) });
+      if (prayerTimes.isha) schedule.push({ name: "Isha", time: parseTimeToToday(prayerTimes.isha) });
+      return schedule;
+  }
+
+  // ---------- Find next prayer ----------
+  function getNextPrayer(prayers) {
+      const now = new Date();
+      for (let p of prayers) {
+          if (p.time > now) return p;
+      }
+      // If all passed, return tomorrow's Fajr
+      if (prayers.length) {
+          let fajrTomorrow = new Date(prayers[0].time);
+          fajrTomorrow.setDate(fajrTomorrow.getDate() + 1);
+          return { name: "Fajr", time: fajrTomorrow };
+      }
+      return null;
+  }
+
+  // ---------- Check if a prayer is ongoing (within 20 minutes after its time) ----------
+  function isOngoing(prayerTime, now) {
+      const minutesSince = (now - prayerTime) / 60000;
+      return minutesSince >= 0 && minutesSince <= 20;
+  }
+
+  // ---------- Update UI ----------
+  function updatePrayerUI() {
+      const prayers = getPrayerSchedule();
+      if (!prayers.length) return;
+
+      const now = new Date();
+      const next = getNextPrayer(prayers);
+
+      // Check for ongoing prayer
+      let ongoing = null;
+      for (let p of prayers) {
+          if (p.time && isOngoing(p.time, now)) {
+              ongoing = p;
+              break;
+          }
+      }
+
+      const nextPrayerNameEl = document.getElementById('nextPrayerName');
+      const nextPrayerTimeEl = document.getElementById('nextPrayerTime');
+      const countdownEl = document.getElementById('prayerCountdown');
+
+      if (ongoing) {
+          nextPrayerNameEl.innerText = ongoing.name;
+          nextPrayerTimeEl.innerText = formatTime(ongoing.time);
+          countdownEl.innerText = "Prayer ongoing";
+          return;
+      }
+
+      if (next) {
+          nextPrayerNameEl.innerText = next.name;
+          nextPrayerTimeEl.innerText = formatTime(next.time);
+          const diff = next.time - now;
+          if (diff > 0) {
+              const hours = Math.floor(diff / 3600000);
+              const minutes = Math.floor((diff % 3600000) / 60000);
+              const seconds = Math.floor((diff % 60000) / 1000);
+              countdownEl.innerText = `Starts in ${hours}h ${minutes}m ${seconds}s`;
+          } else {
+              countdownEl.innerText = "Now";
+          }
+      }
+  }
+
+  // ---------- Hijri date using Aladhan API (no extra library) ----------
+  async function loadHijriDate() {
+      const hijriEl = document.getElementById('hijriDate');
+      if (!hijriEl) return;
+      try {
+          const today = new Date().toISOString().split('T')[0];
+          const response = await fetch(`https://api.aladhan.com/v1/gToH/${today}`);
+          const data = await response.json();
+          if (data && data.data) {
+              const hijri = data.data.hijri;
+              const dayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+              hijriEl.innerText = `${dayName} • ${hijri.day} ${hijri.month.en} ${hijri.year} AH`;
+          } else {
+              hijriEl.innerText = "Islamic date unavailable";
+          }
+      } catch (err) {
+          console.warn(err);
+          hijriEl.innerText = "Islamic date unavailable";
+      }
+  }
+
+  // ---------- Start everything ----------
+  document.addEventListener('DOMContentLoaded', () => {
+      loadHijriDate();
+      updatePrayerUI();
+      setInterval(updatePrayerUI, 1000);
+  });
+
 </script>
 {% endblock %}

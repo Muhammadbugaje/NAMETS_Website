@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Course, Session, Material, Evaluation, Result, Tutor, TutorEvaluation
+from .models import Course, Session, Material, Evaluation, Result, Tutor, TutorEvaluation, IslamiyyaRegistration, IslamiyyaCourse, UserResourceSubmission, CompetitionResult,TimetableEntry
 from django.http import HttpResponse
 from django.urls import path, reverse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -10,10 +10,9 @@ from openpyxl.styles import PatternFill, Font
 from django.utils.html import format_html
 from openpyxl.utils import get_column_letter
 from datetime import datetime
-from .models import TimetableEntry
 from .views import upload_timetable_excel
-from .models import IslamiyyaRegistration, IslamiyyaCourse
-
+from django.utils import timezone
+from core.services.webhooks import send_webhook
 
 # Register your models here.
 
@@ -208,99 +207,213 @@ class IslamiyyaCourseAdmin(admin.ModelAdmin):
     list_editable = ('is_active',)
     search_fields = ('name',)
 
-import openpyxl
-from openpyxl.styles import PatternFill, Font
-from django.http import HttpResponse
 
+# -------------------- Excel Export for islamiyyah application --------------------
 def export_islamiyya_registrations_to_excel(modeladmin, request, queryset):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=islamiyya_registrations.xlsx'
+    response['Content-Disposition'] = f'attachment; filename=islamiyya_registrations_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Islamiyya Registrations"
 
     gold_fill = PatternFill(start_color="C9A84C", end_color="C9A84C", fill_type="solid")
     header_font = Font(bold=True, color="FFFFFF")
-    normal_font = Font()
 
-    # Define sections and their columns
-    sections = [
-        ("Personal Information", ['Name', 'Registration Number', 'Gender', 'Email', 'Phone', 'Department', 'Photo URL']),
-        ("Academic Details", ['Level']),
-        ("Islamia Details", ['Courses', 'Other Course']),
-        ("Application Status", ['Application ID', 'Submitted At', 'Verified', 'Verified At', 'WhatsApp Link']),
-    ]
-
-    # Column mapping (order must match the sections above)
-    # We'll build a flat list of all columns first
-    columns = []
-    for _, cols in sections:
-        columns.extend(cols)
-
-    # Write section headers and column headers
-    current_row = 1
-    for section_title, section_cols in sections:
-        # Merge cells for section title across the number of columns in this section
-        start_col = columns.index(section_cols[0]) + 1
-        end_col = columns.index(section_cols[-1]) + 1
-        ws.merge_cells(start_row=current_row, start_column=start_col, end_row=current_row, end_column=end_col)
-        cell = ws.cell(row=current_row, column=start_col, value=section_title)
+    headers = ['Application ID', 'Name', 'Registration Number', 'Email', 'Phone', 'Department', 'Gender', 'Level', 'Courses', 'Other Course', 'Submitted At', 'Verified', 'Verified At', 'WhatsApp Link']
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num, value=header)
         cell.fill = gold_fill
         cell.font = header_font
-        current_row += 1
-        # Write column headers for this section
-        for col_idx, col_name in enumerate(section_cols, start=start_col):
-            ws.cell(row=current_row, column=col_idx, value=col_name).font = Font(bold=True)
-        current_row += 1
 
-    # Write data rows
-    for obj in queryset:
-        data = [
-            obj.name,
-            obj.registration_number,
-            obj.get_gender_display() if obj.gender else '',
-            obj.email,
-            obj.phone,
-            obj.department or '',
-            obj.photo.url if obj.photo else '',
-            obj.get_level_display(),
-            ', '.join([c.name for c in obj.courses.all()]),
-            obj.other_course or '',
-            obj.application_id,
-            obj.submitted_at.strftime('%Y-%m-%d %H:%M'),
-            'Yes' if obj.is_verified else 'No',
-            obj.verified_at.strftime('%Y-%m-%d %H:%M') if obj.verified_at else '',
-            obj.whatsapp_link or '',
-        ]
-        ws.append(data)
-
-    # Adjust column widths
-    for col in ws.columns:
-        max_length = 0
-        col_letter = col[0].column_letter
-        for cell in col:
-            try:
-                if cell.value:
-                    max_length = max(max_length, len(str(cell.value)))
-            except:
-                pass
-        adjusted_width = min(max_length + 2, 50)
-        ws.column_dimensions[col_letter].width = adjusted_width
-
+    for row_num, obj in enumerate(queryset, 2):
+        courses_str = ', '.join([c.name for c in obj.courses.all()])
+        ws.cell(row=row_num, column=1, value=obj.application_id)
+        ws.cell(row=row_num, column=2, value=obj.name)
+        ws.cell(row=row_num, column=3, value=obj.registration_number)
+        ws.cell(row=row_num, column=4, value=obj.email)
+        ws.cell(row=row_num, column=5, value=obj.phone)
+        ws.cell(row=row_num, column=6, value=obj.department or '')
+        ws.cell(row=row_num, column=7, value=obj.get_gender_display() if obj.gender else '')
+        ws.cell(row=row_num, column=8, value=obj.get_level_display())
+        ws.cell(row=row_num, column=9, value=courses_str)
+        ws.cell(row=row_num, column=10, value=obj.other_course or '')
+        ws.cell(row=row_num, column=11, value=obj.submitted_at.strftime('%Y-%m-%d %H:%M'))
+        ws.cell(row=row_num, column=12, value='Yes' if obj.is_verified else 'No')
+        ws.cell(row=row_num, column=13, value=obj.verified_at.strftime('%Y-%m-%d %H:%M') if obj.verified_at else '')
     wb.save(response)
     return response
-
 export_islamiyya_registrations_to_excel.short_description = "Export selected to Excel"
 
+# -------------------- Bulk Actions --------------------
+def mark_verified(modeladmin, request, queryset):
+    queryset.update(is_verified=True, verified_at=datetime.now())
+mark_verified.short_description = "Mark selected as verified"
+
+def mark_unverified(modeladmin, request, queryset):
+    queryset.update(is_verified=False, verified_at=None)
+mark_unverified.short_description = "Mark selected as unverified"
+
+# -------------------- Admin Class --------------------
 @admin.register(IslamiyyaRegistration)
 class IslamiyyaRegistrationAdmin(admin.ModelAdmin):
     list_display = ('application_id', 'name', 'email', 'level', 'is_verified', 'submitted_at')
     list_filter = ('is_verified', 'level')
-    search_fields = ('name', 'email', 'application_id')
-    actions = [export_islamiyya_registrations_to_excel]
+    search_fields = ('name', 'email', 'application_id', 'registration_number')
+    actions = [mark_verified, mark_unverified, export_islamiyya_registrations_to_excel]
     filter_horizontal = ('courses',)
-
-    def mark_verified(self, request, queryset):
-        queryset.update(is_verified=True)
-    mark_verified.short_description = "Mark selected as verified (payment confirmed)"
     
+@admin.register(UserResourceSubmission)
+class UserResourceSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('title', 'submitted_by', 'status', 'submitted_at')
+    list_filter = ('status',)
+    search_fields = ('title', 'submitted_by', 'email')
+    actions = ['approve_submissions']
+
+    def approve_submissions(self, request, queryset):
+        for obj in queryset:
+            if obj.status != 'approved':
+                obj.status = 'approved'
+                obj.reviewed_at = timezone.now()
+                obj.save()
+                if obj.email:
+                    send_webhook('resource_approved', {
+                        'recipients': [obj.email],
+                        'email': obj.email,
+                        'name': obj.submitted_by or 'NAMETS member',
+                        'title': obj.title,
+                    })
+        self.message_user(request, f"{queryset.count()} resource(s) approved.")
+    approve_submissions.short_description = "Approve selected submissions"
+
+@admin.register(CompetitionResult)
+class CompetitionResultAdmin(admin.ModelAdmin):
+    list_display = ('event_name', 'category', 'position', 'participant_name', 'department', 'points', 'order')
+    list_filter = ('event_name', 'category', 'year')
+    search_fields = ('participant_name', 'event_name')
+    list_editable = ('order',)
+    actions = ['export_to_excel']
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('upload-excel/', self.admin_site.admin_view(self.upload_excel), name='academics_competitionresult_upload'),
+        ]
+        return custom_urls + urls
+
+    def upload_excel(self, request):
+        """Import Competition Results from an Excel file."""
+        if request.method == 'POST':
+            form = ExcelUploadForm(request.POST, request.FILES)
+            if form.is_valid():
+                excel_file = request.FILES['excel_file']
+                wb = openpyxl.load_workbook(excel_file)
+                ws = wb.active
+                rows = list(ws.iter_rows(values_only=True))
+
+                if len(rows) < 2:
+                    messages.error(request, "File is empty or has only headers.")
+                    return redirect('admin:academics_competitionresult_changelist')
+
+                headers = rows[0]  # expected: event_name, category, position, participant_name, department, points, year, order
+                expected = ['event_name', 'category', 'position', 'participant_name', 'department', 'points', 'year', 'order']
+                # optional: validate headers loosely
+
+                created_count = 0
+                errors = []
+
+                for idx, row in enumerate(rows[1:], start=2):
+                    if not any(row):
+                        continue
+                    # Map by index (simplest – assume order as above)
+                    try:
+                        event_name = str(row[0]).strip() if row[0] else ''
+                        category = str(row[1]).strip() if row[1] else ''
+                        position = str(row[2]).strip() if row[2] else ''
+                        participant_name = str(row[3]).strip() if row[3] else ''
+                        department = str(row[4]).strip() if row[4] else ''
+                        points = row[5] if row[5] else None
+                        year = str(row[6]).strip() if row[6] else ''
+                        order = int(row[7]) if row[7] else 0
+                    except Exception as e:
+                        errors.append(f"Row {idx}: parsing error - {e}")
+                        continue
+
+                    if not event_name or not participant_name:
+                        errors.append(f"Row {idx}: event_name and participant_name are required.")
+                        continue
+
+                    # Validate position
+                    position_choices = ['1st', '2nd', '3rd', 'participant']
+                    if position not in position_choices:
+                        errors.append(f"Row {idx}: position must be one of {position_choices}")
+                        continue
+
+                    # Convert points to Decimal
+                    try:
+                        points = float(points) if points else None
+                    except:
+                        points = None
+
+                    CompetitionResult.objects.create(
+                        event_name=event_name,
+                        category=category,
+                        position=position,
+                        participant_name=participant_name,
+                        department=department,
+                        points=points,
+                        year=year,
+                        order=order,
+                        is_active=True
+                    )
+                    created_count += 1
+
+                if created_count:
+                    messages.success(request, f"Successfully imported {created_count} competition results.")
+                if errors:
+                    for err in errors[:5]:
+                        messages.error(request, err)
+                    if len(errors) > 5:
+                        messages.error(request, f"... and {len(errors)-5} more errors.")
+                return redirect('admin:academics_competitionresult_changelist')
+        else:
+            form = ExcelUploadForm()
+
+        context = {
+            'form': form,
+            'title': 'Upload Competition Results Excel',
+        }
+        return render(request, 'admin/academics/upload_excel.html', context)
+
+    def export_to_excel(self, request, queryset):
+        """Export selected competition results to Excel."""
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename=competition_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Competition Results"
+
+        headers = ['Event Name', 'Category', 'Position', 'Participant Name', 'Department', 'Points', 'Year', 'Order']
+        for col_num, header in enumerate(headers, 1):
+            col_letter = get_column_letter(col_num)
+            ws[f'{col_letter}1'] = header
+            ws[f'{col_letter}1'].font = openpyxl.styles.Font(bold=True)
+
+        for row_num, obj in enumerate(queryset, 2):
+            ws[f'A{row_num}'] = obj.event_name
+            ws[f'B{row_num}'] = obj.category or ''
+            ws[f'C{row_num}'] = obj.position
+            ws[f'D{row_num}'] = obj.participant_name
+            ws[f'E{row_num}'] = obj.department or ''
+            ws[f'F{row_num}'] = obj.points if obj.points is not None else ''
+            ws[f'G{row_num}'] = obj.year or ''
+            ws[f'H{row_num}'] = obj.order
+
+        wb.save(response)
+        return response
+    export_to_excel.short_description = "Export selected competition results to Excel"
+    
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['upload_button'] = True
+        return super().changelist_view(request, extra_context=extra_context)

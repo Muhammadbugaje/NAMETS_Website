@@ -1,14 +1,14 @@
 from django.shortcuts import redirect, render, get_object_or_404
-from .models import Announcement, PrayerSchedule, DonationCampaign
+from .models import Announcement, PrayerSchedule, DonationCampaign, MagazineIssue, Article, Subscriber
 from . import selectors
 # imports for subscription stuff 
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from .forms import SubscriptionForm
-from .models import Subscriber
 import uuid
 from core.services.webhooks import send_webhook
+from django.shortcuts import get_object_or_404
 # Create your views here.
 
 def announcement_list(request):
@@ -170,3 +170,21 @@ def unsubscribe_by_email(request):
             messages.error(request, f'No subscription found for {email}.')
         return redirect('core:homepage')
     return render(request, 'communications/unsubscribe_by_email.html')
+
+def article_list(request):
+    articles = Article.objects.filter(is_active=True)
+    return render(request, 'communications/article_list.html', {'articles': articles})
+
+def article_detail(request, slug):
+    article = get_object_or_404(Article, slug=slug, is_active=True)
+    return render(request, 'communications/article_detail.html', {'article': article})
+
+
+def magazine_list(request):
+    issues = MagazineIssue.objects.filter(is_active=True)
+    return render(request, 'communications/magazine_list.html', {'issues': issues})
+
+def magazine_detail(request, slug):
+    issue = get_object_or_404(MagazineIssue, slug=slug, is_active=True)
+    articles = issue.articles.filter(is_active=True)
+    return render(request, 'communications/magazine_detail.html', {'issue': issue, 'articles': articles})

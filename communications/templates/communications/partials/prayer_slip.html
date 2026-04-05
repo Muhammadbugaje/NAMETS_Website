@@ -1,11 +1,10 @@
-{% if next_prayer %}
-    <a href="{% url 'communications:prayer_times' %}" class="next-prayer-link">
-        <span class="next-prayer-label">Next Prayer:</span>
-        <span class="prayer-name">{{ next_prayer.name }}</span>
-        <span class="prayer-times">
-            <span class="adhan">{{ next_prayer.adhan|time:"g:i A" }}</span>
-            <span class="separator">|</span>
-            <span class="iqama">{{ next_prayer.iqama|time:"g:i A" }}</span>
-        </span>
-    </a>
-{% endif %}
+<a href="{% url 'communications:prayer_times' %}" class="next-prayer-link">
+    <span class="next-prayer-label">Next Prayer:</span>
+    <span class="prayer-name" id="nextPrayerName">{{ next_prayer.name }}</span>
+    <span class="prayer-times">
+        <span class="adhan" id="nextAdhan">{{ next_prayer.adhan|time:"g:i A" }}</span>
+        <span class="separator">|</span>
+        <span class="iqama" id="nextIqama">{{ next_prayer.iqama|time:"g:i A" }}</span>
+    </span>
+    <span class="prayer-countdown" id="prayerCountdown"></span>
+</a>

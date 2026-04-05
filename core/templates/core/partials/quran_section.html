@@ -1,0 +1,69 @@
+
+<!-- ══ QURAN / HADITH SECTION ══════════════════════════════════════════════ -->
+<section class="namets-quran-section" id="nametsQuranSection">
+  <div class="namets-qs-inner">
+
+    <!-- Context Banner (shown for Friday / Ramadan / Eid) -->
+    <div class="namets-qs-context-banner" id="nametsContextBanner" style="display:none">
+      <span class="namets-qs-context-icon" id="nametsContextIcon">🌙</span>
+      <span class="namets-qs-context-text" id="nametsContextText"></span>
+    </div>
+
+    <!-- Section Header -->
+    <div class="namets-qs-header">
+      <span class="namets-qs-eyebrow" id="nametsQsEyebrow">Verse of the Day</span>
+      <h2 class="namets-qs-title" id="nametsQsTitle">Guided by the Quran</h2>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="namets-qs-card" id="nametsQsCard">
+
+      <!-- Loading Skeleton -->
+      <div class="namets-qs-skeleton" id="nametsQsSkeleton">
+        <div class="namets-sk-line namets-sk-arabic"></div>
+        <div class="namets-sk-line namets-sk-trans"></div>
+        <div class="namets-sk-line namets-sk-cite"></div>
+      </div>
+
+      <!-- Loaded Content -->
+      <div class="namets-qs-content" id="nametsQsContent" style="display:none">
+        <div class="namets-qs-ornament">❧</div>
+
+        <!-- Quran Block -->
+        <div class="namets-qs-quran" id="nametsQsQuran">
+          <div class="namets-qs-arabic" id="nametsQsArabic" dir="rtl"></div>
+          <div class="namets-qs-translation" id="nametsQsTranslation"></div>
+          <div class="namets-qs-reference" id="nametsQsReference"></div>
+        </div>
+
+        <!-- Divider (shown when both Quran + Hadith are displayed) -->
+        <div class="namets-qs-divider" id="nametsQsDivider" style="display:none">
+          <span>· · ·</span>
+        </div>
+
+        <!-- Hadith Block -->
+        <div class="namets-qs-hadith" id="nametsQsHadith" style="display:none">
+          <div class="namets-qs-hadith-label">Hadith</div>
+          <div class="namets-qs-hadith-arabic" id="nametsQsHadithArabic" dir="rtl"></div>
+          <div class="namets-qs-hadith-text" id="nametsQsHadithText"></div>
+          <div class="namets-qs-hadith-source" id="nametsQsHadithSource"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dot Navigation -->
+    <div class="namets-qs-dots" id="nametsQsDots"></div>
+
+    <!-- Special Friday Reminder Card -->
+    <div class="namets-friday-reminder" id="nametsFridayReminder" style="display:none">
+      <div class="namets-fr-icon">📖</div>
+      <div class="namets-fr-text">
+        <strong>Jumu'ah Reminder</strong>
+        <p>Read Surah Al-Kahf today — "Whoever reads Surah Al-Kahf on Friday will have a light between the two Fridays." <em>(Al-Hakim)</em></p>
+      </div>
+      <a class="namets-fr-btn" id="nametsFrBtn" href="#" target="_blank">Read Surah Al-Kahf →</a>
+    </div>
+
+  </div>
+</section>
+<!-- ══ END QURAN SECTION ═════════════════════════════════════════════════════ -->

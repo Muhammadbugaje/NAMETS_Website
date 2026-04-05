@@ -134,3 +134,36 @@ class MosqueRule(models.Model):
 
     def __str__(self):
         return self.title
+    
+class MagazineIssue(models.Model):
+    title = models.CharField(max_length=200)  # e.g., "Al-Irshad Vol. 1"
+    slug = models.SlugField(unique=True)
+    description = models.TextField(blank=True)
+    cover_image = CloudinaryField('image', folder='magazine/covers/', blank=True, null=True)
+    pdf_file = CloudinaryField('file', folder='magazine/pdfs/', blank=True, null=True)
+    published_date = models.DateField()
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-published_date']
+
+    def __str__(self):
+        return self.title
+
+class Article(models.Model):
+    issue = models.ForeignKey(MagazineIssue, on_delete=models.CASCADE, related_name='articles', blank=True, null=True)
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True)
+    category = models.CharField(max_length=100, blank=True)  # e.g., "Islam & Health"
+    author = models.CharField(max_length=200, blank=True)
+    content = models.TextField()
+    image = CloudinaryField('image', folder='articles/', blank=True, null=True)
+    published_at = models.DateTimeField(default=timezone.now)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-published_at']
+
+    def __str__(self):
+        return self.title
+    

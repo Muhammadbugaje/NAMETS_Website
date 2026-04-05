@@ -10,7 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
-  <link rel="stylesheet" href="{% static 'css/global.css' %}"> <!-- Optional, for shared styles -->
+  <link rel="stylesheet" href="{% static 'css/global.css' %}"> 
+  <link rel="stylesheet" href="{% static 'css/islamic_widgets.css' %}">
+  <link rel="stylesheet" href="{% static 'css/prayer_topbar.css' %}">
   <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"> -->
 
   <!-- Swiper CSS -->
@@ -23,18 +25,7 @@
 <body>
   <!-- Scroll Progress Bar -->
   <div id="scroll-progress" aria-hidden="true"></div>
-
-  <!-- Top Utility Bar (only next prayer shown) -->
-  <div class="top-bar">
-    <div class="container top-bar-inner">
-      <a href="{% url 'communications:prayer_times' %}" class="next-prayer-link">
-        {% include 'communications/partials/prayer_slip.html' %}
-      </a>
-      <span class="welcome-message hide-mobile">Assalamu Alaikum, Welcome to NAMETS</span>
-    </div>
-  </div>
-
-  <!-- Site Header -->
+  {% block prayer_topbar %}{% endblock %}
   <header class="site-header">
     <div class="container header-inner">
       <div>
@@ -46,12 +37,25 @@
       <!-- Desktop Navigation -->
       <nav class="desktop-nav" aria-label="Main navigation">
         <a href="{% url 'core:homepage' %}">Home</a>
-        <a href="{% url 'community:about' %}">About</a>
+        <div class="dropdown">
+            <a href="{% url 'community:about' %}" class="dropbtn">About</a>
+            <div class="dropdown-content">
+                <a href="{% url 'community:executive_list' %}">Executives</a>
+                <a href="{% url 'community:patron_list' %}">Patrons</a>
+                <a href="{% url 'community:developer_list' %}">Developers</a>
+            </div>
+        </div>
         <a href="{% url 'communications:announcement_list' %}">Announcements</a>
         <a href="{% url 'events:list' %}">Events</a>
-        <a href="{% url 'academics:course_list' %}">Academics</a>
-        <a href="{% url 'academics:tutorial_list' %}">Tutorials</a>
-        <a href="{% url 'academics:islamia_list' %}">Islamiyyah</a>
+        <div class="dropdown">
+            <a href="{% url 'academics:course_list' %}" class="dropbtn">Academics</a>
+            <div class="dropdown-content">
+                <a href="{% url 'academics:tutorial_list' %}">Tutorials</a>
+                <a href="{% url 'academics:islamia_list' %}">Islamiyya</a>
+                <a href="{% url 'academics:competition_results' %}">Competition Results</a>
+                <a href="{% url 'academics:resources' %}">More Resources</a>
+            </div>
+        </div>
         <a href="{% url 'lostfound:list' %}">Lost &amp; Found</a>
         <a href="{% url 'community:question_list' %}">Q&amp;A</a>
         <a href="{% url 'gallery:list' %}">Gallery</a>
@@ -84,17 +88,11 @@
       <a href="{% url 'events:list' %}">Events</a>
       <a href="{% url 'communications:announcement_list' %}">Announcements</a>
       <a href="{% url 'academics:course_list' %}">Academics</a>
-      <a href="{% url 'academics:islamia_list' %}">Islamiyyah</a>
-      <a href="{% url 'academics:tutorial_list' %}">Tutorials</a>
-      <a href="{% url 'community:question_list' %}">Q&amp;A</a>
       <a href="{% url 'lostfound:list' %}">Lost &amp; Found</a>
       <a href="{% url 'communications:prayer_times' %}">Prayer Times</a>
       <a href="{% url 'gallery:list' %}">Gallery</a>
       <a href="{% url 'community:about' %}">About</a>
       <a href="{% url 'communications:mosque_info' %}">Mosque</a>
-      <a href="{% url 'communications:donation_list' %}">Donations</a>
-      <a href="{% url 'community:executive_list' %}">Executives</a>
-      <a href="{% url 'community:patron_list' %}">Patrons</a>
       <a href="{% url 'community:developer_list' %}">Developers</a>
     </nav>
     <div class="drawer-footer">
@@ -159,11 +157,11 @@
           <li><a href="{% url 'events:list' %}">Events</a></li>
           <li><a href="{% url 'gallery:list' %}">Gallery</a></li>
           <li><a href="{% url 'community:patron_list' %}">Patrons</a></li>
+          <li><a href="{% url 'communications:article_list' %}">Articles</a></li>
           <li><a href="{% url 'communications:mosque_info' %}">Mosque</a></li>
-          <li><a href="{% url 'academics:tutorial_list' %}">Tutorials</a></li>
           <li><a href="{% url 'community:executive_list' %}">Executive</a></li>
+          <!-- <li><a href="{% url 'communications:magazine_list' %}">Magazine</a></li> -->
           <li><a href="{% url 'communications:donation_list' %}">Donations</a></li>
-          <li><a href="{% url 'academics:islamia_list' %}">Islamiyyah</a></li>
           <li><a href="{% url 'academics:course_list' %}">Academics</a></li>
           <li><a href="{% url 'community:developer_list' %}">Developers</a></li>
           <li><a href="{% url 'communications:unsubscribe_by_email' %}">Unsubscribe</a></li>
@@ -244,9 +242,11 @@
   <!-- Site JS -->
   <script src="{% static 'js/global.js' %}"></script>
   <script src="{% static 'js/animations.js' %}"></script>
+  <script src="{% static 'js/namets-ui.js' %}"></script>
   <!-- Swiper JS -->
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-  
+  <script src="{% static 'js/islamic_widgets.js' %}"></script>
+  <script src="{% static 'js/prayer_topbar.js' %}"></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

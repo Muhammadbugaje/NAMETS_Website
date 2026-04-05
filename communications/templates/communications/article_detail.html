@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ article.title }} | NAMETS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <article class="glass-card" style="padding: 2rem;">
+        <h1>{{ article.title }}</h1>
+        <div class="text-muted mb-3">
+            {{ article.published_at|date:"F j, Y" }}
+            {% if article.author %} • by {{ article.author }}{% endif %}
+            {% if article.category %} • {{ article.category }}{% endif %}
+        </div>
+        {% if article.image %}
+            <img src="{{ article.image.url }}" alt="{{ article.title }}" style="max-width:100%; margin-bottom:1rem;">
+        {% endif %}
+        <div>{{ article.content|linebreaks }}</div>
+        <a href="{% url 'communications:article_list' %}" class="btn btn-link">← Back to Magazine</a>
+    </article>
+</div>
+{% endblock %}

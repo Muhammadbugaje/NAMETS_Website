@@ -1,6 +1,5 @@
 from django import forms
-from .models import TutorEvaluation
-from .models import IslamiyyaRegistration, IslamiyyaCourse
+from .models import IslamiyyaRegistration,UserResourceSubmission, TutorEvaluation, IslamiyyaCourse
 
 class ExcelUploadForm(forms.Form):
     excel_file = forms.FileField(label="Select Excel file", help_text="Columns: Student Name, Registration Number, Marks Obtained, Grade, Remarks (optional). First row should be headers.")
@@ -58,3 +57,14 @@ class IslamiyyaRegistrationForm(forms.ModelForm):
        
 class CheckStatusForm(forms.Form):
     identifier = forms.CharField(label="Email or Registration Number", max_length=200)
+    
+    
+class ResourceSubmissionForm(forms.ModelForm):
+    class Meta:
+        model = UserResourceSubmission
+        fields = ['title', 'description', 'file', 'submitted_by', 'email']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Describe the resource...'}),
+            'submitted_by': forms.TextInput(attrs={'placeholder': 'Your name (optional)'}),
+            'email': forms.EmailInput(attrs={'placeholder': 'Your email (to receive approval notification)'}),
+        }

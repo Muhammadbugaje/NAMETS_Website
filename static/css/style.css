@@ -277,6 +277,11 @@ img {
   border-left: 1px solid rgba(200, 169, 81, 0.2);
 }
 
+.dropdown {
+  position: relative;
+    background: rgb(255, 255, 255);
+}
+
 .drawer.open {
   transform: translateX(0);
 }

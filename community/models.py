@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from cloudinary.models import CloudinaryField
 from core.models import SiteSettings  # for toggling
+from django.utils import timezone
+
 
 # Create your models here.
 
@@ -224,3 +226,18 @@ class SocialMediaLink(models.Model):
 
     def __str__(self):
         return f"{self.get_platform_display()} - {self.url}"
+    
+    
+class NAMETSDocument(models.Model):
+    """Documents uploaded directly by admin (e.g., constitution, annual reports)"""
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    file = CloudinaryField('file', folder='namets_docs')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)  # show on about page
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return self.title

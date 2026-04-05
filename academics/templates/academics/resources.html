@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}More Resources | NAMETS Academics{% endblock %}
+
+{% block extra_css %}
+<style>
+    .resources-page {
+        padding: 2rem 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .page-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .page-header h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.5rem;
+    }
+    .search-bar {
+        max-width: 500px;
+        margin: 1.5rem auto;
+    }
+    .search-form {
+        display: flex;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.2);
+        border-radius: 60px;
+        padding: 0.2rem;
+        backdrop-filter: blur(8px);
+    }
+    .search-form input {
+        flex: 1;
+        padding: 0.7rem 1rem;
+        border: none;
+        background: transparent;
+        border-radius: 60px;
+        outline: none;
+        color: var(--text-primary, #1A1A1A);
+    }
+    .search-form button {
+        background: var(--accent, #097205);
+        border: none;
+        padding: 0.7rem 1.5rem;
+        border-radius: 60px;
+        font-weight: 600;
+        color: #fdfdfd;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .search-form button:hover {
+        background: #b8993f;
+        transform: translateY(-2px);
+    }
+    .submit-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--accent, #C8A951);
+        color: #fdfdfd;
+        padding: 0.7rem 1.5rem;
+        border-radius: 40px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        margin-bottom: 2rem;
+    }
+    .submit-button:hover {
+        background: #097205;
+        transform: translateY(-2px);
+    }
+    .resources-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+    .resource-card {
+        background: rgba(255,255,255,0.3);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 20px;
+        padding: 1.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    .resource-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    }
+    .resource-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .resource-description {
+        font-size: 0.9rem;
+        color: var(--text-secondary, #5A5A5A);
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        flex: 1;
+    }
+    .resource-meta {
+        font-size: 0.75rem;
+        color: #777;
+        margin-top: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding-top: 0.8rem;
+    }
+    .btn-download {
+        background: var(--primary, #0F3D2E);
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+    .btn-download:hover {
+        background: #1a5a44;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+    .pagination a, .pagination span {
+        padding: 0.5rem 1rem;
+        background: rgba(255,255,255,0.2);
+        border-radius: 30px;
+        text-decoration: none;
+        color: var(--text-primary, #1A1A1A);
+        transition: background 0.2s;
+    }
+    .pagination a:hover {
+        background: var(--accent, #C8A951);
+        color: #1A1A1A;
+    }
+    .pagination .current {
+        background: var(--primary, #0F3D2E);
+        color: white;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        background: rgba(255,255,255,0.2);
+        border-radius: 20px;
+        margin-top: 2rem;
+    }
+    @media (max-width: 640px) {
+        .resources-grid {
+            grid-template-columns: 1fr;
+        }
+        .page-header h1 {
+            font-size: 1.8rem;
+        }
+        .submit-button {
+            width: 100%;
+            justify-content: center;
+        }
+        .search-form {
+            flex-direction: column;
+            border-radius: 30px;
+            background: transparent;
+        }
+        .search-form input {
+            background: rgba(255,255,255,0.2);
+            border-radius: 60px;
+        }
+        .search-form button {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="resources-page">
+    <div class="page-header">
+        <h1>📚 More Resources</h1>
+        <p>Hand‑picked and community‑shared materials approved by NAMETS admin</p>
+    </div>
+
+    <!-- Search bar -->
+    <div class="search-bar">
+        <form method="get" class="search-form">
+            <input type="text" name="q" placeholder="Search by title or description..." value="{{ query }}">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="text-center">
+        <a href="{% url 'academics:submit_resource' %}" class="submit-button">
+            Submit a Resource
+        </a>
+    </div>
+
+    {% if page_obj.object_list %}
+        <div class="resources-grid">
+            {% for res in page_obj %}
+                <div class="resource-card card-reveal">
+                    <h3 class="resource-title">{{ res.title }}</h3>
+                    <p class="resource-description">{{ res.description|truncatewords:30 }}</p>
+                    <div class="resource-meta">
+                        {% if res.submitted_by %}
+                            <span>👤 {{ res.submitted_by }}</span>
+                        {% endif %}
+                        <a href="{{ res.file.url }}" class="btn-download" download>📥 Download</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if query %}&q={{ query }}{% endif %}">« First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">‹ Previous</a>
+                {% endif %}
+                <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next ›</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">Last »</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="empty-state">
+            {% if query %}
+                <p>No resources match "{{ query }}". Try a different search term.</p>
+                <a href="{% url 'academics:resources' %}" class="btn btn-link">Clear search</a>
+            {% else %}
+                <p>No resources yet. Be the first to <a href="{% url 'academics:submit_resource' %}">share something</a>.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

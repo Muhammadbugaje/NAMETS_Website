@@ -1,0 +1,564 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NAMETS Islamic Widgets — CSS
+   File: static/css/islamic_widgets.css
+   Add to base.html: <link rel="stylesheet" href="{% static 'css/islamic_widgets.css' %}">
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Variables ──────────────────────────────────────────────────────────── */
+:root {
+  --nb-bg:        #0E2D26;
+  --nb-border:    rgba(201, 149, 42, 0.20);
+  --nb-gold:      #C9952A;
+  --nb-gold-lt:   #E8B84B;
+  --nb-gold-pale: #F5D98A;
+  --nb-cream:     #FAF4E8;
+  --nb-white:     #ffffff;
+  --nb-ink:       #1A1208;
+  --nb-ink-mid:   #3D3320;
+  --nb-ink-muted: #7A6E5A;
+  --nb-success:   #1D7A4F;
+  --nb-deep:      #084235;
+  --nb-r:         10px;
+  --nb-rlg:       16px;
+  --nb-sh:        0 4px 24px rgba(9,31,26,.15);
+  --nb-font-ar:   'Amiri', 'Scheherazade New', 'Times New Roman', serif;
+  --nb-font-disp: 'Playfair Display', 'Georgia', serif;
+  --nb-font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PRAYER BAR
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.namets-prayer-bar {
+  background: var(--nb-bg);
+  border-bottom: 1px solid var(--nb-border);
+  padding: .55rem 0;
+  font-family: var(--nb-font-body);
+  position: relative;
+  z-index: 99;
+}
+
+.namets-pb-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* Date column */
+.namets-pb-dates {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  min-width: 160px;
+}
+
+.namets-pb-hijri {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--nb-gold-lt);
+  font-family: var(--nb-font-ar);
+  letter-spacing: .02em;
+}
+
+.namets-pb-hijri-skeleton {
+  opacity: .4;
+  font-size: .78rem;
+  font-family: var(--nb-font-body);
+}
+
+.namets-pb-greg {
+  font-size: .7rem;
+  color: rgba(255,255,255,.4);
+  font-weight: 500;
+}
+
+/* Prayer tiles */
+.namets-pb-prayers {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+.namets-pb-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .12rem;
+  padding: .4rem .75rem;
+  border-radius: var(--nb-r);
+  border: 1px solid transparent;
+  transition: all .2s;
+  cursor: default;
+  min-width: 58px;
+  position: relative;
+}
+
+.namets-pb-tile--passed {
+  opacity: .4;
+}
+
+.namets-pb-tile--next {
+  background: rgba(201,149,42,.12);
+  border-color: rgba(201,149,42,.4);
+}
+
+.namets-pb-tile--inprogress {
+  background: rgba(29,122,79,.18);
+  border-color: rgba(29,122,79,.5);
+  animation: namets-pulse-border 2s infinite;
+}
+
+@keyframes namets-pulse-border {
+  0%, 100% { border-color: rgba(29,122,79,.5); }
+  50%       { border-color: rgba(29,122,79,.9); }
+}
+
+.namets-pb-tile-icon {
+  font-size: .85rem;
+  line-height: 1;
+}
+
+.namets-pb-tile-name {
+  font-size: .62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: rgba(255,255,255,.45);
+}
+
+.namets-pb-tile-arabic {
+  font-family: var(--nb-font-ar);
+  font-size: .72rem;
+  color: rgba(201,149,42,.55);
+  line-height: 1;
+}
+
+.namets-pb-tile-time {
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--nb-cream);
+  font-variant-numeric: tabular-nums;
+}
+
+.namets-pb-tile--next .namets-pb-tile-name { color: var(--nb-gold); }
+.namets-pb-tile--next .namets-pb-tile-time { color: var(--nb-gold-lt); }
+.namets-pb-tile--inprogress .namets-pb-tile-name { color: #5EE8A8; }
+.namets-pb-tile--inprogress .namets-pb-tile-time { color: #ADFCD8; }
+
+/* "In Progress" micro-badge on the tile */
+.namets-pb-tile-badge {
+  position: absolute;
+  top: .2rem;
+  right: .2rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5EE8A8;
+  animation: namets-blink 1.5s infinite;
+}
+
+@keyframes namets-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .2; }
+}
+
+/* Countdown / in-progress column */
+.namets-pb-countdown-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .08rem;
+  min-width: 110px;
+}
+
+.namets-pb-next-label {
+  font-size: .62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgba(255,255,255,.4);
+}
+
+.namets-pb-countdown {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--nb-cream);
+  font-variant-numeric: tabular-nums;
+  font-family: monospace;
+  letter-spacing: .06em;
+}
+
+.namets-pb-inprogress {
+  font-size: .78rem;
+  font-weight: 700;
+  color: #5EE8A8;
+  background: rgba(29,122,79,.2);
+  border: 1px solid rgba(29,122,79,.4);
+  padding: .2rem .65rem;
+  border-radius: 100px;
+  animation: namets-blink 2s infinite;
+}
+
+/* Loading dots */
+.namets-pb-loading {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  padding: .5rem;
+}
+
+.namets-pb-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(201,149,42,.4);
+  animation: namets-dotpulse 1.4s infinite;
+}
+
+.namets-pb-dot:nth-child(2) { animation-delay: .2s; }
+.namets-pb-dot:nth-child(3) { animation-delay: .4s; }
+
+@keyframes namets-dotpulse {
+  0%, 80%, 100% { transform: scale(1); opacity: .4; }
+  40%            { transform: scale(1.4); opacity: 1; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   QURAN / HADITH SECTION
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.namets-quran-section {
+  background: var(--nb-deep);
+  padding: 4rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Geo background pattern */
+.namets-quran-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cg fill='none' stroke='rgba(201,149,42,0.06)' stroke-width='0.8'%3E%3Cpath d='M40 0L80 40L40 80L0 40Z'/%3E%3Cpath d='M40 16L64 40L40 64L16 40Z'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.namets-qs-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+/* Context Banner */
+.namets-qs-context-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: .65rem;
+  background: rgba(201,149,42,.12);
+  border: 1px solid rgba(201,149,42,.35);
+  border-radius: 100px;
+  padding: .45rem 1.2rem;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--nb-gold-pale);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 1.75rem;
+}
+
+.namets-qs-context-icon { font-size: 1rem; }
+
+/* Header */
+.namets-qs-eyebrow {
+  display: block;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--nb-gold);
+  margin-bottom: .5rem;
+}
+
+.namets-qs-title {
+  font-family: var(--nb-font-disp);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  color: var(--nb-cream);
+  margin-bottom: 2rem;
+}
+
+/* Card */
+.namets-qs-card {
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(201,149,42,.22);
+  border-radius: var(--nb-rlg);
+  padding: 2.5rem 3rem;
+  margin-bottom: 1.5rem;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Loading skeleton */
+.namets-qs-skeleton {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .85rem;
+}
+
+.namets-sk-line {
+  background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.04) 75%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: namets-shimmer 1.5s infinite;
+}
+
+.namets-sk-arabic { width: 70%;  height: 28px; }
+.namets-sk-trans  { width: 85%;  height: 16px; }
+.namets-sk-cite   { width: 35%;  height: 12px; }
+
+@keyframes namets-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Content */
+.namets-qs-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.namets-qs-ornament {
+  font-family: var(--nb-font-disp);
+  font-size: 1.8rem;
+  color: var(--nb-gold);
+  opacity: .55;
+  line-height: 1;
+  margin-bottom: .25rem;
+}
+
+/* Arabic Verse */
+.namets-qs-arabic {
+  font-family: var(--nb-font-ar);
+  font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+  color: var(--nb-gold-lt);
+  line-height: 2.2;
+  direction: rtl;
+  text-align: right;
+  width: 100%;
+}
+
+.namets-qs-translation {
+  font-family: var(--nb-font-disp);
+  font-size: 1rem;
+  font-style: italic;
+  color: rgba(232,220,196,.78);
+  line-height: 1.85;
+}
+
+.namets-qs-reference {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--nb-gold);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* Divider */
+.namets-qs-divider {
+  color: rgba(201,149,42,.35);
+  font-size: 1.2rem;
+  letter-spacing: .4em;
+  margin: .25rem 0;
+}
+
+/* Hadith block */
+.namets-qs-hadith {
+  width: 100%;
+  padding-top: .75rem;
+  border-top: 1px solid rgba(201,149,42,.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .65rem;
+}
+
+.namets-qs-hadith-label {
+  font-size: .68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--nb-gold);
+  background: rgba(201,149,42,.12);
+  padding: .2rem .75rem;
+  border-radius: 100px;
+  border: 1px solid rgba(201,149,42,.25);
+}
+
+.namets-qs-hadith-arabic {
+  font-family: var(--nb-font-ar);
+  font-size: 1.25rem;
+  color: rgba(201,149,42,.7);
+  direction: rtl;
+  line-height: 2;
+  text-align: right;
+  width: 100%;
+}
+
+.namets-qs-hadith-text {
+  font-size: .93rem;
+  font-style: italic;
+  color: rgba(232,220,196,.65);
+  line-height: 1.8;
+}
+
+.namets-qs-hadith-source {
+  font-size: .74rem;
+  font-weight: 700;
+  color: rgba(201,149,42,.6);
+  letter-spacing: .06em;
+}
+
+/* Dot navigation */
+.namets-qs-dots {
+  display: flex;
+  justify-content: center;
+  gap: .5rem;
+  margin-bottom: 1.5rem;
+}
+
+.namets-qs-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(201,149,42,.25);
+  cursor: pointer;
+  transition: all .2s;
+  border: none;
+  padding: 0;
+}
+
+.namets-qs-dot.namets-dot-on {
+  background: var(--nb-gold);
+  transform: scale(1.35);
+}
+
+/* Friday Reminder card */
+.namets-friday-reminder {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: rgba(29,122,79,.12);
+  border: 1px solid rgba(29,122,79,.35);
+  border-radius: var(--nb-rlg);
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+  flex-wrap: wrap;
+}
+
+.namets-fr-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.namets-fr-text {
+  flex: 1;
+  min-width: 200px;
+}
+
+.namets-fr-text strong {
+  display: block;
+  font-size: .92rem;
+  color: #ADFCD8;
+  margin-bottom: .3rem;
+}
+
+.namets-fr-text p {
+  font-size: .85rem;
+  color: rgba(232,220,196,.65);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.namets-fr-text em {
+  font-style: italic;
+  color: rgba(201,149,42,.8);
+}
+
+.namets-fr-btn {
+  background: rgba(29,122,79,.3);
+  border: 1px solid rgba(29,122,79,.5);
+  color: #ADFCD8;
+  font-size: .82rem;
+  font-weight: 700;
+  padding: .55rem 1.1rem;
+  border-radius: var(--nb-r);
+  white-space: nowrap;
+  transition: all .2s;
+  text-decoration: none;
+}
+
+.namets-fr-btn:hover {
+  background: rgba(29,122,79,.5);
+  color: #fff;
+}
+
+.namets-qs-card {
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y pinch-zoom; /* allows vertical scroll but horizontal swipe captured */
+}
+.namets-qs-card:active {
+  cursor: grabbing;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .namets-pb-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .75rem;
+  }
+
+  .namets-pb-countdown-wrap {
+    align-items: flex-start;
+  }
+
+  .namets-pb-prayers {
+    gap: .35rem;
+  }
+
+  .namets-pb-tile {
+    min-width: 50px;
+    padding: .35rem .55rem;
+  }
+
+  .namets-qs-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .namets-qs-arabic {
+    font-size: 1.4rem;
+  }
+
+  .namets-friday-reminder {
+    flex-direction: column;
+    text-align: center;
+  }
+}

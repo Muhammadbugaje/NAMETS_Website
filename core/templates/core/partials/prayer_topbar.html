@@ -1,0 +1,30 @@
+{% load static %}
+{% if next_prayer %}
+{% load static %}
+<div class="prayer-bar">
+  <div class="prayer-bar-inner">
+    <!-- LEFT: Hijri + Gregorian (JS fills) -->
+    <div class="pb-left">
+      <span id="pbHijri">—</span>
+      <span id="pbGreg">—</span>
+    </div>
+
+    <!-- CENTRE: Next prayer (dynamic, JS updates) -->
+    <a href="{% url 'communications:prayer_times' %}" class="pb-centre" id="pbCentreLink">
+      <span class="pb-label">Next</span>
+      <span class="pb-name" id="nextPrayerName">--</span>
+      <span class="pb-sep">·</span>
+      <span class="pb-time" id="nextPrayerTime">--:--</span>
+    </a>
+
+    <!-- RIGHT: Countdown or "Ongoing" -->
+    <div class="pb-right">
+      <span class="pb-cd-lbl" id="pbLbl">in</span>
+      <span class="pb-cd-val" id="pbCd">--:--:--</span>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden element to store the next prayer time (HH:MM) for JS countdown -->
+<span id="nextPrayerTimeHidden" style="display:none;">{{ next_prayer.adhan|time:"H:i" }}</span>
+{% endif %}

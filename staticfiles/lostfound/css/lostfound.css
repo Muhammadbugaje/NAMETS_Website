@@ -1,0 +1,320 @@
+/* ========================================
+   LOST & FOUND – MAIN PAGE (Clean Card Style)
+   ======================================== */
+
+.lf-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ---------- Search Bar ---------- */
+.lf-search-bar {
+    margin: 20px 0;
+}
+.lf-search-form .lf-search-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+.lf-search-form input[type="text"] {
+    flex: 2 1 250px;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    background: #fff;
+}
+.lf-search-form select {
+    flex: 1 1 180px;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    font-size: 16px;
+}
+.lf-search-form button {
+    flex: 0 1 auto;
+    padding: 12px 24px;
+}
+
+/* ---------- Filter Tabs (unchanged) ---------- */
+.lf-filter-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 30px 0;
+    padding-bottom: 10px;
+}
+.lf-filter-tab {
+    padding: 10px 24px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 40px;
+    color: #1A1A1A;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.lf-filter-tab[data-filter="lost"] {
+    background: rgba(155, 44, 44, 0.15);
+    border-color: rgba(155, 44, 44, 0.3);
+}
+.lf-filter-tab[data-filter="lost"].active {
+    background: rgba(155, 44, 44, 0.3);
+    border-color: #9B2C2C;
+    color: #9B2C2C;
+}
+.lf-filter-tab[data-filter="found"] {
+    background: rgba(30, 90, 138, 0.15);
+    border-color: rgba(30, 90, 138, 0.3);
+}
+.lf-filter-tab[data-filter="found"].active {
+    background: rgba(30, 90, 138, 0.3);
+    border-color: #1E5A8A;
+    color: #1E5A8A;
+}
+.lf-filter-tab[data-filter="claimed"] {
+    background: rgba(22, 101, 52, 0.15);
+    border-color: rgba(22, 101, 52, 0.3);
+}
+.lf-filter-tab[data-filter="claimed"].active {
+    background: rgba(22, 101, 52, 0.3);
+    border-color: #166534;
+    color: #166534;
+}
+.lf-filter-tab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.lf-filter-tab:active {
+    transform: scale(0.96);
+}
+
+/* ---------- Card Grid (matches your card-grid) ---------- */
+.lf-item-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 1fr; /* mobile default */
+    margin-top: 30px;
+}
+
+@media (min-width: 640px) {
+    .lf-item-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .lf-item-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ---------- Item Card (matches .card) ---------- */
+.lf-item-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.lf-item-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+}
+
+/* Image container – matches .card-img */
+.lf-card-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    background: #f0f0f0;
+}
+.lf-card-image img {
+    object-fit: cover;
+    display: block;
+}
+.lf-card-image.no-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 14px;
+}
+
+/* Card body – matches .card-body */
+.lf-card-content {
+    padding: 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 480px) {
+    .lf-card-content {
+        padding: 16px;
+    }
+}
+
+/* Header with badge and category */
+.lf-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.lf-category-tag {
+    font-size: 12px;
+    font-weight: 500;
+    color: #0F3D2E;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(0,0,0,0.05);
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+/* Title – matches .card-title */
+.lf-item-title {
+    font-family: 'Merriweather', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1A1A1A;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+/* Description – matches .card-desc */
+.lf-item-description {
+    font-size: 14px;
+    color: #5A5A5A;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+/* Footer – matches .card-footer */
+.lf-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    color: #777;
+    font-size: 0.9rem;
+}
+.lf-click-indicator {
+    color: #0F3D2E;
+    font-weight: 500;
+}
+
+/* Badges (global style, can stay) */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.badge-lost {
+    background: #FEF2F2;
+    color: #9B2C2C;
+    border: 1px solid #FECACA;
+}
+.badge-found {
+    background: #EFF6FF;
+    color: #1E5A8A;
+    border: 1px solid #BFDBFE;
+}
+.badge-claimed {
+    background: #F0FDF4;
+    color: #166534;
+    border: 1px solid #BBF7D0;
+}
+
+/* ---------- Detail Page ---------- */
+.lf-item-detail {
+    max-width: 700px;
+    margin: 0 auto;
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    padding: 24px;
+}
+.lf-detail-image {
+    max-width: 100%;
+    max-height: 400px;
+    width: auto;
+    height: auto;
+    border-radius: 12px;
+    margin: 20px 0;
+    object-fit: contain;
+    background: #f9f9f6;
+}
+.lf-claimant-info {
+    margin-top: 20px;
+    padding: 16px;
+    background: #f9f9f6;
+    border-radius: 12px;
+    border: 1px solid #eee;
+}
+.lf-claimant-info h3 {
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+.lf-back-link {
+    display: inline-block;
+    margin-top: 30px;
+}
+
+/* ========================================
+   MOBILE OPTIMIZATIONS (max-width: 600px)
+   ======================================== */
+@media (max-width: 600px) {
+    .lf-page {
+        padding: 10px;
+    }
+
+    .lf-search-bar {
+        margin: 10px 0;
+    }
+    .lf-search-form input[type="text"],
+    .lf-search-form select,
+    .lf-search-form button {
+        padding: 10px 12px;
+        font-size: 15px;
+    }
+    .lf-search-form button {
+        padding: 10px 12px;
+    }
+
+    .lf-filter-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 8px;
+        margin: 15px 0 20px;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .lf-filter-tab {
+        padding: 8px 16px;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
+    .lf-item-grid {
+        gap: 16px;
+    }
+
+    .lf-card-image {
+        height: 160px; /* slightly smaller on mobile */
+    }
+}

@@ -1,26 +1,22 @@
 from urllib import request
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Course, Evaluation, Material, TimetableEntry
+from .models import Course, Evaluation, Material, TimetableEntry, UserResourceSubmission, IslamiyyaRegistration, TimetableEntry, CompetitionResult
 from . import selectors
-from .forms import TutorEvaluationForm, TimetableUploadForm
+from .forms import TutorEvaluationForm, TimetableUploadForm, ResourceSubmissionForm, IslamiyyaRegistrationForm, CheckStatusForm
 from django.contrib import messages
 import openpyxl
-from .models import TimetableEntry
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponse
 import os
 from datetime import datetime, timedelta
 from .selectors import get_all_results
-from .models import Course
 from cloudinary.utils import cloudinary_url
 from core.models import SiteSettings
-from .forms import IslamiyyaRegistrationForm, CheckStatusForm
-from .models import IslamiyyaRegistration
 from .utils import render_to_pdf
 from django.urls import reverse
-from django.http import HttpResponse
 from django.utils import timezone
 from django.conf import settings
 from django.db.models import Q
+from django.core.paginator import Paginator
 
 # Create your views here.
 
@@ -394,3 +390,42 @@ def islamiyya_download_slip(request):
     else:
         messages.error(request, 'Error generating PDF.')
         return redirect('academics:islamiyya_dashboard')
+    
+
+def resources_page(request):
+    query = request.GET.get('q', '')
+    resources = UserResourceSubmission.objects.filter(status='approved').order_by('-submitted_at')
+    
+    if query:
+        resources = resources.filter(
+            Q(title__icontains=query) | Q(description__icontains=query)
+        )
+    
+    paginator = Paginator(resources, 12)  # 12 resources per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'academics/resources.html', {
+        'page_obj': page_obj,
+        'query': query,
+    })
+
+def submit_resource(request):
+    if request.method == 'POST':
+        form = ResourceSubmissionForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Thank you! Your resource has been submitted and will be reviewed by the admin.')
+            return redirect('academics:submit_resource')
+    else:
+        form = ResourceSubmissionForm()
+    return render(request, 'academics/submit_resource.html', {'form': form})
+
+def competition_results(request):
+    results = CompetitionResult.objects.filter(is_active=True)
+    # Group by event_name then by category
+    events = {}
+    for r in results:
+        key = f"{r.event_name} – {r.category}" if r.category else r.event_name
+        events.setdefault(key, []).append(r)
+    return render(request, 'academics/competition_results.html', {'events': events})

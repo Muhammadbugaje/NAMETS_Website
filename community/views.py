@@ -2,11 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from . import selectors
 from .forms import AskQuestionForm
-
-from .models import TutorApplication, MembershipApplication
+from .models import TutorApplication, MembershipApplication, NAMETSDocument
 from core.models import SiteSettings
 from .forms import TutorApplicationForm, MembershipApplicationForm
 from core.services.webhooks import send_webhook
+from django.core.paginator import Paginator
+from django.db.models import Q
 
 def patron_list(request):
     patrons = selectors.get_active_patrons()
@@ -45,13 +46,27 @@ def ask_question(request):
         form = AskQuestionForm()
     return render(request, 'community/ask_question.html', {'form': form})
 
+
 def about_page(request):
     about = selectors.get_about_info()
     developers = selectors.get_active_developers()
+    documents = NAMETSDocument.objects.filter(is_active=True).order_by('-uploaded_at')
+    
+    query = request.GET.get('q', '')
+    if query:
+        documents = documents.filter(Q(title__icontains=query) | Q(description__icontains=query))
+    
+    paginator = Paginator(documents, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'community/about.html', {
         'about': about,
         'developers': developers,
+        'page_obj': page_obj,
+        'query': query,
     })
+    
     
 def developer_list(request):
     developers = selectors.get_active_developers()
@@ -105,3 +120,14 @@ def membership_application(request):
         form = MembershipApplicationForm()
 
     return render(request, 'community/membership_application.html', {'form': form, 'intro': settings.membership_intro_text})
+
+
+def about_page(request):
+    about = selectors.get_about_info()
+    developers = selectors.get_active_developers()
+    documents = NAMETSDocument.objects.filter(is_active=True)
+    return render(request, 'community/about.html', {
+        'about': about,
+        'developers': developers,
+        'documents': documents,
+    })

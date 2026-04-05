@@ -59,11 +59,34 @@
         {% empty %}
             <p>Developer credits not yet added.</p>
         {% endfor %}
-    </div>
+        </div>
+        {% if documents %}
+            <div class="section-heading reveal mt-lg">
+                <h2>📄 Official Documents</h2>
+                <div class="section-heading-line"></div>
+            </div>
+            <div class="documents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem;">
+                {% for doc in documents %}
+                    <div class="glass-card card-reveal" style="padding: 1.2rem; border-radius: 20px;">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 0.3rem;">{{ doc.title }}</h3>
+                        {% if doc.description %}
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">{{ doc.description|truncatewords:20 }}</p>
+                        {% endif %}
+                        <a href="{{ doc.file.url }}" class="btn btn-primary btn-sm" download>📥 Download</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
-    <!-- Button linking to full developers page -->
-    <div class="text-center mt-4" style="margin-top: 30px;">
-        <a href="{% url 'community:developer_list' %}" class="btn btn-primary btn-lg">View All Developers</a>
-    </div>
+<div class="section-heading reveal mt-lg">
+    <h2>Our Leadership & Supporters</h2>
+    <div class="section-heading-line"></div>
+</div>
+<div class="button-group" style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+    <a href="{% url 'community:executive_list' %}" class="btn btn-primary">Meet the Executives</a>
+    <a href="{% url 'community:patron_list' %}" class="btn btn-primary">Our Patrons</a>
+    <a href="{% url 'community:developer_list' %}" class="btn btn-primary">Developers</a>
+</div>
+
 </div>
 {% endblock %}

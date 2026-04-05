@@ -1,10 +1,11 @@
 from django.contrib import admin
-from .models import ContactPhone, Patron, ExecutiveYear, Executive, Developer, Question, Answer, AboutPage, Skill, TutorApplication, MembershipApplication
+from .models import ContactPhone, Patron, ExecutiveYear, Executive, Developer, Question, Answer, AboutPage, Skill, TutorApplication, MembershipApplication, NAMETSDocument
 from utils.admin_helpers import cloudinary_thumbnail
 from django.http import HttpResponse
 import openpyxl
 from openpyxl.utils import get_column_letter
 from datetime import datetime
+from django.utils import timezone
 from .models import SocialMediaLink
 # Register your models here.
 @admin.register(Skill)
@@ -190,3 +191,9 @@ class SocialMediaLinkAdmin(admin.ModelAdmin):
     list_editable = ('order', 'is_active')
     list_filter = ('platform', 'is_active')
     search_fields = ('url',)
+    
+@admin.register(NAMETSDocument)
+class NAMETSDocumentAdmin(admin.ModelAdmin):
+    list_display = ('title', 'uploaded_at', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('title',)

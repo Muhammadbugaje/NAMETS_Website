@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Magazine | NAMETS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Magazine</h1>
+    <div class="card-grid">
+        {% for issue in issues %}
+            <div class="card glass-card card-reveal">
+                {% if issue.cover_image %}
+                    <img src="{{ issue.cover_image.url }}" class="card-img" alt="{{ issue.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <h3 class="card-title">
+                        <a href="{% url 'communications:magazine_detail' issue.slug %}">{{ issue.title }}</a>
+                    </h3>
+                    <p class="card-desc">{{ issue.description|truncatewords:20 }}</p>
+                    <p class="text-muted">Published: {{ issue.published_date|date:"F Y" }}</p>
+                    {% if issue.pdf_file %}
+                        <a href="{{ issue.pdf_file.url }}" class="btn btn-primary btn-sm" download>📥 Download PDF</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <p>No issues available yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

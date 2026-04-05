@@ -1,11 +1,10 @@
 from django.contrib import admin
-from .models import Announcement, PrayerSchedule, Subscriber, DonationCampaign, MosqueInfo, MosqueRule
+from .models import Announcement, PrayerSchedule, Subscriber, DonationCampaign, MosqueInfo, MosqueRule, Article, MagazineIssue
 from django.urls import reverse
 from django.utils.html import format_html
 from django.shortcuts import redirect
 from django.contrib import messages
 from utils.admin_helpers import cloudinary_thumbnail
-
 # Register your models here.
 
 @admin.register(Announcement)
@@ -66,3 +65,17 @@ class SubscriberAdmin(admin.ModelAdmin):
         url = reverse('communications:unsubscribe', args=[obj.token])
         return format_html('<a href="{}" target="_blank">Unsubscribe link</a>', url)
     unsubscribe_link.short_description = 'Unsubscribe URL'
+    
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'author', 'published_at')
+    list_filter = ('category', 'is_active')
+    search_fields = ('title', 'content')
+    prepopulated_fields = {'slug': ('title',)}
+    
+
+@admin.register(MagazineIssue)
+class MagazineIssueAdmin(admin.ModelAdmin):
+    list_display = ('title', 'published_date', 'is_active')
+    prepopulated_fields = {'slug': ('title',)}

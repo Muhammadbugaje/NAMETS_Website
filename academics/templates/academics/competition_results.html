@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Competition Results | NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .competition-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .competition-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .competition-header h1 {
+        font-size: 2.5rem;
+        color: var(--primary, #0F3D2E);
+    }
+    .event-section {
+        margin-bottom: 3rem;
+    }
+    .event-title {
+        font-family: 'Merriweather', serif;
+        font-size: 1.6rem;
+        color: var(--primary, #0F3D2E);
+        border-left: 5px solid var(--accent, #C8A951);
+        padding-left: 1rem;
+        margin-bottom: 1.2rem;
+    }
+    .results-glass {
+        background: rgba(255,255,255,0.3);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 24px;
+        overflow: hidden;
+        padding: 0;
+        transition: transform 0.2s;
+    }
+    @media (hover: hover) {
+        .results-glass:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+        }
+    }
+
+    /* Default table styling (desktop) */
+    .results-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .results-table th,
+    .results-table td {
+        padding: 1rem 1.2rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        vertical-align: middle;
+    }
+    .results-table th {
+        background: rgba(15,61,46,0.08);
+        font-weight: 600;
+        color: var(--primary, #0F3D2E);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .results-table tr:last-child td {
+        border-bottom: none;
+    }
+    .position-badge {
+        display: inline-block;
+        background: var(--accent, #C8A951);
+        color: #1A1A1A;
+        font-weight: bold;
+        padding: 0.2rem 0.8rem;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        min-width: 55px;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .position-1st { background: #FFD700; color: #1A1A1A; }
+    .position-2nd { background: #C0C0C0; color: #1A1A1A; }
+    .position-3rd { background: #CD7F32; color: #1A1A1A; }
+    .participant-name {
+        font-weight: 600;
+        color: var(--text-primary, #1A1A1A);
+    }
+    .department {
+        color: var(--text-secondary, #5A5A5A);
+        font-size: 0.9rem;
+    }
+    .points {
+        font-weight: 600;
+        color: var(--primary, #0F3D2E);
+    }
+
+    /* ----- Mobile: Stacked layout (no horizontal scroll) ----- */
+    @media (max-width: 640px) {
+        .competition-page {
+            padding: 12px;
+        }
+        .competition-header h1 {
+            font-size: 1.8rem;
+        }
+        .event-title {
+            font-size: 1.3rem;
+        }
+
+        /* Force table to behave like block elements */
+        .results-table,
+        .results-table thead,
+        .results-table tbody,
+        .results-table tr,
+        .results-table th,
+        .results-table td {
+            display: block;
+        }
+
+        /* Hide table headers */
+        .results-table thead {
+            display: none;
+        }
+
+        /* Each row becomes a card-like block */
+        .results-table tr {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+        }
+
+        /* Each cell becomes a flex row with label */
+        .results-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: none;
+            font-size: 0.85rem;
+        }
+
+        /* Add labels using data-label attribute (requires data-label in HTML) */
+        .results-table td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: var(--primary, #0F3D2E);
+            width: 40%;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Adjust badge size for mobile */
+        .position-badge {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.6rem;
+            min-width: 45px;
+        }
+
+        /* Remove extra padding on first and last cells */
+        .results-table td:first-child {
+            padding-top: 0;
+        }
+        .results-table td:last-child {
+            padding-bottom: 0;
+        }
+
+        /* Override department font size */
+        .department {
+            font-size: 0.85rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="competition-page">
+    <div class="competition-header card-reveal">
+        <h1>🏆 Competition Results</h1>
+        <p class="text-muted">Celebrating excellence in academics and Qur’an competitions</p>
+    </div>
+
+    {% for event_name, results in events.items %}
+    <div class="event-section card-reveal">
+        <h2 class="event-title">{{ event_name }}</h2>
+        <div class="results-glass">
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Participant</th>
+                        <th>Department</th>
+                        <th>Points / Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in results %}
+                    <tr>
+                        <td data-label="Position">
+                            <span class="position-badge 
+                                {% if res.position == '1st' %}position-1st
+                                {% elif res.position == '2nd' %}position-2nd
+                                {% elif res.position == '3rd' %}position-3rd
+                                {% endif %}">
+                                {{ res.position }}
+                            </span>
+                        </td>
+                        <td data-label="Participant" class="participant-name">{{ res.participant_name }}</td>
+                        <td data-label="Department" class="department">{{ res.department|default:"—" }}</td>
+                        <td data-label="Points" class="points">{{ res.points|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% empty %}
+    <div class="glass-card text-center" style="padding: 3rem;">
+        <p>No competition results available yet.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

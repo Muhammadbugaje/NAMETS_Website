@@ -214,3 +214,49 @@ class IslamiyyaRegistration(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.application_id})"
+    
+
+class UserResourceSubmission(models.Model):
+    """Materials submitted by users, pending admin approval"""
+    STATUS_CHOICES = (
+        ('pending', 'Pending Approval'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    file = CloudinaryField('file', folder='user_resources')
+    submitted_by = models.CharField(max_length=100, blank=True)  # optional name
+    email = models.EmailField(blank=True) 
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-submitted_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.status})"
+     
+class CompetitionResult(models.Model):
+    event_name = models.CharField(max_length=200, help_text="e.g., NAMETS Week 2024")
+    category = models.CharField(max_length=100, blank=True, help_text="e.g., Musabaqah 60 Hizb, Quiz Competition")
+    position = models.CharField(max_length=50, choices=[
+        ('1st', '1st Place'),
+        ('2nd', '2nd Place'),
+        ('3rd', '3rd Place'),
+        ('participant', 'Participant'),
+    ], default='participant')
+    participant_name = models.CharField(max_length=200)
+    department = models.CharField(max_length=200, blank=True)
+    points = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    year = models.CharField(max_length=20, blank=True, help_text="e.g., 2023/2024")
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0, help_text="Lower numbers appear first within category")
+
+    class Meta:
+        ordering = ['event_name', 'category', 'order', 'position']
+        verbose_name_plural = "Competition Results"
+
+    def __str__(self):
+        return f"{self.event_name} - {self.position} - {self.participant_name}"
