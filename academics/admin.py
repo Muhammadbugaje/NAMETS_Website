@@ -342,12 +342,6 @@ class CompetitionResultAdmin(admin.ModelAdmin):
                         errors.append(f"Row {idx}: event_name and participant_name are required.")
                         continue
 
-                    # Validate position
-                    position_choices = ['1st', '2nd', '3rd', 'participant']
-                    if position not in position_choices:
-                        errors.append(f"Row {idx}: position must be one of {position_choices}")
-                        continue
-
                     # Convert points to Decimal
                     try:
                         points = float(points) if points else None
