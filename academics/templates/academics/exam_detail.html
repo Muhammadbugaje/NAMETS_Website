@@ -1,46 +1,92 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'academics/css/academics.css' %}">
-{% endblock %}
-
 {% block title %}{{ exam.title }} Results | NAMETS{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'academics/css/academics.css' %}">
+<style>
+  .exam-detail {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+  .exam-header {
+    margin-bottom: 2rem;
+    border-left: 5px solid #C8A951;
+    padding-left: 1rem;
+  }
+  .exam-header h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+  .exam-meta { color: #5A5A5A; margin-bottom: 1rem; }
+  .filter-form {
+    background: rgba(255,255,255,0.6);
+    padding: 1rem;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .filter-form input {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+  }
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255,255,255,0.6);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .results-table th, .results-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+  .results-table th {
+    background: #0F3D2E;
+    color: white;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1>{{ exam.title }} – Results</h1>
-<p>Course: {{ exam.course.name }} | Date: {{ exam.date|date:"F j, Y" }}</p>
+<div class="exam-detail">
+  <div class="exam-header">
+    <h1>{{ exam.title }}</h1>
+    <div class="exam-meta">
+      {{ exam.course.name }} • {{ exam.date|date:"F j, Y" }} • Total marks: {{ exam.total_marks }}
+    </div>
+  </div>
 
-<form method="get">
+  <form method="get" class="filter-form">
     <input type="text" name="student" placeholder="Filter by student name" value="{{ student_name }}">
-    <button type="submit">Filter</button>
+    <button type="submit" class="btn btn-primary">Filter</button>
     {% if student_name %}
-        <a href="{% url 'academics:exam_detail' exam.id %}">Clear</a>
+      <a href="{% url 'academics:exam_detail' exam.id %}">Clear</a>
     {% endif %}
-</form>
+  </form>
 
-<table class="table table-striped-columns">
+  <table class="results-table">
     <thead>
-        <tr>
-            <th>Student Name</th>
-            <th>Marks Obtained</th>
-            <th>Grade</th>
-            <th>Remarks</th>
-        </tr>
+      <tr><th>Student Name</th><th>Marks Obtained</th><th>Grade</th><th>Remarks</th></tr>
     </thead>
     <tbody>
-        {% for result in results %}
-            <tr>
-                <td>{{ result.student_name }}</td>
-                <td>{{ result.marks_obtained }}</td>
-                <td>{{ result.grade }}</td>
-                <td>{{ result.remarks|default:"—" }}</td>
-            </tr>
-        {% empty %}
-            <tr><td colspan="4">No results found.</td></tr>
-        {% endfor %}
+      {% for result in results %}
+      <tr>
+        <td>{{ result.student_name }}</td>
+        <td>{{ result.marks_obtained }}</td>
+        <td>{{ result.grade }}</td>
+        <td>{{ result.remarks|default:"—" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No results found for this exam.</td></tr>
+      {% endfor %}
     </tbody>
-</table>
+  </table>
 
-<a href="{% url 'academics:exam_list' %}" class="btn btn-secondary" style="margin-top: 10px; border-radius:23px">← Back to all exams</a>
+  <a href="{% url 'academics:exam_list' %}" class="btn btn-secondary" style="margin-top: 1.5rem;">← Back to all exams</a>
+</div>
 {% endblock %}

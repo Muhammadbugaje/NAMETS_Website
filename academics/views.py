@@ -90,7 +90,7 @@ def materials_list(request, slug):
 def exam_list(request, slug=None):
     exams = Evaluation.objects.filter(is_active=True).select_related('course').order_by('-date')
     # Optional filtering by course
-    course_slug = slug or request.GET.get('course')
+    course_slug = request.GET.get('course')
     if course_slug:
         exams = exams.filter(course__slug=course_slug)
     context = {
@@ -127,7 +127,7 @@ def exam_detail(request, exam_id):
         'results': results,
         'student_name': student_name,
     }
-    return render(request, 'academics/exams.html', context)
+    return render(request, 'academics/exam_detail.html', context)
 
 
 def all_results(request):

@@ -3,27 +3,197 @@
 
 {% block title %}{{ course.name }} | NAMETS{% endblock %}
 
-{% block content %}
-<h1>{{ course.name }}</h1>
-<p>{{ course.description }}</p>
+{% block extra_css %}
+<style>
+.acad-hero {
+  background: linear-gradient(135deg, #0F3D2E 0%, #1a5c42 100%);
+  padding: 2.5rem 1.5rem 2rem;
+  position: relative; overflow: hidden;
+}
+.acad-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.04)' stroke-width='1'%3E%3Cpath d='M30 0L60 30L30 60L0 30Z'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.acad-hero-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+.acad-hero-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8);
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.3rem 0.85rem; border-radius: 100px; margin-bottom: 0.75rem;
+}
+.acad-hero h1 { color: #fff; font-size: clamp(1.5rem,4vw,2.2rem); font-weight: 800; margin-bottom: 0.5rem; }
+.acad-hero p { color: rgba(255,255,255,0.7); font-size: 0.95rem; max-width: 60ch; line-height: 1.7; }
 
-<div class="course-links">
-    <a href="{% url 'academics:materials_list' course.slug %}" class="btn btn-primary" style="border-radius:23px">Materials</a>
-    <a href="{% url 'academics:exams_list' course.slug %}" class="btn btn-primary" style="border-radius:23px; margin-left:10px; margin-right:10px;">Exams</a>
-    <a href="{% url 'academics:course_results' course.slug %}" class="btn btn-primary" style="border-radius:23px">Results</a>
+.acad-body { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.qa-card {
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(15,61,46,0.1);
+  border-radius: 18px;
+  padding: 1.4rem 1.5rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.22s;
+  box-shadow: 0 2px 10px rgba(15,61,46,0.06);
+  position: relative;
+  overflow: hidden;
+}
+.qa-card::after {
+  content: '→';
+  position: absolute;
+  right: 1.25rem;
+  font-size: 1rem;
+  color: rgba(15,61,46,0.3);
+  transition: all 0.2s;
+}
+.qa-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(15,61,46,0.14);
+  border-color: rgba(15,61,46,0.25);
+}
+.qa-card:hover::after { right: 1rem; color: #0F3D2E; }
+.qa-icon {
+  width: 46px; height: 46px;
+  border-radius: 13px;
+  display: grid; place-items: center;
+  font-size: 1.4rem; flex-shrink: 0;
+}
+.qa-icon.mat { background: linear-gradient(135deg, #e8f5ee, #c8eadb); }
+.qa-icon.exam { background: linear-gradient(135deg, #fff3e0, #ffe0b2); }
+.qa-icon.res { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
+.qa-text strong {
+  display: block; font-size: 0.97rem;
+  font-weight: 800; color: #0F3D2E;
+}
+.qa-text span {
+  font-size: 0.78rem; color: #5a7a6a;
+  font-weight: 500;
+}
+
+.sessions-section {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(15,61,46,0.1);
+  border-radius: 18px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 10px rgba(15,61,46,0.05);
+}
+.sessions-section h2 {
+  font-size: 1rem; font-weight: 800;
+  color: #0F3D2E; margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+
+.bottom-actions {
+  display: flex; flex-wrap: wrap; gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+.btn-back {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  color: #0F3D2E; font-size: 0.88rem; font-weight: 700;
+  text-decoration: none; padding: 0.65rem 1.4rem;
+  border: 2px solid rgba(15,61,46,0.2);
+  border-radius: 100px;
+  background: rgba(255,255,255,0.7);
+  transition: all 0.2s;
+}
+.btn-back:hover { background: #0F3D2E; color: #fff; border-color: #0F3D2E; }
+.btn-evaluate {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  color: #fff; font-size: 0.88rem; font-weight: 700;
+  text-decoration: none; padding: 0.65rem 1.4rem;
+  border-radius: 100px;
+  background: linear-gradient(135deg, #C9952A, #e8b84b);
+  transition: all 0.2s;
+  box-shadow: 0 3px 12px rgba(201,149,42,0.3);
+}
+.btn-evaluate:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(201,149,42,0.4);
+  color: #fff;
+}
+.btn-disabled {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  color: #9ab0a4; font-size: 0.88rem; font-weight: 700;
+  padding: 0.65rem 1.4rem; border-radius: 100px;
+  background: rgba(15,61,46,0.05);
+  border: 2px solid rgba(15,61,46,0.1);
+  cursor: not-allowed;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="acad-hero">
+  <div class="acad-hero-inner">
+    <div class="acad-hero-badge">📘 Course</div>
+    <h1>{{ course.name }}</h1>
+    {% if course.description %}
+    <p>{{ course.description }}</p>
+    {% endif %}
+  </div>
 </div>
 
-<!-- Optionally show upcoming sessions if any -->
-{% if sessions %}
-    <h2>Upcoming Sessions</h2>
-    <ul> ... </ul>
-{% endif %}
-<div style="margin-top: 20px;">
-    <a href="{% url 'academics:course_list' %}" class="btn btn-secondary" style="border-radius:23px; margin-right:10px;">&larr; Back to Courses</a>
+<div class="acad-body">
+
+  <div class="quick-actions">
+    <a href="{% url 'academics:materials_list' course.slug %}" class="qa-card">
+      <div class="qa-icon mat">📚</div>
+      <div class="qa-text">
+        <strong>Materials</strong>
+        <span>Notes, past questions & resources</span>
+      </div>
+    </a>
+    <a href="{% url 'academics:exams_list' course.slug %}" class="qa-card">
+      <div class="qa-icon exam">📝</div>
+      <div class="qa-text">
+        <strong>Exams</strong>
+        <span>View scheduled assessments</span>
+      </div>
+    </a>
+    <a href="{% url 'academics:course_results' course.slug %}" class="qa-card">
+      <div class="qa-icon res">📊</div>
+      <div class="qa-text">
+        <strong>Results</strong>
+        <span>Check your scores & grades</span>
+      </div>
+    </a>
+  </div>
+
+  {% if sessions %}
+  <div class="sessions-section">
+    <h2>📅 Upcoming Sessions</h2>
+    <ul style="padding-left:1.25rem; color:#5a7a6a; font-size:0.92rem; line-height:2;">
+      {% for session in sessions %}
+        <li>{{ session }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="bottom-actions">
+    <a href="{% url 'academics:course_list' %}" class="btn-back">← Back to Courses</a>
     {% if settings.tutor_evaluations_open %}
-    <a href="{% url 'academics:evaluate_tutor' course.slug %}" class="btn btn-secondary" style="border-radius:23px; margin-right:10px;">Evaluate Tutor</a>
+      <a href="{% url 'academics:evaluate_tutor' course.slug %}" class="btn-evaluate">⭐ Evaluate Tutor</a>
     {% else %}
-        <span class="btn btn-secondary disabled">Evaluations Closed</span>
+      <span class="btn-disabled">🔒 Evaluations Closed</span>
     {% endif %}
+  </div>
+
 </div>
 {% endblock %}

@@ -1,32 +1,268 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Materials for {{ course.name }} | NAMETS{% endblock %}
+{% block title %}Materials — {{ course.name }} | NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.acad-hero {
+  background: linear-gradient(135deg, #0F3D2E 0%, #1a5c42 100%);
+  padding: 2.5rem 1.5rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.acad-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.04)' stroke-width='1'%3E%3Cpath d='M30 0L60 30L30 60L0 30Z'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.acad-hero-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.acad-hero-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.85rem;
+  border-radius: 100px;
+  margin-bottom: 0.75rem;
+}
+.acad-hero h1 {
+  color: #fff;
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+}
+.acad-hero p {
+  color: rgba(255,255,255,0.65);
+  font-size: 0.92rem;
+}
+.acad-body {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+.mat-count {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F3D2E;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mat-count::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(15,61,46,0.2), transparent);
+}
+.mat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.mat-card {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(15,61,46,0.12);
+  border-radius: 16px;
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: all 0.22s;
+  box-shadow: 0 2px 12px rgba(15,61,46,0.06);
+}
+.mat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(15,61,46,0.13);
+  border-color: rgba(15,61,46,0.25);
+}
+.mat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #e8f5ee, #d0ece0);
+}
+.mat-icon.drive { background: linear-gradient(135deg, #e8f0fe, #d0dffe); }
+.mat-info { flex: 1; min-width: 0; }
+.mat-title {
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: #0F3D2E;
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mat-desc {
+  font-size: 0.82rem;
+  color: #5a7a6a;
+  margin-bottom: 0.3rem;
+  line-height: 1.5;
+}
+.mat-meta {
+  font-size: 0.75rem;
+  color: #9ab0a4;
+  font-weight: 500;
+}
+.mat-actions { flex-shrink: 0; }
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: linear-gradient(135deg, #0F3D2E, #1a5c42);
+  color: #fff;
+  font-size: 0.83rem;
+  font-weight: 700;
+  padding: 0.6rem 1.2rem;
+  border-radius: 100px;
+  text-decoration: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+  box-shadow: 0 3px 12px rgba(15,61,46,0.3);
+}
+.btn-download:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(15,61,46,0.4);
+  color: #fff;
+}
+.btn-drive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: linear-gradient(135deg, #1a73e8, #4285f4);
+  color: #fff;
+  font-size: 0.83rem;
+  font-weight: 700;
+  padding: 0.6rem 1.2rem;
+  border-radius: 100px;
+  text-decoration: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+  box-shadow: 0 3px 12px rgba(26,115,232,0.3);
+}
+.btn-drive:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(26,115,232,0.4);
+  color: #fff;
+}
+.empty-state {
+  text-align: center;
+  padding: 4rem 1rem;
+  background: rgba(255,255,255,0.6);
+  border-radius: 20px;
+  border: 2px dashed rgba(15,61,46,0.15);
+}
+.empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+.empty-state h3 { color: #0F3D2E; margin-bottom: 0.5rem; }
+.empty-state p { color: #5a7a6a; font-size: 0.9rem; }
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #0F3D2E;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  padding: 0.65rem 1.4rem;
+  border: 2px solid rgba(15,61,46,0.2);
+  border-radius: 100px;
+  background: rgba(255,255,255,0.7);
+  transition: all 0.2s;
+  margin-top: 1.5rem;
+}
+.back-link:hover {
+  background: #0F3D2E;
+  color: #fff;
+  border-color: #0F3D2E;
+}
+@media(max-width:600px){
+  .mat-card { flex-wrap: wrap; }
+  .mat-actions { width: 100%; }
+  .btn-download, .btn-drive { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<h1 style="margin-bottom:20px;">{{ course.name }} - Materials</h1>
 
-<ul class="materials-list">
+<div class="acad-hero">
+  <div class="acad-hero-inner">
+    <div class="acad-hero-badge">📚 Course Materials</div>
+    <h1>{{ course.name }}</h1>
+    <p>Download lecture notes, past questions, and study resources below.</p>
+  </div>
+</div>
+
+<div class="acad-body">
+
+  {% if materials %}
+  <div class="mat-count">
+    📁 {{ materials|length }} material{{ materials|length|pluralize }} available
+  </div>
+  <div class="mat-grid">
     {% for material in materials %}
-        <li>
-            <div style="font-weight:bold;">
-                {% if material.file %}
-                    <!-- Download link – stays on site, triggers download -->
-                    <div class="font-weight:bold;">Download: <a href="{% url 'academics:download_material' material.id %}" style="color: #0F3D2E; text-decoration: underline;"> {{ material.title }}</a></div>
-                {% elif material.drive_link %}
-                    <!-- Google Drive link – opens in new tab -->
-                    <a href="{{ material.drive_link }}" target="_blank" rel="noopener" style="color: #0F3D2E; text-decoration: underline;">🔗 {{ material.title }}</a>
-                {% endif %}
-            </div>
-            {% if material.description %}
-                <p>{{ material.description }}</p>
-            {% endif %}
-            <small>Uploaded: {{ material.uploaded_at|date:"M d, Y" }}</small>
-        </li>
-    {% empty %}
-        <li>No materials available.</li>
-    {% endfor %}
-</ul>
+    <div class="mat-card">
 
-<a href="{% url 'academics:course_detail' course.slug %}" class="btn btn-secondary" style="margin-top: 35px; border-radius:23px">&larr; Back to Course</a>
+      <div class="mat-icon {% if material.drive_link %}drive{% endif %}">
+        {% if material.drive_link %}🔗{% else %}📄{% endif %}
+      </div>
+
+      <div class="mat-info">
+        <div class="mat-title">{{ material.title }}</div>
+        {% if material.description %}
+          <div class="mat-desc">{{ material.description }}</div>
+        {% endif %}
+        <div class="mat-meta">⏱ Uploaded {{ material.uploaded_at|date:"M d, Y" }}</div>
+      </div>
+
+      <div class="mat-actions">
+        {% if material.file %}
+          <a href="{% url 'academics:download_material' material.id %}" class="btn-download">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download
+          </a>
+        {% elif material.drive_link %}
+          <a href="{{ material.drive_link }}" target="_blank" rel="noopener" class="btn-drive">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Open Drive
+          </a>
+        {% endif %}
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="icon">📭</div>
+    <h3>No materials yet</h3>
+    <p>Materials for this course haven't been uploaded yet. Check back soon.</p>
+  </div>
+  {% endif %}
+
+  <a href="{% url 'academics:course_detail' course.slug %}" class="back-link">
+    ← Back to {{ course.name }}
+  </a>
+
+</div>
 {% endblock %}
