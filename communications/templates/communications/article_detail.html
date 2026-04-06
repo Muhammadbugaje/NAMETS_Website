@@ -3,20 +3,102 @@
 
 {% block title %}{{ article.title }} | NAMETS{% endblock %}
 
+{% block extra_css %}
+<style>
+    .article-detail {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    .article-glass {
+        background: rgba(255,255,255,0.3);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 24px;
+        padding: 2rem;
+        transition: box-shadow 0.2s;
+    }
+    .article-glass:hover {
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    }
+    .article-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary, #0F3D2E);
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+    }
+    .article-meta {
+        font-size: 0.8rem;
+        color: var(--accent, #C8A951);
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding-bottom: 0.75rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .article-image {
+        width: 100%;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    .article-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    .article-content {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: #1A1A1A;
+    }
+    .article-content p {
+        margin-bottom: 1.2em;
+    }
+    .back-link {
+        display: inline-block;
+        margin-top: 2rem;
+        font-size: 0.9rem;
+        color: var(--primary, #0F3D2E);
+        text-decoration: none;
+        border-bottom: 1px dashed var(--accent, #C8A951);
+    }
+    .back-link:hover {
+        color: var(--accent, #C8A951);
+    }
+    @media (max-width: 640px) {
+        .article-glass {
+            padding: 1.2rem;
+        }
+        .article-title {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <article class="glass-card" style="padding: 2rem;">
-        <h1>{{ article.title }}</h1>
-        <div class="text-muted mb-3">
-            {{ article.published_at|date:"F j, Y" }}
-            {% if article.author %} • by {{ article.author }}{% endif %}
-            {% if article.category %} • {{ article.category }}{% endif %}
+<div class="article-detail">
+    <article class="article-glass card-reveal">
+        <h1 class="article-title">{{ article.title }}</h1>
+        <div class="article-meta">
+            <span>{{ article.published_at|date:"F j, Y" }}</span>
+            {% if article.author %}<span>✍️ {{ article.author }}</span>{% endif %}
+            {% if article.category %}<span>🏷️ {{ article.category }}</span>{% endif %}
         </div>
         {% if article.image %}
-            <img src="{{ article.image.url }}" alt="{{ article.title }}" style="max-width:100%; margin-bottom:1rem;">
+        <div class="article-image">
+            <img src="{{ article.image.url }}" alt="{{ article.title }}">
+        </div>
         {% endif %}
-        <div>{{ article.content|linebreaks }}</div>
-        <a href="{% url 'communications:article_list' %}" class="btn btn-link">← Back to Magazine</a>
+        <div class="article-content">
+            {{ article.content|linebreaks }}
+        </div>
     </article>
+    <div class="back-link-wrapper">
+        <a href="{% url 'communications:article_list' %}" class="back-link">← Back to Articles</a>
+    </div>
 </div>
 {% endblock %}

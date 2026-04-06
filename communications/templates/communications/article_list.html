@@ -5,24 +5,28 @@
 
 {% block extra_css %}
 <style>
-    .magazine-header {
+    .articles-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    .articles-header {
         text-align: center;
         margin-bottom: 2rem;
     }
-    .magazine-header h1 {
-        font-size: 2.5rem;
+    .articles-header h1 {
+        font-size: 2rem;
         color: var(--primary, #0F3D2E);
+        margin-bottom: 0.25rem;
     }
-    .magazine-header .lead {
+    .articles-header p {
         color: var(--text-secondary, #5A5A5A);
-        max-width: 600px;
-        margin: 0 auto;
+        font-size: 0.9rem;
     }
     .article-grid {
         display: grid;
         gap: 1.5rem;
         grid-template-columns: 1fr;
-        margin: 2rem 0;
     }
     @media (min-width: 640px) {
         .article-grid {
@@ -35,47 +39,53 @@
         }
     }
     .article-card {
+        background: rgba(255,255,255,0.3);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 20px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
         display: flex;
         flex-direction: column;
-        height: 100%;
-        transition: transform 0.2s, box-shadow 0.2s;
     }
     .article-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 12px 24px rgba(0,0,0,0.1);
     }
     .card-img {
+        width: 100%;
         height: 180px;
         object-fit: cover;
-        width: 100%;
         background: #f0f0f0;
     }
     .card-body {
+        padding: 1.2rem;
         flex: 1;
         display: flex;
         flex-direction: column;
     }
-    .card-meta {
-        font-size: 0.75rem;
+    .card-category {
+        font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: var(--accent, #C8A951);
         margin-bottom: 0.5rem;
     }
     .card-title {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
+        font-weight: 700;
         margin-bottom: 0.5rem;
         line-height: 1.3;
     }
     .card-title a {
-        color: inherit;
+        color: var(--primary, #0F3D2E);
         text-decoration: none;
     }
     .card-title a:hover {
         color: var(--accent, #C8A951);
     }
-    .card-desc {
-        font-size: 0.9rem;
+    .card-excerpt {
+        font-size: 0.85rem;
         color: var(--text-secondary, #5A5A5A);
         margin-bottom: 1rem;
         line-height: 1.5;
@@ -85,38 +95,34 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         color: #888;
         border-top: 1px solid rgba(0,0,0,0.05);
         padding-top: 0.75rem;
         margin-top: 0.5rem;
     }
-    .pdf-download {
-        text-align: center;
-        margin-top: 2rem;
-    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="magazine-header card-reveal">
-        <h1>Articles</h1>
-        <p class="lead">Integrating faith and knowledge.</p>
+<div class="articles-page">
+    <div class="articles-header">
+        <h1>📄 Articles & Interviews</h1>
+        <p>Insights from the NAMETS community on faith, science, and daily life</p>
     </div>
 
     <div class="article-grid">
         {% for article in articles %}
-        <div class="glass-card article-card card-reveal">
+        <div class="article-card card-reveal">
             {% if article.image %}
             <img src="{{ article.image.url }}" class="card-img" alt="{{ article.title }}">
             {% endif %}
             <div class="card-body">
-                <div class="card-meta">{{ article.category|default:"Article" }}</div>
+                <div class="card-category">{{ article.category|default:"Article" }}</div>
                 <h3 class="card-title">
                     <a href="{% url 'communications:article_detail' article.slug %}">{{ article.title }}</a>
                 </h3>
-                <p class="card-desc">{{ article.content|striptags|truncatewords:25 }}</p>
+                <p class="card-excerpt">{{ article.content|striptags|truncatewords:25 }}</p>
                 <div class="card-footer">
                     <span>{{ article.published_at|date:"M j, Y" }}</span>
                     {% if article.author %}<span>by {{ article.author }}</span>{% endif %}

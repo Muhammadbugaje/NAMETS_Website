@@ -35,6 +35,7 @@ body {
 
 html {
   scroll-behavior: smooth;
+  font-size: 16px;
 }
 
 *,
@@ -63,6 +64,27 @@ img {
   display: block;
 }
 */
+
+input, 
+textarea, 
+select, 
+button {
+    font-size: 16px !important;  /* or 1rem if html font-size is 16px */
+}
+
+select {
+    font-size: 16px;
+}
+
+/* For very small screens, ensure touch targets are comfortable */
+@media (max-width: 640px) {
+    input, 
+    textarea, 
+    select, 
+    button {
+        font-size: 16px;  /* no !important needed if not overridden */
+    }
+}
 
 /* ---------- Container ---------- */
 .container {
@@ -393,7 +415,7 @@ img {
 /* ---------- Main Content ---------- */
 .main-content {
   flex: 1;
-  padding: 4px 0;
+  padding: 8px 0;
 }
 
 @media (min-width: 768px) {
@@ -863,7 +885,7 @@ img {
 .hero-title {
   font-size: clamp(2rem, 5vw, 3.5rem);
   line-height: 1.2;
-  margin-bottom: 16px;
+  margin-bottom: 26px;
   position: relative;
   z-index: 1;
 }
@@ -889,7 +911,7 @@ img {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-top: 8px;
+  margin-top: 15px;
   margin-bottom: 24px;
 }
 
@@ -940,6 +962,7 @@ img {
   }
   .hero-section {
     padding: 10px 0 32px;
+    margin-top: 5px;
   }
 }
 

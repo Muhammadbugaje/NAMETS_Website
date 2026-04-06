@@ -273,11 +273,13 @@
             <span><span class="location-label">Location:</span> {{ event.location|default:"TBA" }}</span>
         </div>
 
-        <!-- Calendar reminder link -->
-        <a href="{% url 'events:calendar_ics' event.slug %}" class="calendar-btn">
-            <i>📅</i> Add to Calendar
-        </a>
-
+        <!-- Calendar reminder link – only for upcoming events -->
+        {% if event.status == 'upcoming' %}
+            <a href="{% url 'events:calendar_ics' event.slug %}" class="calendar-btn">
+                <i>📅</i> Add to Calendar
+            </a>
+        {% endif %}
+        
         <!-- Event image -->
         {% if event.image %}
             <img src="{{ event.image.url }}" alt="{{ event.title }}" class="event-image">

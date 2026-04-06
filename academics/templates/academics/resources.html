@@ -18,57 +18,109 @@
         font-size: 2.2rem;
         margin-bottom: 0.5rem;
     }
+    /* Search bar – clean, glassy, minimal */
     .search-bar {
-        max-width: 500px;
+        max-width: 560px;
         margin: 1.5rem auto;
     }
     .search-form {
         display: flex;
-        gap: 0.5rem;
+        align-items: center;
         background: rgba(255,255,255,0.2);
-        border-radius: 60px;
-        padding: 0.2rem;
         backdrop-filter: blur(8px);
+        border-radius: 48px;
+        border: 1px solid rgba(255,255,255,0.3);
+        transition: all 0.2s;
+        overflow: hidden;
+        padding: 4px;
+    }
+    .search-form:focus-within {
+        background: rgba(255,255,255,0.3);
+        border-color: var(--accent, #C8A951);
+        box-shadow: 0 0 0 2px rgba(200,169,81,0.2);
     }
     .search-form input {
         flex: 1;
-        padding: 0.7rem 1rem;
+        padding: 0.85rem 1.2rem;
         border: none;
         background: transparent;
-        border-radius: 60px;
+        font-size: 1rem;
         outline: none;
         color: var(--text-primary, #1A1A1A);
     }
+    .search-form input::placeholder {
+        color: rgba(0,0,0,0.4);
+        font-weight: 400;
+    }
     .search-form button {
-        background: var(--accent, #097205);
+        background: var(--primary, #0F3D2E);
         border: none;
-        padding: 0.7rem 1.5rem;
-        border-radius: 60px;
+        padding: 0.65rem 1.6rem;
+        font-size: 0.9rem;
         font-weight: 600;
-        color: #fdfdfd;
+        color: white;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: all 0.2s;
+        border-radius: 40px;
+        margin: 2px;
+        letter-spacing: 0.5px;
     }
     .search-form button:hover {
-        background: #b8993f;
-        transform: translateY(-2px);
+        background: var(--accent, #C8A951);
+        color: #1A1A1A;
+        transform: scale(0.97);
+    }
+
+    /* Submit button – outlined, elegant */
+    .action-buttons {
+        text-align: center;
+        margin-bottom: 2rem;
     }
     .submit-button {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        background: var(--accent, #C8A951);
-        color: #fdfdfd;
-        padding: 0.7rem 1.5rem;
-        border-radius: 40px;
+        background: transparent;
+        border: 2px solid var(--primary, #0F3D2E);
+        color: var(--primary, #0F3D2E);
+        padding: 0.65rem 1.6rem;
+        border-radius: 48px;
         font-weight: 600;
+        font-size: 0.9rem;
         text-decoration: none;
         transition: all 0.2s;
-        margin-bottom: 2rem;
+        backdrop-filter: blur(4px);
     }
     .submit-button:hover {
-        background: #097205;
+        background: var(--primary, #0F3D2E);
+        color: white;
         transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(15,61,46,0.2);
+    }
+    .action-buttons {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .submit-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        background: transparent;
+        border: 2px solid var(--accent, #C8A951);
+        color: var(--accent, #C8A951);
+        padding: 0.7rem 1.8rem;
+        border-radius: 60px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.2s;
+        backdrop-filter: blur(4px);
+    }
+    .submit-button:hover {
+        background: var(--accent, #C8A951);
+        color: #1A1A1A;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(200,169,81,0.3);
     }
     .resources-grid {
         display: grid;
@@ -155,6 +207,9 @@
         border-radius: 20px;
         margin-top: 2rem;
     }
+    .btn-search:hover {
+        color: #ffffff;
+    }
     @media (max-width: 640px) {
         .resources-grid {
             grid-template-columns: 1fr;
@@ -162,21 +217,30 @@
         .page-header h1 {
             font-size: 1.8rem;
         }
+        .search-form {
+            flex-direction: column;
+            background: rgba(255,255,255,0.15);
+            border-radius: 32px;
+            padding: 8px;
+        }
+        .search-form input {
+            width: 100%;
+            text-align: center;
+            padding: 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 8px;
+        }
+        .search-form button {
+            width: 100%;
+            padding: 0.7rem;
+        }
         .submit-button {
             width: 100%;
             justify-content: center;
         }
-        .search-form {
-            flex-direction: column;
-            border-radius: 30px;
-            background: transparent;
-        }
-        .search-form input {
-            background: rgba(255,255,255,0.2);
-            border-radius: 60px;
-        }
-        .search-form button {
+        .submit-button {
             width: 100%;
+            justify-content: center;
         }
     }
 </style>
@@ -193,13 +257,13 @@
     <div class="search-bar">
         <form method="get" class="search-form">
             <input type="text" name="q" placeholder="Search by title or description..." value="{{ query }}">
-            <button type="submit">Search</button>
+            <button type="submit" class="btn-search">Search</button>
         </form>
     </div>
 
-    <div class="text-center">
+    <div class="action-buttons">
         <a href="{% url 'academics:submit_resource' %}" class="submit-button">
-            Submit a Resource
+            ✍️ Submit a Resource
         </a>
     </div>
 
