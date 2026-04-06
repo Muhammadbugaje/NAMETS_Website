@@ -11,7 +11,7 @@ User = get_user_model()
 
 class Patron(models.Model):
     name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True, blank=True)
+    slug = models.SlugField(blank=True)
     designation = models.CharField(max_length=200, help_text="e.g., HOD Mechanical Engineering")
     bio = models.TextField(blank=True)
     image = CloudinaryField('image', folder='patrons', blank=True, null=True)
