@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('admin/communications/send-custom-message/', send_custom_message, name='admin_send_custom_message'),
     path('admin/', admin.site.urls),
+    path("dashboard/", include("namets_notifications.urls")),
 ]
 
 if settings.DEBUG:

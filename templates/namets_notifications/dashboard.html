@@ -1,0 +1,693 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}Dashboard | NAMETS Admin{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  /* ----- RESET & BASE ----- */
+  .dashboard-container {
+    width: 100%;
+    padding: 1rem;
+    margin: 0;
+  }
+
+  @media (min-width: 768px) {
+    .dashboard-container {
+      padding: 1.5rem;
+    }
+  }
+
+  /* ----- HERO SECTION ----- */
+  .dash-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .dash-hero::before {
+    content: "﷽";
+    font-family: 'Amiri', serif;
+    font-size: 4rem;
+    position: absolute;
+    bottom: -0.5rem;
+    right: 0.5rem;
+    opacity: 0.08;
+    pointer-events: none;
+  }
+  .dash-hero-left h1 {
+    font-family: 'Amiri', serif;
+    font-size: 1.4rem;
+    color: #fff;
+    margin: 0 0 0.2rem;
+  }
+  .dash-hero-left p {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.85rem;
+    margin: 0;
+  }
+  .dash-clock {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    text-align: center;
+    min-width: 120px;
+  }
+  .dash-clock .lbl {
+    font-size: 0.65rem;
+    color: #C8A951;
+    letter-spacing: 0.5px;
+  }
+  .dash-clock .val {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    margin: 0.2rem 0;
+  }
+  .dash-clock .sub {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.7);
+  }
+
+  @media (min-width: 640px) {
+    .dash-hero-left h1 { font-size: 1.8rem; }
+    .dash-clock .val { font-size: 1.4rem; }
+  }
+
+  /* ----- KPI GRID (fully responsive) ----- */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+  .kpi {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(200,169,81,0.3);
+    border-radius: 18px;
+    padding: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .kpi:hover {
+    transform: translateY(-3px);
+    background: #fff;
+    border-color: #C8A951;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  }
+  .kpi-ic {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+  .kpi-ic.green  { background: #e8f2ec; }
+  .kpi-ic.gold   { background: #f5e9c8; }
+  .kpi-ic.blue   { background: #e6f0fb; }
+  .kpi-ic.red    { background: #fdecea; }
+  .kpi-ic.purple { background: #f0eafb; }
+  .kpi-ic.teal   { background: #e0f7f4; }
+  .kpi-num {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0F3D2E;
+    line-height: 1;
+  }
+  .kpi-lbl {
+    font-size: 0.7rem;
+    color: #5A5A5A;
+    font-weight: 500;
+  }
+
+  /* ----- TWO COLUMN LAYOUT (stacks on mobile) ----- */
+  .dash-cols {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (min-width: 900px) {
+    .dash-cols {
+      grid-template-columns: 1fr 340px;
+    }
+  }
+
+  /* ----- WIDGET CARDS ----- */
+  .wg {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(200,169,81,0.2);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .wg-head {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .wg-head h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #0F3D2E;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .wg-head a {
+    font-size: 0.7rem;
+    color: #C8A951;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .wg-body {
+    padding: 0.8rem 1rem;
+  }
+  .chart-wrap {
+    padding: 0.5rem;
+    height: 220px;
+  }
+
+  /* ----- ACTIVITY & NOTIFICATION ROWS ----- */
+  .ar, .nr {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  .ar:last-child, .nr:last-child { border-bottom: none; }
+  .ap {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 5px;
+    flex-shrink: 0;
+  }
+  .ap.created { background: #e8f2ec; color: #0F3D2E; }
+  .ap.updated { background: #f5e9c8; color: #8B6914; }
+  .ap.deleted { background: #fdecea; color: #9B2C2C; }
+  .ar-info, .nr-txt {
+    flex: 1;
+    min-width: 0;
+  }
+  .at, .nt {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #1A1A1A;
+    word-break: break-word;
+  }
+  .am, .nm {
+    font-size: 0.65rem;
+    color: #5A5A5A;
+    margin-top: 0.1rem;
+  }
+  .nr-dot {
+    width: 8px;
+    height: 8px;
+    background: #C8A951;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+    flex-shrink: 0;
+    margin-top: 0.2rem;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
+  .mark-btn {
+    background: none;
+    border: none;
+    font-size: 0.7rem;
+    cursor: pointer;
+    color: #5A5A5A;
+    padding: 0.2rem 0.4rem;
+    border-radius: 5px;
+  }
+  .mark-btn:hover {
+    color: #C8A951;
+    background: rgba(0,0,0,0.05);
+  }
+  .ubadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    background: #C8A951;
+    color: #0F3D2E;
+    font-size: 0.65rem;
+    font-weight: 800;
+    border-radius: 30px;
+    padding: 0 0.3rem;
+    margin-left: 0.4rem;
+  }
+
+  /* ----- QUICK ACTIONS ----- */
+  .qa-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.7rem;
+  }
+  .qa-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.6rem 0.3rem;
+    background: rgba(15,61,46,0.05);
+    border: 1px solid rgba(15,61,46,0.1);
+    border-radius: 14px;
+    text-decoration: none;
+    color: #0F3D2E;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .qa-btn .qi { font-size: 1.2rem; }
+  .qa-btn:hover {
+    background: rgba(200,169,81,0.15);
+    border-color: #C8A951;
+    transform: translateY(-2px);
+    color: #C8A951;
+  }
+
+  /* ----- RESOURCE ITEMS ----- */
+  .res-item {
+    padding: 0.7rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  .res-item:last-child { border-bottom: none; }
+  .res-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0F3D2E;
+  }
+  .res-meta {
+    font-size: 0.65rem;
+    color: #5A5A5A;
+    margin-top: 0.2rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .res-actions a {
+    font-size: 0.7rem;
+    color: #C8A951;
+    text-decoration: none;
+  }
+
+  /* ----- BACK TO ADMIN BUTTON ----- */
+  .back-admin {
+    text-align: center;
+    margin-top: 1rem;
+  }
+  .btn-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #0F3D2E;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn-admin:hover {
+    background: #C8A951;
+    color: #1A1A1A;
+    transform: translateY(-2px);
+  }
+
+  /* ----- EMPTY STATE ----- */
+  .empty-dash {
+    padding: 1.5rem;
+    text-align: center;
+    color: #5A5A5A;
+    font-size: 0.8rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Hero / Greeting -->
+  <div class="dash-hero">
+    <div class="dash-hero-left">
+      <h1>Assalamu Alaikum, {{ request.user.first_name|default:request.user.username }} 👋</h1>
+      <p>Here's what's happening across NAMETS today.</p>
+    </div>
+    <div class="dash-clock">
+      <div class="lbl">Current Time</div>
+      <div class="val" id="liveClock">--:--:--</div>
+      <div class="sub" id="liveDate">Loading…</div>
+    </div>
+  </div>
+
+  <!-- KPI Cards (including pending resources) -->
+  <div class="kpi-grid">
+    {% if stats.unread_notifications %}
+    <a href="{% url 'namets_notifications:inbox' %}" class="kpi">
+      <div class="kpi-ic gold">🔔</div>
+      <div><div class="kpi-num">{{ stats.unread_notifications }}</div><div class="kpi-lbl">Unread Notifications</div></div>
+    </a>
+    {% endif %}
+    {% if stats.announcements is not None %}
+    <a href="/admin/communications/announcement/" class="kpi">
+      <div class="kpi-ic green">📢</div>
+      <div><div class="kpi-num">{{ stats.announcements }}</div><div class="kpi-lbl">Announcements</div></div>
+    </a>
+    {% endif %}
+    {% if stats.events is not None %}
+    <a href="/admin/events/event/" class="kpi">
+      <div class="kpi-ic blue">📅</div>
+      <div><div class="kpi-num">{{ stats.events }}</div><div class="kpi-lbl">Upcoming Events</div></div>
+    </a>
+    {% endif %}
+    {% if stats.pending_resources is not None %}
+    <a href="/admin/academics/userresourcesubmission/?status=pending" class="kpi">
+      <div class="kpi-ic teal">📂</div>
+      <div><div class="kpi-num">{{ stats.pending_resources }}</div><div class="kpi-lbl">Pending Resources</div></div>
+    </a>
+    {% endif %}
+    {% if stats.membership_pending is not None %}
+    <a href="/admin/community/membershipapplication/" class="kpi">
+      <div class="kpi-ic purple">🙋</div>
+      <div><div class="kpi-num">{{ stats.membership_pending }}</div><div class="kpi-lbl">Membership Applications</div></div>
+    </a>
+    {% endif %}
+    {% if stats.tutor_pending is not None %}
+    <a href="/admin/community/tutorapplication/" class="kpi">
+      <div class="kpi-ic purple">👨‍🏫</div>
+      <div><div class="kpi-num">{{ stats.tutor_pending }}</div><div class="kpi-lbl">Tutor Applications</div></div>
+    </a>
+    {% endif %}
+    {% if stats.islamiyya_unverified is not None %}
+    <a href="/admin/academics/islamiyyaregistration/" class="kpi">
+      <div class="kpi-ic gold">📖</div>
+      <div><div class="kpi-num">{{ stats.islamiyya_unverified }}</div><div class="kpi-lbl">Unverified Islamiyyah</div></div>
+    </a>
+    {% endif %}
+    {% if stats.lost_items is not None %}
+    <a href="/admin/lostfound/item/" class="kpi">
+      <div class="kpi-ic red">🔍</div>
+      <div><div class="kpi-num">{{ stats.lost_items }}</div><div class="kpi-lbl">Lost &amp; Found Items</div></div>
+    </a>
+    {% endif %}
+    {% if stats.qa_questions is not None %}
+    <a href="/admin/community/question/" class="kpi">
+      <div class="kpi-ic teal">❓</div>
+      <div><div class="kpi-num">{{ stats.qa_questions }}</div><div class="kpi-lbl">Pending Q&amp;A</div></div>
+    </a>
+    {% endif %}
+    {% if stats.gallery_photos is not None %}
+    <a href="/admin/gallery/gallery/" class="kpi">
+      <div class="kpi-ic green">🖼</div>
+      <div><div class="kpi-num">{{ stats.gallery_photos }}</div><div class="kpi-lbl">Gallery Photos</div></div>
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Main columns -->
+  <div class="dash-cols">
+    <!-- Left column -->
+    <div>
+      <!-- Chart -->
+      <div class="wg">
+        <div class="wg-head">
+          <h3>📊 Site Activity — Last 30 Days</h3>
+          <a href="{% url 'namets_notifications:activity' %}">Full log →</a>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="actChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent Activity Feed -->
+      <div class="wg">
+        <div class="wg-head">
+          <h3>🕐 Recent Activity</h3>
+          <a href="{% url 'namets_notifications:activity' %}">View all →</a>
+        </div>
+        {% for log in recent_activity %}
+        <div class="ar">
+          <span class="ap {{ log.action }}">{{ log.action }}</span>
+          <div class="ar-info">
+            <div class="at">
+              {% if log.admin_link %}<a href="{{ log.admin_link }}" style="color:#1A1A1A; text-decoration:none;">{% endif %}
+              {{ log.model_name }}: {{ log.object_repr|truncatechars:50 }}
+              {% if log.admin_link %}</a>{% endif %}
+            </div>
+            <div class="am">{{ log.user.username|default:"System" }} · {{ log.timestamp|timesince }} ago</div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="empty-dash">No activity recorded yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div>
+      <!-- Notifications -->
+      <div class="wg">
+        <div class="wg-head">
+          <h3>
+            🔔 Notifications
+            {% if stats.unread_notifications %}
+            <span class="ubadge">{{ stats.unread_notifications }}</span>
+            {% endif %}
+          </h3>
+          <a href="{% url 'namets_notifications:inbox' %}">View all →</a>
+        </div>
+        {% for notif in recent_notifications %}
+        <div class="nr {% if not notif.is_read %}unread{% endif %}">
+          <div class="nr-ic">
+            {% if notif.notification_type == 'announcement' %}📢
+            {% elif notif.notification_type == 'event' %}📅
+            {% elif notif.notification_type == 'membership' %}🙋
+            {% elif notif.notification_type == 'tutor_app' %}👨‍🏫
+            {% elif notif.notification_type == 'islamiyya' %}📖
+            {% elif notif.notification_type == 'lostfound' %}🔍
+            {% elif notif.notification_type == 'qa' %}❓
+            {% elif notif.notification_type == 'gallery' %}🖼
+            {% elif notif.notification_type == 'resource' %}📂
+            {% else %}ℹ{% endif %}
+          </div>
+          <div class="nr-txt">
+            <div class="nt">{{ notif.title|truncatechars:45 }}</div>
+            <div class="nm">{{ notif.created_at|timesince }} ago</div>
+          </div>
+          {% if not notif.is_read %}
+          <form method="post" action="{% url 'namets_notifications:mark_read' notif.pk %}" style="margin:0;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'namets_notifications:dashboard' %}">
+            <button type="submit" class="mark-btn" title="Mark read">✓</button>
+          </form>
+          <div class="nr-dot"></div>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div class="empty-dash">🎉 You're all caught up!</div>
+        {% endfor %}
+      </div>
+
+      <!-- Pending Resources Submissions -->
+      <div class="wg">
+        <div class="wg-head">
+          <h3>📂 Pending Resource Submissions</h3>
+          <a href="/admin/academics/userresourcesubmission/?status=pending">Review all →</a>
+        </div>
+        <div class="wg-body">
+          {% if recent_resources %}
+            {% for res in recent_resources %}
+            <div class="res-item">
+              <div class="res-title">{{ res.title|truncatechars:50 }}</div>
+              <div class="res-meta">
+                <span>👤 {{ res.submitted_by|default:"Anonymous" }}</span>
+                <span>{{ res.submitted_at|date:"M j, Y" }}</span>
+                <div class="res-actions">
+                  <a href="/admin/academics/userresourcesubmission/{{ res.id }}/change/">Approve/Edit</a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-dash">No pending resources. All clear!</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="wg">
+        <div class="wg-head"><h3>⚡ Quick Actions</h3></div>
+        <div class="wg-body">
+          <div class="qa-grid">
+            {% if perms.communications.add_announcement %}
+            <a href="/admin/communications/announcement/add/" class="qa-btn">
+              <span class="qi">📢</span>Add Announcement
+            </a>
+            {% endif %}
+            {% if perms.events.add_event %}
+            <a href="/admin/events/event/add/" class="qa-btn">
+              <span class="qi">📅</span>Add Event
+            </a>
+            {% endif %}
+            {% if perms.gallery.add_gallery %}
+            <a href="/admin/gallery/gallery/add/" class="qa-btn">
+              <span class="qi">🖼</span>Add Gallery
+            </a>
+            {% endif %}
+            {% if perms.academics.view_userresourcesubmission %}
+            <a href="/admin/academics/userresourcesubmission/?status=pending" class="qa-btn">
+              <span class="qi">✅</span>Review Resources
+            </a>
+            {% endif %}
+            {% if perms.academics.view_islamiyyaregistration %}
+            <a href="/admin/academics/islamiyyaregistration/" class="qa-btn">
+              <span class="qi">📖</span>Verify Islamiyyah
+            </a>
+            {% endif %}
+            {% if perms.community.view_membershipapplication %}
+            <a href="/admin/community/membershipapplication/" class="qa-btn">
+              <span class="qi">🙋</span>Review Members
+            </a>
+            {% endif %}
+            {% if perms.lostfound.view_item %}
+            <a href="/admin/lostfound/item/" class="qa-btn">
+              <span class="qi">🔍</span>Lost &amp; Found
+            </a>
+            {% endif %}
+            {% if perms.community.view_question %}
+            <a href="/admin/community/question/" class="qa-btn">
+              <span class="qi">❓</span>Moderate Q&amp;A
+            </a>
+            {% endif %}
+            {% if request.user.is_superuser %}
+            <a href="/admin/auth/user/" class="qa-btn">
+              <span class="qi">👤</span>Manage Users
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back to Admin panel button -->
+  <div class="back-admin">
+    <a href="/admin/" class="btn-admin">
+      <span>🔙</span> Back to Django Admin
+    </a>
+  </div>
+</div>
+
+<script>
+  /* Live Clock */
+  (function() {
+    const clockEl = document.getElementById('liveClock');
+    const dateEl = document.getElementById('liveDate');
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    function update() {
+      const now = new Date();
+      clockEl.textContent = [now.getHours(), now.getMinutes(), now.getSeconds()]
+        .map(x => String(x).padStart(2,'0')).join(':');
+      dateEl.textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+    }
+    update();
+    setInterval(update, 1000);
+  })();
+
+  /* Chart */
+  (function() {
+    const raw = {{ chart_data|safe }};
+    const ctx = document.getElementById('actChart');
+    if (!ctx || !raw) return;
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: raw.labels,
+        datasets: [
+          {
+            label: 'Announcements',
+            data: raw.announcements,
+            borderColor: '#C8A951',
+            backgroundColor: 'rgba(200,169,81,0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+            pointBackgroundColor: '#C8A951'
+          },
+          {
+            label: 'Events',
+            data: raw.events,
+            borderColor: '#0F3D2E',
+            backgroundColor: 'rgba(15,61,46,0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+            pointBackgroundColor: '#0F3D2E'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { color: '#1A1A1A', font: { size: 10 }, boxWidth: 10 } },
+          tooltip: { backgroundColor: '#0F3D2E', padding: 8, cornerRadius: 8 }
+        },
+        scales: {
+          x: { ticks: { color: '#5A5A5A', font: { size: 9 }, maxTicksLimit: 6 }, grid: { display: false } },
+          y: { beginAtZero: true, ticks: { color: '#5A5A5A', stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.05)' } }
+        }
+      }
+    });
+  })();
+
+  /* Poll unread count */
+  setInterval(() => {
+    fetch("{% url 'namets_notifications:unread_count' %}")
+      .then(r => r.json())
+      .then(data => {
+        document.querySelectorAll('.ubadge').forEach(el => {
+          el.textContent = data.count;
+          el.style.display = data.count > 0 ? '' : 'none';
+        });
+      });
+  }, 60000);
+</script>
+{% endblock %}

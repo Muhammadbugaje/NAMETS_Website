@@ -1,3 +1,4 @@
+from unfold.admin import ModelAdmin, TabularInline
 from django.contrib import admin
 from .models import EventCategory, Event
 from utils.admin_helpers import cloudinary_thumbnail
@@ -5,12 +6,12 @@ from utils.admin_helpers import cloudinary_thumbnail
 # Register your models here.
 
 @admin.register(EventCategory)
-class EventCategoryAdmin(admin.ModelAdmin):
+class EventCategoryAdmin(ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     list_display = ('name',)
 
 @admin.register(Event)
-class EventAdmin(admin.ModelAdmin):
+class EventAdmin(ModelAdmin):
     list_display = ('image_thumbnail', 'title', 'category', 'start_datetime', 'end_datetime', 'status', 'is_featured', 'is_active')
     list_filter = ('category', 'is_featured', 'is_active')
     search_fields = ('title', 'description')

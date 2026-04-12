@@ -17,7 +17,7 @@
   --nb-ink-mid:   #3D3320;
   --nb-ink-muted: #7A6E5A;
   --nb-success:   #1D7A4F;
-  --nb-deep:      #091F1A;
+  --nb-deep:      #084235;
   --nb-r:         10px;
   --nb-rlg:       16px;
   --nb-sh:        0 4px 24px rgba(9,31,26,.15);
@@ -519,6 +519,14 @@
   color: #fff;
 }
 
+.namets-qs-card {
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y pinch-zoom; /* allows vertical scroll but horizontal swipe captured */
+}
+.namets-qs-card:active {
+  cursor: grabbing;
+}
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {

@@ -1,3 +1,4 @@
+from unfold.admin import ModelAdmin, TabularInline
 from django.contrib import admin
 from .models import ContactPhone, Patron, ExecutiveYear, Executive, Developer, Question, Answer, AboutPage, Skill, TutorApplication, MembershipApplication, NAMETSDocument
 from utils.admin_helpers import cloudinary_thumbnail
@@ -9,17 +10,17 @@ from django.utils import timezone
 from .models import SocialMediaLink
 # Register your models here.
 @admin.register(Skill)
-class SkillAdmin(admin.ModelAdmin):
+class SkillAdmin(ModelAdmin):
     list_display = ['name', 'is_active']
     list_editable = ['is_active']
     search_fields = ['name']
 
-class ExecutiveInline(admin.TabularInline):
+class ExecutiveInline(TabularInline):
     model = Executive
     extra = 1
 
 @admin.register(Patron)
-class PatronAdmin(admin.ModelAdmin):
+class PatronAdmin(ModelAdmin):
     list_display = ('image_thumbnail', 'name', 'designation', 'hierarchy_order', 'is_active')
     list_editable = ('hierarchy_order', 'is_active')
     search_fields = ('name', 'designation')
@@ -29,13 +30,13 @@ class PatronAdmin(admin.ModelAdmin):
     image_thumbnail.short_description = 'Photo'
 
 @admin.register(ExecutiveYear)
-class ExecutiveYearAdmin(admin.ModelAdmin):
+class ExecutiveYearAdmin(ModelAdmin):
     list_display = ('year_label', 'display_order', 'is_active')
     list_editable = ('display_order', 'is_active')
     inlines = [ExecutiveInline]
 
 @admin.register(Executive)
-class ExecutiveAdmin(admin.ModelAdmin):
+class ExecutiveAdmin(ModelAdmin):
     list_display = ('image_thumbnail', 'name', 'role', 'year', 'display_order', 'is_active')
     list_filter = ('year', 'is_active')
     list_editable = ('display_order', 'is_active')
@@ -46,7 +47,7 @@ class ExecutiveAdmin(admin.ModelAdmin):
     image_thumbnail.short_description = 'Photo'
 
 @admin.register(Developer)
-class DeveloperAdmin(admin.ModelAdmin):
+class DeveloperAdmin(ModelAdmin):
     list_display = ('image_thumbnail', 'name', 'role', 'display_order', 'is_active')
     list_editable = ('display_order', 'is_active')
 
@@ -55,7 +56,7 @@ class DeveloperAdmin(admin.ModelAdmin):
     image_thumbnail.short_description = 'Photo'
 
 @admin.register(Question)
-class QuestionAdmin(admin.ModelAdmin):
+class QuestionAdmin(ModelAdmin):
     list_display = ('name', 'category', 'is_public', 'submitted_at')
     list_filter = ('is_public', 'category')
     search_fields = ('name', 'question_text')
@@ -66,12 +67,12 @@ class QuestionAdmin(admin.ModelAdmin):
     mark_public.short_description = "Mark selected questions as public"
 
 @admin.register(Answer)
-class AnswerAdmin(admin.ModelAdmin):
+class AnswerAdmin(ModelAdmin):
     list_display = ('question', 'responded_by', 'responded_at')
     search_fields = ('question__question_text',)
 
 @admin.register(AboutPage)
-class AboutPageAdmin(admin.ModelAdmin):
+class AboutPageAdmin(ModelAdmin):
     # singleton – only one instance allowed
     def has_add_permission(self, request):
         if AboutPage.objects.exists():
@@ -159,13 +160,13 @@ def export_membership_applications_to_excel(modeladmin, request, queryset):
     return response
 export_membership_applications_to_excel.short_description = "Export selected to Excel"
 
-class TutorApplicationAdmin(admin.ModelAdmin):
+class TutorApplicationAdmin(ModelAdmin):
     list_display = ['name', 'reg_number', 'email', 'preferred_course', 'submitted_at', 'is_processed']
     list_filter = ['is_processed', 'campus_residence']
     search_fields = ['name', 'email', 'reg_number']
     actions = [export_tutor_applications_to_excel]
 
-class MembershipApplicationAdmin(admin.ModelAdmin):
+class MembershipApplicationAdmin(ModelAdmin):
     list_display = ['name', 'email', 'gender', 'islamic_knowledge', 'submitted_at', 'is_processed']
     list_filter = ['is_processed', 'gender', 'campus_residence']
     search_fields = ['name', 'email']
@@ -176,20 +177,20 @@ admin.site.register(TutorApplication, TutorApplicationAdmin)
 admin.site.register(MembershipApplication, MembershipApplicationAdmin)
 
 @admin.register(ContactPhone)
-class ContactPhoneAdmin(admin.ModelAdmin):
+class ContactPhoneAdmin(ModelAdmin):
     list_display = ['label', 'phone_number', 'order', 'is_active']
     list_editable = ['order', 'is_active']
     
     
 @admin.register(SocialMediaLink)
-class SocialMediaLinkAdmin(admin.ModelAdmin):
+class SocialMediaLinkAdmin(ModelAdmin):
     list_display = ('platform', 'url', 'order', 'is_active')
     list_editable = ('order', 'is_active')
     list_filter = ('platform', 'is_active')
     search_fields = ('url',)
     
 @admin.register(NAMETSDocument)
-class NAMETSDocumentAdmin(admin.ModelAdmin):
+class NAMETSDocumentAdmin(ModelAdmin):
     list_display = ('title', 'uploaded_at', 'is_active')
     list_filter = ('is_active',)
     search_fields = ('title',)

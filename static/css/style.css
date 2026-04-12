@@ -301,7 +301,8 @@ select {
 
 .dropdown {
   position: relative;
-    background: rgb(255, 255, 255);
+  background: rgba(255, 255, 255, 0.301);
+  backdrop-filter: blur(15px);
 }
 
 .drawer.open {

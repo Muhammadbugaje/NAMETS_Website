@@ -421,11 +421,45 @@ def submit_resource(request):
         form = ResourceSubmissionForm()
     return render(request, 'academics/submit_resource.html', {'form': form})
 
+
 def competition_results(request):
-    results = CompetitionResult.objects.filter(is_active=True)
-    # Group by event_name then by category
+    # Start with all active results
+    queryset = CompetitionResult.objects.filter(is_active=True)
+
+    # Get filter parameters from request.GET
+    selected_event = request.GET.get('event', '')
+    selected_category = request.GET.get('category', '')
+    selected_year = request.GET.get('year', '')
+
+    # Apply filters
+    if selected_event:
+        queryset = queryset.filter(event_name=selected_event)
+    if selected_category:
+        queryset = queryset.filter(category=selected_category)
+    if selected_year:
+        queryset = queryset.filter(year=selected_year)
+
+    # Ordering (already set in Meta)
+    results = queryset
+
+    # Get distinct values for filter dropdowns
+    event_choices = CompetitionResult.objects.filter(is_active=True).values_list('event_name', flat=True).distinct().order_by('event_name')
+    category_choices = CompetitionResult.objects.filter(is_active=True).values_list('category', flat=True).distinct().exclude(category='').order_by('category')
+    year_choices = CompetitionResult.objects.filter(is_active=True).values_list('year', flat=True).distinct().exclude(year='').order_by('-year')  # newest first
+
+    # Group results by "event_name – category" for display
     events = {}
     for r in results:
         key = f"{r.event_name} – {r.category}" if r.category else r.event_name
         events.setdefault(key, []).append(r)
-    return render(request, 'academics/competition_results.html', {'events': events})
+
+    context = {
+        'events': events,
+        'event_choices': event_choices,
+        'category_choices': category_choices,
+        'year_choices': year_choices,
+        'selected_event': selected_event,
+        'selected_category': selected_category,
+        'selected_year': selected_year,
+    }
+    return render(request, 'academics/competition_results.html', context)

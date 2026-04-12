@@ -4,52 +4,8 @@
 {% block title %}{{ exam.title }} Results | NAMETS{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/global.css' %}">
 <link rel="stylesheet" href="{% static 'academics/css/academics.css' %}">
-<style>
-  .exam-detail {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-  }
-  .exam-header {
-    margin-bottom: 2rem;
-    border-left: 5px solid #C8A951;
-    padding-left: 1rem;
-  }
-  .exam-header h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
-  .exam-meta { color: #5A5A5A; margin-bottom: 1rem; }
-  .filter-form {
-    background: rgba(255,255,255,0.6);
-    padding: 1rem;
-    border-radius: 20px;
-    margin-bottom: 1.5rem;
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    align-items: flex-end;
-  }
-  .filter-form input {
-    padding: 0.5rem 1rem;
-    border: 1px solid #ddd;
-    border-radius: 30px;
-  }
-  .results-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: rgba(255,255,255,0.6);
-    border-radius: 20px;
-    overflow: hidden;
-  }
-  .results-table th, .results-table td {
-    padding: 0.75rem 1rem;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-  }
-  .results-table th {
-    background: #0F3D2E;
-    color: white;
-  }
-</style>
 {% endblock %}
 
 {% block content %}

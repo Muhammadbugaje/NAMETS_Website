@@ -4,171 +4,250 @@
 {% block title %}Islamiyya Registration | NAMETS{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/global.css' %}">
+<link rel="stylesheet" href="{% static 'academics/css/academics.css' %}">
 <style>
+  /* ── Registration container ───────────────────────── */
+  .register-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .register-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(200, 169, 81, 0.3);
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  }
+  .gold-strip {
+    background: #C8A951;
+    padding: 12px 20px;
+    text-align: center;
+    font-weight: 700;
+    color: #1a3c2e;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+  }
+  .form-content {
+    padding: 2rem;
+  }
+  .form-content h1 {
+    font-family: 'Amiri', serif;
+    font-size: 1.8rem;
+    color: #0F3D2E;
+    margin-bottom: 0.5rem;
+  }
+  .form-content p {
+    color: #5A5A5A;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── Section titles ────────────────────────────────── */
+  .section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 1.8rem 0 1rem;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #C8A951;
+    color: #0F3D2E;
+  }
+
+  /* ── Form groups ───────────────────────────────────── */
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #1A1A1A;
+    font-size: 0.9rem;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 40px;
+    background: #fff;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: #C8A951;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(200, 169, 81, 0.2);
+  }
+
+  /* Checkbox group for courses */
+  .checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: normal;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 6px 12px;
+    border-radius: 40px;
+    transition: background 0.2s;
+  }
+  .checkbox-group label:hover {
+    background: rgba(200, 169, 81, 0.1);
+  }
+  .checkbox-group input {
+    width: 18px;
+    height: 18px;
+    accent-color: #C8A951;
+  }
+
+  /* Errors */
+  .errorlist {
+    color: #9B2C2C;
+    font-size: 0.75rem;
+    margin-top: 5px;
+    list-style: none;
+  }
+  .error {
+    color: #9B2C2C;
+    font-size: 0.75rem;
+    margin-top: 5px;
+  }
+
+  /* Submit button */
+  .btn-submit {
+    background: #0F3D2E;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 40px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+    margin-top: 1rem;
+  }
+  .btn-submit:hover {
+    background: #C8A951;
+    color: #1A1A1A;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(200, 169, 81, 0.3);
+  }
+
+  /* Mobile */
+  @media (max-width: 640px) {
     .register-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    .register-card {
-        background: rgba(255,255,255,0.3);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.4);
-        border-radius: 24px;
-        overflow: hidden;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-    }
-    .gold-strip {
-        background: #c9a84c;
-        padding: 10px 20px;
-        text-align: center;
-        font-weight: bold;
-        color: #1a3c2e;
-        letter-spacing: 1px;
+      padding: 12px;
     }
     .form-content {
-        padding: 30px;
+      padding: 1.2rem;
     }
-    .section-title {
-        font-size: 1.2rem;
-        font-weight: 600;
-        margin: 25px 0 15px;
-        padding-bottom: 8px;
-        border-bottom: 2px solid #c9a84c;
-        color: #1a3c2e;
-    }
-    .form-group {
-        margin-bottom: 20px;
-    }
-    .form-group label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 5px;
-        color: #1a1a1a;
-    }
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        background: rgba(255,255,255,0.9);
-        font-size: 1rem;
-        transition: border-color 0.2s;
-    }
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
-        border-color: #c9a84c;
-        outline: none;
+    .form-content h1 {
+      font-size: 1.5rem;
     }
     .checkbox-group {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 10px;
-        margin-top: 8px;
+      grid-template-columns: 1fr;
     }
     .checkbox-group label {
-        font-weight: normal;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
+      justify-content: flex-start;
     }
-    .btn-submit {
-        background: #1a3c2e;
-        color: white;
-        padding: 12px 24px;
-        border: none;
-        border-radius: 40px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        width: 100%;
-        transition: background 0.2s;
-    }
-    .btn-submit:hover {
-        background: #2a5a44;
-    }
-    @media (max-width: 600px) {
-        .form-content {
-            padding: 20px;
-        }
-        .checkbox-group {
-            grid-template-columns: 1fr;
-        }
-    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="register-container">
-    <div class="register-card">
-        <div class="gold-strip">✧ ISLAMIYYA REGISTRATION ✧</div>
-        <div class="form-content">
-            <h1 style="text-align:center; margin-bottom:10px;">Join Our Islamiyya Program</h1>
-            <p style="text-align:center; margin-bottom:25px;">Deepen your understanding of Islam – beginner to advanced levels.</p>
+  <div class="register-card">
+    <div class="gold-strip">✧ ISLAMIYYA REGISTRATION ✧</div>
+    <div class="form-content">
+      <h1>Join Our Islamiyya Program</h1>
+      <p>Deepen your understanding of Islam – beginner to advanced levels.</p>
 
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
 
-                <!-- Personal Information Section -->
-                <div class="section-title">Personal Information</div>
-                <div class="form-group">
-                    <label for="id_name">Full Name *</label>
-                    {{ form.name }}
-                    {% if form.name.errors %}<div class="error">{{ form.name.errors }}</div>{% endif %}
-                </div>
-                <div class="form-group">
-                    <label for="id_registration_number">Registration Number *</label>
-                    {{ form.registration_number }}
-                </div>
-                <div class="form-group">
-                    <label for="id_email">Email *</label>
-                    {{ form.email }}
-                </div>
-                <div class="form-group">
-                    <label for="id_phone">Phone Number *</label>
-                    {{ form.phone }}
-                </div>
-                <div class="form-group">
-                    <label for="id_department">Department</label>
-                    {{ form.department }}
-                </div>
-                <div class="form-group">
-                    <label for="id_gender">Gender</label>
-                    {{ form.gender }}
-                </div>
-                <div class="form-group">
-                    <label for="id_photo">Passport Photo</label>
-                    {{ form.photo }}
-                </div>
+        <!-- Personal Information -->
+        <div class="section-title">Personal Information</div>
 
-                <!-- Academic Details -->
-                <div class="section-title">Academic Details</div>
-                <div class="form-group">
-                    <label for="id_level">Level of Knowledge *</label>
-                    {{ form.level }}
-                </div>
-                <div class="form-group">
-                    <label>Select Courses (you can choose multiple) *</label>
-                    <div class="checkbox-group">
-                        {{ form.skills }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="id_course_focus">Focus Area</label>
-                    {{ form.course_focus }}
-                </div>
-                <div class="form-group">
-                    <label for="id_other_course">If other, please specify</label>
-                    {{ form.other_course }}
-                </div>
-
-                <button type="submit" class="btn-submit">Register</button>
-            </form>
+        <div class="form-group">
+          <label for="{{ form.name.id_for_label }}">Full Name *</label>
+          {{ form.name }}
+          {{ form.name.errors }}
         </div>
+
+        <div class="form-group">
+          <label for="{{ form.registration_number.id_for_label }}">Registration Number *</label>
+          {{ form.registration_number }}
+          {{ form.registration_number.errors }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.email.id_for_label }}">Email *</label>
+          {{ form.email }}
+          {{ form.email.errors }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.phone.id_for_label }}">Phone Number *</label>
+          {{ form.phone }}
+          {{ form.phone.errors }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.department.id_for_label }}">Department</label>
+          {{ form.department }}
+          {{ form.department.errors }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.gender.id_for_label }}">Gender</label>
+          {{ form.gender }}
+          {{ form.gender.errors }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.photo.id_for_label }}">Passport Photo</label>
+          {{ form.photo }}
+          {{ form.photo.errors }}
+        </div>
+
+        <!-- Academic Details -->
+        <div class="section-title">Academic Details</div>
+
+        <div class="form-group">
+          <label for="{{ form.level.id_for_label }}">Level of Knowledge *</label>
+          {{ form.level }}
+          {{ form.level.errors }}
+        </div>
+
+        <div class="form-group">
+          <label>Select Courses (you can choose multiple) *</label>
+          <div class="checkbox-group">
+            {{ form.courses }}
+          </div>
+          {{ form.courses.errors }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.other_course.id_for_label }}">If other, please specify</label>
+          {{ form.other_course }}
+          {{ form.other_course.errors }}
+        </div>
+
+        <button type="submit" class="btn-submit">Register</button>
+      </form>
     </div>
+  </div>
 </div>
 {% endblock %}

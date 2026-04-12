@@ -1,3 +1,4 @@
+from unfold.admin import ModelAdmin, TabularInline
 from time import timezone
 from django.contrib import admin
 from .models import Item
@@ -6,7 +7,7 @@ from utils.admin_helpers import cloudinary_thumbnail
 # Register your models here.
 
 @admin.register(Item)
-class ItemAdmin(admin.ModelAdmin):
+class ItemAdmin(ModelAdmin):
     list_display = ('image_thumbnail', 'title', 'category', 'status', 'reported_at', 'claimed_at')
     list_filter = ('status', 'category')
     search_fields = ('title', 'description', 'claimed_by_name')

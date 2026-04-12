@@ -1,3 +1,4 @@
+from unfold.admin import ModelAdmin, TabularInline
 from django.contrib import admin
 from .models import Course, Session, Material, Evaluation, Result, Tutor, TutorEvaluation, IslamiyyaRegistration, IslamiyyaCourse, UserResourceSubmission, CompetitionResult,TimetableEntry
 from django.http import HttpResponse
@@ -17,7 +18,7 @@ from core.services.webhooks import send_webhook
 # Register your models here.
 
 # ResultInline must be defined before EvaluationAdmin
-class ResultInline(admin.TabularInline):
+class ResultInline(TabularInline):
     model = Result
     extra = 1
     readonly_fields = ('student_name', 'marks_obtained', 'grade')  # optional
@@ -72,7 +73,7 @@ def upload_excel_view(request, evaluation_id):
     return render(request, 'admin/academics/upload_excel.html', context)
 
 @admin.register(Evaluation)
-class EvaluationAdmin(admin.ModelAdmin):
+class EvaluationAdmin(ModelAdmin):
     list_display = ('title', 'course', 'date', 'total_marks', 'upload_excel_button')
     list_filter = ('course', 'date')
     search_fields = ('title',)
@@ -93,25 +94,25 @@ class EvaluationAdmin(admin.ModelAdmin):
         ]
         return custom_urls + urls
 
-class SessionInline(admin.TabularInline):
+class SessionInline(TabularInline):
     model = Session
     extra = 1
 
-class MaterialInline(admin.TabularInline):
+class MaterialInline(TabularInline):
     model = Material
     extra = 1
 
-class EvaluationInline(admin.TabularInline):
+class EvaluationInline(TabularInline):
     model = Evaluation
     extra = 1
 
-class ResultInline(admin.TabularInline):
+class ResultInline(TabularInline):
     model = Result
     extra = 1
     readonly_fields = ('student_name', 'marks_obtained', 'grade')
 
 @admin.register(Course)
-class CourseAdmin(admin.ModelAdmin):
+class CourseAdmin(ModelAdmin):
     list_display = ('name', 'course_type', 'is_active')
     list_filter = ('course_type', 'is_active')
     search_fields = ('name',)
@@ -120,19 +121,19 @@ class CourseAdmin(admin.ModelAdmin):
     filter_horizontal = ('tutors',)  # or use a widget for ManyToMany
 
 @admin.register(Session)
-class SessionAdmin(admin.ModelAdmin):
+class SessionAdmin(ModelAdmin):
     list_display = ('course', 'date', 'start_time', 'end_time', 'location')
     list_filter = ('course', 'date')
     search_fields = ('course__name',)
 
 @admin.register(Material)
-class MaterialAdmin(admin.ModelAdmin):
+class MaterialAdmin(ModelAdmin):
     list_display = ('title', 'course', 'uploaded_at')
     list_filter = ('course',)
     search_fields = ('title',)
 
 @admin.register(Result)
-class ResultAdmin(admin.ModelAdmin):
+class ResultAdmin(ModelAdmin):
     list_display = ('student_name', 'evaluation', 'marks_obtained', 'grade')
     list_filter = ('evaluation__course',)
     search_fields = ('student_name', 'student_email')
@@ -141,13 +142,13 @@ class ResultAdmin(admin.ModelAdmin):
     
 # tutors evaluation admin
 @admin.register(Tutor)
-class TutorAdmin(admin.ModelAdmin):
+class TutorAdmin(ModelAdmin):
     list_display = ('name', 'is_active')
     list_filter = ('is_active',)
     search_fields = ('name',)
 
 @admin.register(TutorEvaluation)
-class TutorEvaluationAdmin(admin.ModelAdmin):
+class TutorEvaluationAdmin(ModelAdmin):
     list_display = ('tutor', 'course', 'rating', 'student_name', 'submitted_at')
     list_filter = ('course', 'tutor', 'rating')
     search_fields = ('student_name', 'comments')
@@ -181,7 +182,7 @@ class TutorEvaluationAdmin(admin.ModelAdmin):
 
     
 @admin.register(TimetableEntry)
-class TimetableEntryAdmin(admin.ModelAdmin):
+class TimetableEntryAdmin(ModelAdmin):
     list_display = ('course_name', 'entry_type', 'day', 'time_start', 'time_end', 'venue', 'is_active')
     list_filter = ('entry_type', 'day', 'is_active')
     search_fields = ('course_name', 'venue')
@@ -202,7 +203,7 @@ class TimetableEntryAdmin(admin.ModelAdmin):
   
 
 @admin.register(IslamiyyaCourse)
-class IslamiyyaCourseAdmin(admin.ModelAdmin):
+class IslamiyyaCourseAdmin(ModelAdmin):
     list_display = ('name', 'is_active')
     list_editable = ('is_active',)
     search_fields = ('name',)
@@ -255,7 +256,7 @@ mark_unverified.short_description = "Mark selected as unverified"
 
 # -------------------- Admin Class --------------------
 @admin.register(IslamiyyaRegistration)
-class IslamiyyaRegistrationAdmin(admin.ModelAdmin):
+class IslamiyyaRegistrationAdmin(ModelAdmin):
     list_display = ('application_id', 'name', 'email', 'level', 'is_verified', 'submitted_at')
     list_filter = ('is_verified', 'level')
     search_fields = ('name', 'email', 'application_id', 'registration_number')
@@ -263,30 +264,28 @@ class IslamiyyaRegistrationAdmin(admin.ModelAdmin):
     filter_horizontal = ('courses',)
     
 @admin.register(UserResourceSubmission)
-class UserResourceSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('title', 'submitted_by', 'status', 'submitted_at')
-    list_filter = ('status',)
-    search_fields = ('title', 'submitted_by', 'email')
-    actions = ['approve_submissions']
+class UserResourceSubmissionAdmin(ModelAdmin):
+    list_display   = ('title', 'submitted_by', 'email', 'status', 'submitted_at', 'reviewed_at')
+    list_filter    = ('status', 'submitted_at')
+    search_fields  = ('title', 'description', 'submitted_by', 'email')
+    readonly_fields = ('submitted_at', 'submitted_by', 'email', 'title', 'description', 'file', 'reviewed_at')
+    ordering       = ('-submitted_at',)
+    actions        = ['approve_submissions', 'reject_submissions']
 
     def approve_submissions(self, request, queryset):
-        for obj in queryset:
-            if obj.status != 'approved':
-                obj.status = 'approved'
-                obj.reviewed_at = timezone.now()
-                obj.save()
-                if obj.email:
-                    send_webhook('resource_approved', {
-                        'recipients': [obj.email],
-                        'email': obj.email,
-                        'name': obj.submitted_by or 'NAMETS member',
-                        'title': obj.title,
-                    })
-        self.message_user(request, f"{queryset.count()} resource(s) approved.")
+        from django.utils import timezone
+        queryset.update(status='approved', reviewed_at=timezone.now())
+        self.message_user(request, f"{queryset.count()} submission(s) approved.")
     approve_submissions.short_description = "Approve selected submissions"
 
+    def reject_submissions(self, request, queryset):
+        from django.utils import timezone
+        queryset.update(status='rejected', reviewed_at=timezone.now())
+        self.message_user(request, f"{queryset.count()} submission(s) rejected.")
+    reject_submissions.short_description = "Reject selected submissions"
+
 @admin.register(CompetitionResult)
-class CompetitionResultAdmin(admin.ModelAdmin):
+class CompetitionResultAdmin(ModelAdmin):
     list_display = ('event_name', 'category', 'position', 'participant_name', 'department', 'points', 'order')
     list_filter = ('event_name', 'category', 'year')
     search_fields = ('participant_name', 'event_name')

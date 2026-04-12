@@ -83,7 +83,7 @@ class Question(models.Model):
     email = models.EmailField(blank=True)
     question_text = models.TextField()
     category = models.CharField(max_length=100, blank=True)
-    is_public = models.BooleanField(default=True, help_text="Approved for public display")
+    is_public = models.BooleanField(default=False, help_text="Approved for public display")
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

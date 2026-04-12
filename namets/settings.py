@@ -11,6 +11,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+from datetime import datetime
 from logging import config
 from logging import config
 from pathlib import Path
@@ -36,14 +37,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-dev-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'True') == 'False'
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'jazzmin',
-    'admincharts',        
+    'unfold',
+    'unfold.contrib.filters',
+    'unfold.contrib.forms',
+    'unfold.contrib.inlines',
+    'admincharts',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,6 +62,7 @@ INSTALLED_APPS = [
     'lostfound',
     'community',
     'gallery',
+    'namets_notifications',
     'rest_framework',
     'api',
     'storages', # for django-storages for image cloud buket storage
@@ -242,63 +247,238 @@ CACHES = {
 DATA_UPLOAD_MAX_MEMORY_SIZE = 30 * 1024 * 1024  # 30 MB limit for file uploads
 FILE_UPLOAD_MAX_MEMORY_SIZE = 30 * 1024 * 1024  # 30 MB limit for file uploads
 
-JAZZMIN_SETTINGS = {
-    # title of the window (Will default to current_admin_site.site_title if absent or None)
-    "site_title": "NAMETS Admin",
+from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
 
-    # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_header": "NAMETS Admin",
 
-    # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_brand": "NAMETS",
+UNFOLD = {
+    "SITE_TITLE": "NAMETS Admin",
+    "SITE_HEADER": "NAMETS",
+    "SITE_URL": "/",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "SHOW_BACK_BUTTON": True,
+    "SITE_ICON": "/static/images/Namets.jpg",
+    "LOGIN": {
+        "image": "/static/images/Namets.jpg",
+    },
+    "COPYRIGHT": f"© {datetime.now().year} NAMETS. All rights reserved.",
 
-    # Logo to use for your site, must be present in static files, used for brand on top left
-    "site_logo": "images/Namets.jpg",
-     # Logo to use for your site, must be present in static files, used for login form logo (defaults to site_logo)
-    "login_logo": "images/Namets.jpg",
-    "site_logo_classes": "img-circle",
+    "COLORS": {
+        "primary": {
+            "50":  "232 242 237",
+            "100": "209 229 219",
+            "200": "163 202 183",
+            "300": "118 176 147",
+            "400": "72 149 111",
+            "500": "26 60 46",
+            "600": "22 51 39",
+            "700": "18 42 32",
+            "800": "14 34 26",
+            "900": "10 25 19",
+            "950": "6 17 13",
+        },
+    },
 
-    "welcome_sign": "Welcome to the Namets Admin",
-    "show_ui_builder": False,
-    "copyright": "NAMETS",
-    
-    # Links to put along the top menu
-    "topmenu_links": [
-        {"app": "academics"},
-        {"app": "communications"},
-        {"app": "community"},
-        {"app": "events"},
-    ], 
-}
-
-JAZZMIN_UI_TWEAKS = {
-    "navbar_small_text": False,
-    "footer_small_text": False,
-    "body_small_text": False,
-    "brand_small_text": False,
-    "brand_colour": False,
-    "accent": "accent-primary",
-    "navbar": "navbar-white navbar-light",
-    "no_navbar_border": False,
-    "navbar_fixed": False,
-    "layout_boxed": False,
-    "footer_fixed": False,
-    "sidebar_fixed": False,
-    "sidebar": "sidebar-light-primary",
-    "sidebar_nav_small_text": False,
-    "sidebar_disable_expand": False,
-    "sidebar_nav_child_indent": True,
-    "sidebar_nav_compact_style": True,
-    "sidebar_nav_legacy_style": True,
-    "sidebar_nav_flat_style": True,
-    "theme": "pulse",  # yeti, zephyr, pulse, for dark and cool use - vapor, 
-    "default_theme_mode": "auto",
-    "button_classes": {
-        "primary": "btn-primary",
-        "secondary": "btn-secondary",
-        "info": "btn-info",
-        "warning": "btn-warning",
-        "danger": "btn-danger",
-        "success": "btn-success"
-    }
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {
+                "title": _("Dashboard"),
+                "items": [
+                    {
+                        "title": _("Overview"),
+                        "icon": "dashboard",
+                        "link": reverse_lazy("namets_notifications:dashboard"),
+                    },
+                    {
+                        "title": _("Notifications"),
+                        "icon": "notifications",
+                        "link": reverse_lazy("namets_notifications:inbox"),
+                        "badge": "namets_notifications.utils.unread_count_badge",
+                    },
+                    {
+                        "title": _("Activity Log"),
+                        "icon": "history",
+                        "link": reverse_lazy("namets_notifications:activity"),
+                    },
+                ],
+            },
+            {
+                "title": _("Communications Team"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Announcements"),
+                        "icon": "campaign",
+                        "link": reverse_lazy("admin:communications_announcement_changelist"),
+                        "permission": lambda request: request.user.has_perm("communications.view_announcement"),
+                    },
+                    {
+                        "title": _("Prayer Times"),
+                        "icon": "mosque",
+                        "link": reverse_lazy("admin:communications_prayerschedule_changelist"),
+                        "permission": lambda request: request.user.has_perm("communications.view_prayerschedule"),
+                    },
+                    {
+                        "title": _("Subscribers"),
+                        "icon": "group",
+                        "link": reverse_lazy("admin:communications_subscriber_changelist"),
+                        "permission": lambda request: request.user.has_perm("communications.view_subscriber"),
+                    },
+                    {
+                        "title": _("Donations"),
+                        "icon": "volunteer_activism",
+                        "link": reverse_lazy("admin:communications_donationcampaign_changelist"),
+                        "permission": lambda request: request.user.has_perm("communications.view_donation"),
+                    },
+                ],
+            },
+            {
+                "title": _("Events Team"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Events"),
+                        "icon": "event",
+                        "link": reverse_lazy("admin:events_event_changelist"),
+                        "permission": lambda request: request.user.has_perm("events.view_event"),
+                    },
+                ],
+            },
+            {
+                "title": _("Academics Team"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Courses"),
+                        "icon": "school",
+                        "link": reverse_lazy("admin:academics_course_changelist"),
+                        "permission": lambda request: request.user.has_perm("academics.view_course"),
+                    },
+                    {
+                        "title": _("Evaluations"),
+                        "icon": "grading",
+                        "link": reverse_lazy("admin:academics_evaluation_changelist"),
+                        "permission": lambda request: request.user.has_perm("academics.view_evaluation"),
+                    },
+                    {
+                        "title": _("Results"),
+                        "icon": "bar_chart",
+                        "link": reverse_lazy("admin:academics_result_changelist"),
+                        "permission": lambda request: request.user.has_perm("academics.view_result"),
+                    },
+                    {
+                        "title": _("Timetable"),
+                        "icon": "table_view",
+                        "link": reverse_lazy("admin:academics_timetableentry_changelist"),
+                        "permission": lambda request: request.user.has_perm("academics.view_timetableentry"),
+                    },
+                    {
+                        "title": _("Islamiyyah"),
+                        "icon": "auto_stories",
+                        "link": reverse_lazy("admin:academics_islamiyyaregistration_changelist"),
+                        "permission": lambda request: request.user.has_perm("academics.view_islamiyyaregistration"),
+                    },
+                    {
+                        "title": _("Tutors"),
+                        "icon": "person_raised_hand",
+                        "link": reverse_lazy("admin:academics_tutor_changelist"),
+                        "permission": lambda request: request.user.has_perm("academics.view_tutor"),
+                    },
+                    {
+                        "title": _("Resource Submissions"),
+                        "icon": "upload_file",
+                        "link": reverse_lazy("admin:academics_userresourcesubmission_changelist"),
+                        "permission": lambda request: request.user.has_perm("academics.view_userresourcesubmission"),
+                    },
+                ],
+            },
+            {
+                "title": _("Community Team"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Membership Applications"),
+                        "icon": "how_to_reg",
+                        "link": reverse_lazy("admin:community_membershipapplication_changelist"),
+                        "permission": lambda request: request.user.has_perm("community.view_membershipapplication"),
+                    },
+                    {
+                        "title": _("Tutor Applications"),
+                        "icon": "person_add",
+                        "link": reverse_lazy("admin:community_tutorapplication_changelist"),
+                        "permission": lambda request: request.user.has_perm("community.view_tutorapplication"),
+                    },
+                    {
+                        "title": _("Executives"),
+                        "icon": "groups",
+                        "link": reverse_lazy("admin:community_executive_changelist"),
+                        "permission": lambda request: request.user.has_perm("community.view_executive"),
+                    },
+                    {
+                        "title": _("Patrons"),
+                        "icon": "stars",
+                        "link": reverse_lazy("admin:community_patron_changelist"),
+                        "permission": lambda request: request.user.has_perm("community.view_patron"),
+                    },
+                    {
+                        "title": _("Q&A"),
+                        "icon": "quiz",
+                        "link": reverse_lazy("admin:community_question_changelist"),
+                        "permission": lambda request: request.user.has_perm("community.view_question"),
+                    },
+                ],
+            },
+            {
+                "title": _("Gallery & Lost/Found"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Gallery"),
+                        "icon": "photo_library",
+                        "link": reverse_lazy("admin:gallery_gallery_changelist"),
+                        "permission": lambda request: request.user.has_perm("gallery.view_gallery"),
+                    },
+                    {
+                        "title": _("Lost & Found"),
+                        "icon": "find_in_page",
+                        "link": reverse_lazy("admin:lostfound_item_changelist"),
+                        "permission": lambda request: request.user.has_perm("lostfound.view_item"),
+                    },
+                ],
+            },
+            {
+                "title": _("Administration"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Users"),
+                        "icon": "manage_accounts",
+                        "link": reverse_lazy("admin:auth_user_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Groups & Permissions"),
+                        "icon": "lock",
+                        "link": reverse_lazy("admin:auth_group_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Site Settings"),
+                        "icon": "settings",
+                        "link": reverse_lazy("admin:core_sitesettings_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                ],
+            },
+        ],
+    },
 }

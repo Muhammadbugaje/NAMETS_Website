@@ -1,0 +1,362 @@
+{% extends "admin/base_site.html" %}
+{% load static i18n %}
+
+{% block title %}Notifications | NAMETS Admin{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  .ib {
+    padding: 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .ib-hdr {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .ib-hdr h1 {
+    font-family: 'Amiri', serif !important;
+    font-size: 1.8rem !important;
+    color: #1a3c2e !important;
+    margin: 0 0 0.25rem !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .ib-hdr h1 .material-symbols-outlined {
+    font-size: 1.8rem !important;
+    color: #c9a84c !important;
+  }
+  .ib-hdr p {
+    color: #6b7068 !important;
+    font-size: 0.87rem !important;
+    margin: 0 !important;
+  }
+  .ma-btn {
+    background: #1a3c2e;
+    color: #fff !important;
+    border: none;
+    border-radius: 30px;
+    padding: 0.55rem 1.2rem;
+    font-size: 0.83rem !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s;
+  }
+  .ma-btn:hover {
+    background: #2a5c46;
+    transform: translateY(-2px);
+  }
+  .ma-btn .material-symbols-outlined {
+    font-size: 1rem !important;
+  }
+
+  /* Filter tabs – glassy */
+  .ftabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .ftab {
+    padding: 0.4rem 1.1rem;
+    border-radius: 30px;
+    font-size: 0.79rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #1a1a1a;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .ftab:hover {
+    border-color: #c9a84c;
+    background: rgba(201, 168, 76, 0.1);
+  }
+  .ftab.on {
+    background: #1a3c2e;
+    color: #fff !important;
+    border-color: #1a3c2e;
+  }
+
+  /* Glassy notification cards */
+  .nlist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .nc {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    border: 1px solid rgba(200, 169, 81, 0.3);
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1.1rem 1.25rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .nc.unread {
+    border-left: 4px solid #c9a84c;
+  }
+  .nc:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(26, 60, 46, 0.12);
+  }
+  .nc-ico {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .nc-ico .material-symbols-outlined {
+    font-size: 1.3rem;
+  }
+  .nc-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .nc-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 0.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .nc-msg {
+    font-size: 0.83rem;
+    color: #5a5a5a;
+    line-height: 1.5;
+    margin: 0 0 0.6rem;
+  }
+  .nc-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .ntype {
+    font-size: 0.67rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    background: #e8f2ec;
+    color: #1a3c2e;
+  }
+  .ntime {
+    font-size: 0.74rem;
+    color: #6b7068;
+  }
+  .nread {
+    font-size: 0.72rem;
+    color: #6b7068;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .nread .material-symbols-outlined {
+    font-size: 0.85rem;
+    color: #1a3c2e;
+  }
+  .nc-acts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+  .nb {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.35rem 0.85rem;
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .nb.p {
+    background: #1a3c2e;
+    color: #fff;
+  }
+  .nb.p:hover {
+    background: #2a5c46;
+    transform: translateY(-1px);
+  }
+  .nb.g {
+    background: rgba(232, 242, 236, 0.8);
+    color: #1a3c2e;
+  }
+  .nb.g:hover {
+    background: #1a3c2e;
+    color: #fff;
+  }
+  .upulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #c9a84c;
+    flex-shrink: 0;
+    margin-top: 0.4rem;
+    animation: pdot 2s ease-in-out infinite;
+  }
+  @keyframes pdot {
+    0%,100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.5); }
+    50% { box-shadow: 0 0 0 5px rgba(201,168,76,0); }
+  }
+
+  /* Glassy empty state */
+  .empty {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    border: 1px solid rgba(200, 169, 81, 0.3);
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+  .empty .ei {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+  .empty h3 {
+    color: #1a3c2e;
+    margin-bottom: 0.4rem;
+  }
+  .empty p {
+    color: #6b7068;
+    font-size: 0.87rem;
+  }
+
+  /* Glassy back button */
+  .back-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(26, 60, 46, 0.9);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(200, 169, 81, 0.3);
+    border-radius: 40px;
+    padding: 0.6rem 1.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    margin-top: 1.75rem;
+    transition: all 0.2s;
+  }
+  .back-admin:hover {
+    background: #c9a84c;
+    color: #1a1a1a;
+    transform: translateY(-2px);
+  }
+  .back-admin .material-symbols-outlined {
+    font-size: 1rem;
+  }
+
+  @media (max-width: 600px) {
+    .ib {
+      padding: 1rem;
+    }
+    .nc {
+      flex-wrap: wrap;
+    }
+    .nc-acts {
+      flex-direction: row;
+      width: 100%;
+    }
+    .nb {
+      flex: 1;
+      text-align: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ib">
+  <div class="ib-hdr">
+    <div>
+      <h1><span class="material-symbols-outlined">notifications</span>Notifications</h1>
+      <p>{% if unread_count %}<strong style="color:#1a3c2e;">{{ unread_count }}</strong> unread notification{{ unread_count|pluralize }}{% else %}All caught up — no unread notifications 🎉{% endif %}</p>
+    </div>
+    {% if unread_count %}
+    <form method="post" action="{% url 'namets_notifications:mark_all_read' %}">
+      {% csrf_token %}
+      <button type="submit" class="ma-btn"><span class="material-symbols-outlined">done_all</span>Mark all read</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="ftabs">
+    <a href="?type=all" class="ftab {% if current_filter == 'all' %}on{% endif %}">All</a>
+    {% for value, label in notification_types %}
+    <a href="?type={{ value }}" class="ftab {% if current_filter == value %}on{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  {% if notifications %}
+  <div class="nlist">
+    {% for notif in notifications %}
+    <div class="nc {% if not notif.is_read %}unread{% endif %}">
+      <div class="nc-ico" style="background:{% if notif.color_class == 'green' %}#e8f2ec{% elif notif.color_class == 'gold' %}#f5e9c8{% elif notif.color_class == 'blue' %}#e6f1fb{% elif notif.color_class == 'red' %}#fdecea{% elif notif.color_class == 'purple' %}#f0eafb{% else %}#e0f7f4{% endif %};">
+        <span class="material-symbols-outlined" style="color:{% if notif.color_class == 'green' %}#1a3c2e{% elif notif.color_class == 'gold' %}#8a6a1a{% elif notif.color_class == 'blue' %}#185fa5{% elif notif.color_class == 'red' %}#9b2c2c{% elif notif.color_class == 'purple' %}#6b21a8{% else %}#0d7a6b{% endif %};">{{ notif.icon }}</span>
+      </div>
+      <div class="nc-body">
+        <p class="nc-title">{{ notif.title }}</p>
+        <p class="nc-msg">{{ notif.message|truncatechars:200 }}</p>
+        <div class="nc-meta">
+          <span class="ntype">{{ notif.get_notification_type_display }}</span>
+          <span class="ntime">{{ notif.created_at|timesince }} ago</span>
+          {% if notif.is_read and notif.read_at %}<span class="nread"><span class="material-symbols-outlined">check_circle</span>Read {{ notif.read_at|timesince }} ago</span>{% endif %}
+        </div>
+      </div>
+      <div class="nc-acts">
+        {% if notif.admin_link %}<a href="{{ notif.admin_link }}" class="nb p">View →</a>{% endif %}
+        {% if not notif.is_read %}
+        <form method="post" action="{% url 'namets_notifications:mark_read' notif.pk %}" style="margin:0;">
+          {% csrf_token %}<input type="hidden" name="next" value="{% url 'namets_notifications:inbox' %}?type={{ current_filter }}">
+          <button type="submit" class="nb g">Mark read</button>
+        </form>
+        {% endif %}
+      </div>
+      {% if not notif.is_read %}<div class="upulse"></div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="ei">🔔</div>
+    <h3>No notifications here</h3>
+    <p>When things happen across NAMETS your notifications will appear here.</p>
+  </div>
+  {% endif %}
+
+  <a href="/admin/" class="back-admin">
+    <span class="material-symbols-outlined">arrow_back</span>Back to Admin Panel
+  </a>
+</div>
+{% endblock %}

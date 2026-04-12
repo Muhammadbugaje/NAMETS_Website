@@ -1,0 +1,296 @@
+{% extends "admin/base.html" %}
+{% load static i18n %}
+
+{% block title %}Activity Log | NAMETS Admin{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  .al {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .al-hdr {
+    margin-bottom: 1.5rem;
+  }
+  .al-hdr h1 {
+    font-family: 'Amiri', serif !important;
+    font-size: 1.8rem !important;
+    color: #1a3c2e !important;
+    margin: 0 0 0.25rem !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .al-hdr h1 .material-symbols-outlined {
+    font-size: 1.8rem !important;
+    color: #c9a84c !important;
+  }
+  .al-hdr p {
+    color: #6b7068 !important;
+    font-size: 0.87rem !important;
+    margin: 0 !important;
+  }
+
+  /* Glass card */
+  .al-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    border: 1px solid rgba(200, 169, 81, 0.3);
+    box-shadow: 0 8px 24px rgba(26, 60, 46, 0.08);
+    overflow: hidden;
+  }
+
+  /* Stats bar – glassy with subtle gold border */
+  .al-stats {
+    display: flex;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.4);
+  }
+  .al-stat {
+    flex: 1;
+    padding: 1rem 1.25rem;
+    text-align: center;
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .al-stat:last-child {
+    border-right: none;
+  }
+  .al-stat .sv {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: #1a3c2e !important;
+    line-height: 1;
+  }
+  .al-stat .sl {
+    font-size: 0.7rem !important;
+    color: #6b7068 !important;
+    font-weight: 600 !important;
+    margin-top: 0.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Table wrapper – scrollable on mobile */
+  .al-wrap {
+    overflow-x: auto;
+  }
+  table.alt {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+  }
+  table.alt thead th {
+    background: #1a3c2e;
+    color: #fff !important;
+    padding: 0.8rem 1rem;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: left;
+    white-space: nowrap;
+  }
+  table.alt tbody td {
+    padding: 0.8rem 1rem;
+    font-size: 0.85rem;
+    color: #1a1a1a;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    vertical-align: middle;
+  }
+  table.alt tbody tr:last-child td {
+    border-bottom: none;
+  }
+  table.alt tbody tr:hover {
+    background: rgba(200, 169, 81, 0.08);
+    transition: background 0.2s;
+  }
+  table.alt tbody tr:nth-child(even) {
+    background: rgba(232, 242, 236, 0.3);
+  }
+  table.alt tbody tr:nth-child(even):hover {
+    background: rgba(200, 169, 81, 0.08);
+  }
+
+  /* Action badges */
+  .ap2 {
+    display: inline-block;
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.22rem 0.7rem;
+    border-radius: 20px;
+  }
+  .ap2.created { background: #e8f2ec; color: #1a3c2e; }
+  .ap2.updated { background: #f5e9c8; color: #8a6a1a; }
+  .ap2.deleted { background: #fdecea; color: #9b2c2c; }
+
+  /* Model badge */
+  .mbadge2 {
+    display: inline-block;
+    font-size: 0.75rem;
+    background: #f3f4f6;
+    color: #4b5563;
+    border-radius: 6px;
+    padding: 0.2rem 0.6rem;
+  }
+
+  /* User chip */
+  .uchip2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: #e8f2ec;
+    color: #1a3c2e;
+    border-radius: 20px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.76rem;
+    font-weight: 500;
+  }
+  .uchip2 .material-symbols-outlined {
+    font-size: 0.9rem;
+    color: #1a3c2e;
+  }
+
+  /* Object link */
+  .olink2 {
+    color: #1a3c2e;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .olink2:hover {
+    color: #c9a84c;
+    text-decoration: underline;
+  }
+
+  /* Time cell */
+  .tc .ago {
+    font-size: 0.82rem;
+    color: #1a1a1a;
+  }
+  .tc .ex {
+    font-size: 0.7rem;
+    color: #6b7068;
+    margin-top: 0.1rem;
+  }
+
+  /* Empty state */
+  .al-empty {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6b7068;
+  }
+  .al-empty .ei {
+    font-size: 3rem;
+    opacity: 0.35;
+    margin-bottom: 1rem;
+  }
+
+  /* Glassy back button */
+  .back-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(26, 60, 46, 0.9);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(200, 169, 81, 0.3);
+    border-radius: 40px;
+    padding: 0.6rem 1.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    margin-top: 1.75rem;
+    transition: all 0.2s;
+  }
+  .back-admin:hover {
+    background: #c9a84c;
+    color: #1a1a1a;
+    transform: translateY(-2px);
+  }
+  .back-admin .material-symbols-outlined {
+    font-size: 1rem;
+  }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    .al {
+      padding: 1rem;
+    }
+    .al-stats {
+      flex-wrap: wrap;
+    }
+    .al-stat {
+      min-width: 50%;
+      border-right: none;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .al-stat:last-child {
+      border-bottom: none;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="al">
+  <div class="al-hdr">
+    <h1><span class="material-symbols-outlined">history</span>Activity Log</h1>
+    <p>Complete record of changes made across all NAMETS apps. Showing the last 200 actions.</p>
+  </div>
+
+  <div class="al-card">
+    <div class="al-stats">
+      <div class="al-stat"><div class="sv">{{ logs|length }}</div><div class="sl">Entries Shown</div></div>
+      <div class="al-stat">
+        <div class="sv" style="color:#1a3c2e;">
+          {% with logs as l %}{% if l %}{{ l.0.timestamp|date:"M d" }}{% else %}—{% endif %}{% endwith %}
+        </div>
+        <div class="sl">Latest</div>
+      </div>
+      <div class="al-stat">
+        <div class="sv" style="color:#c9a84c;">
+          {% with logs as l %}{% if l %}{{ l.0.user.username|default:"System" }}{% else %}—{% endif %}{% endwith %}
+        </div>
+        <div class="sl">Last Actor</div>
+      </div>
+    </div>
+
+    <div class="al-wrap">
+      <table class="alt">
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Model</th>
+            <th>Object</th>
+            <th>By</th>
+            <th>When</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td><span class="ap2 {{ log.action }}">{{ log.action }}</span></td>
+            <td><span class="mbadge2">{{ log.model_name }}</span></td>
+            <td>{% if log.admin_link %}<a href="{{ log.admin_link }}" class="olink2">{{ log.object_repr|truncatechars:58 }}</a>{% else %}{{ log.object_repr|truncatechars:58 }}{% endif %}</td>
+            <td>{% if log.user %}<span class="uchip2"><span class="material-symbols-outlined">person</span>{{ log.user.username }}</span>{% else %}<span style="color:#6b7068;font-size:0.8rem;">System</span>{% endif %}</td>
+            <td class="tc"><div class="ago">{{ log.timestamp|timesince }} ago</div><div class="ex">{{ log.timestamp|date:"M d, Y · H:i" }}</div></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5"><div class="al-empty"><div class="ei">📋</div><p>No activity yet. Actions appear here as your team uses the admin.</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <a href="/admin/" class="back-admin">
+    <span class="material-symbols-outlined">arrow_back</span>Back to Admin Panel
+  </a>
+</div>
+{% endblock %}

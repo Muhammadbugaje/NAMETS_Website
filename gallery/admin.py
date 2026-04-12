@@ -1,8 +1,9 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 from .models import Gallery, GalleryImage
 from utils.admin_helpers import cloudinary_thumbnail   # make sure this helper exists
 
-class GalleryImageInline(admin.TabularInline):
+class GalleryImageInline(TabularInline):
     model = GalleryImage
     extra = 1
     fields = ('image' , 'image_thumbnail', 'caption', 'order')
@@ -14,7 +15,7 @@ class GalleryImageInline(admin.TabularInline):
 
 
 @admin.register(Gallery)
-class GalleryAdmin(admin.ModelAdmin):
+class GalleryAdmin(ModelAdmin):
     list_display = ('title', 'date', 'created_at', 'cover_image_thumbnail')
     list_filter = ('date',)
     search_fields = ('title', 'description')

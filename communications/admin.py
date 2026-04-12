@@ -1,3 +1,4 @@
+from unfold.admin import ModelAdmin, TabularInline
 from django.contrib import admin
 from .models import Announcement, PrayerSchedule, Subscriber, DonationCampaign, MosqueInfo, MosqueRule, Article, MagazineIssue
 from django.urls import reverse
@@ -9,7 +10,7 @@ from utils.admin_helpers import cloudinary_thumbnail
 
 @admin.register(Announcement)
 # customize how admin display list items, makes it easier than just liting them
-class AnnouncementAdmin(admin.ModelAdmin):
+class AnnouncementAdmin(ModelAdmin):
     list_display = ('image_thumbnail', 'title', 'category', 'is_pinned', 'publish_at', 'is_active', 'send_email')
     list_filter = ('category', 'is_pinned', 'is_active', 'send_email') # sidebar filters
     search_fields = ('title', 'content') 
@@ -27,24 +28,24 @@ class AnnouncementAdmin(admin.ModelAdmin):
 
 
 @admin.register(PrayerSchedule)
-class PrayerScheduleAdmin(admin.ModelAdmin):
+class PrayerScheduleAdmin(ModelAdmin):
     list_display = ('date', 'fajr_adhan', 'dhuhr_adhan', 'asr_adhan', 'maghrib_adhan', 'isha_adhan', 'is_active')
     list_filter = ('is_active',)
     date_hierarchy = 'date'
 
 
 @admin.register(DonationCampaign)
-class DonationCampaignAdmin(admin.ModelAdmin):
+class DonationCampaignAdmin(ModelAdmin):
     list_display = ('title', 'goal_amount', 'is_active', 'created_at')
     list_filter = ('is_active',)
     
     
 @admin.register(MosqueInfo)
-class MosqueInfoAdmin(admin.ModelAdmin):
+class MosqueInfoAdmin(ModelAdmin):
     list_display = ('location', 'imam_name', 'contact_email', 'contact_phone')
 
 @admin.register(MosqueRule)
-class MosqueRuleAdmin(admin.ModelAdmin):
+class MosqueRuleAdmin(ModelAdmin):
     list_display = ('title', 'order', 'is_active')
     list_editable = ('order', 'is_active')
     
@@ -55,7 +56,7 @@ def send_custom_message_action(modeladmin, request, queryset):
 send_custom_message_action.short_description = "Send custom message to selected subscribers"    
     
 @admin.register(Subscriber)
-class SubscriberAdmin(admin.ModelAdmin):
+class SubscriberAdmin(ModelAdmin):
     list_display = ('email', 'is_verified', 'notify_announcements', 'notify_events', 'notify_prayer_changes', 'subscribed_at', 'is_active', 'unsubscribe_link')
     list_filter = ('is_verified', 'notify_announcements', 'notify_events', 'notify_prayer_changes', 'is_active')
     search_fields = ('email',)
@@ -68,7 +69,7 @@ class SubscriberAdmin(admin.ModelAdmin):
     
 
 @admin.register(Article)
-class ArticleAdmin(admin.ModelAdmin):
+class ArticleAdmin(ModelAdmin):
     list_display = ('title', 'category', 'author', 'published_at')
     list_filter = ('category', 'is_active')
     search_fields = ('title', 'content')
@@ -76,6 +77,6 @@ class ArticleAdmin(admin.ModelAdmin):
     
 
 @admin.register(MagazineIssue)
-class MagazineIssueAdmin(admin.ModelAdmin):
+class MagazineIssueAdmin(ModelAdmin):
     list_display = ('title', 'published_date', 'is_active')
     prepopulated_fields = {'slug': ('title',)}

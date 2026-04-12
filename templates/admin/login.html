@@ -1,0 +1,11 @@
+{% extends "admin/login.html" %}
+{% load static i18n %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 2rem;">
+    <img src="{% static 'images/Namets.jpg' %}" alt="NAMETS" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #c9a84c; margin-bottom: 1rem;">
+    <h2 style="font-family: 'Amiri', serif; color: #1a3c2e;">NAMETS Administration</h2>
+    <p style="color: #6b7068;">Please log in to continue</p>
+</div>
+{{ block.super }}
+{% endblock %}
