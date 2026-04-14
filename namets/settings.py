@@ -67,7 +67,8 @@ INSTALLED_APPS = [
     'api',
     'storages', # for django-storages for image cloud buket storage
     'cloudinary_storage',  # cloudinary storage backend for media files
-    'cloudinary',          
+    'cloudinary',
+    'ckeditor',         
 ]
 
 MIDDLEWARE = [
@@ -246,6 +247,14 @@ CACHES = {
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 30 * 1024 * 1024  # 30 MB limit for file uploads
 FILE_UPLOAD_MAX_MEMORY_SIZE = 30 * 1024 * 1024  # 30 MB limit for file uploads
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',
+        'height': 300,
+        'width': '100%',
+    },
+}
 
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _

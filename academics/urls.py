@@ -23,5 +23,6 @@ urlpatterns = [
     path('islamiyya/download/', views.islamiyya_download_slip, name='islamiyya_download_slip'),
     path('resources/', views.resources_page, name='resources'),
     path('submit-resource/', views.submit_resource, name='submit_resource'),
+    path('download/<int:pk>/', views.download_resource, name='download_resource'),
     path('competition-results/', views.competition_results, name='competition_results'),
 ]

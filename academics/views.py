@@ -58,10 +58,12 @@ def course_results(request, slug):
     course = get_object_or_404(Course, slug=slug, is_active=True)
     student_name = request.GET.get('student', '')
     results = selectors.get_results_for_course(course, student_name)
+    exam = get_object_or_404(Evaluation, course=course, is_active=True)
     context = {
         'course': course,
         'results': results,
         'student_name': student_name,
+        'total_mark': exam.total_marks,
     }
     return render(request, 'academics/course_results.html', context)
 
@@ -101,11 +103,15 @@ def exam_list(request, slug=None):
 
     
 def tutorial_list(request):
-    courses = selectors.get_active_courses(course_type='tutorial')  # keep courses if you still want them
-    timetable = TimetableEntry.objects.filter(entry_type='tutorial', is_active=True).order_by('day', 'time_start')
+    timetable_level1 = TimetableEntry.objects.filter(
+        entry_type='tutorial', level='level1', is_active=True
+    ).order_by('day', 'time_start')
+    timetable_level2 = TimetableEntry.objects.filter(
+        entry_type='tutorial', level='level2', is_active=True
+    ).order_by('day', 'time_start')
     return render(request, 'academics/tutorial_list.html', {
-        'courses': courses,
-        'timetable': timetable,
+        'timetable_level1': timetable_level1,
+        'timetable_level2': timetable_level2,
     })
 
 def islamia_list(request):
@@ -196,6 +202,22 @@ def download_material(request, material_id):
         raise Http404("No file attached to this material.")
     
 
+def parse_time_range(time_range_str):
+    """Convert '8-10' or '09:00-11:00' to (start_time, end_time)."""
+    parts = time_range_str.replace(' ', '').split('-')
+    if len(parts) != 2:
+        raise ValueError("Invalid time range format (expected HH-HH or HH:MM-HH:MM)")
+    start_str, end_str = parts
+    # Add minutes if missing
+    if ':' not in start_str:
+        start_str += ':00'
+    if ':' not in end_str:
+        end_str += ':00'
+    from datetime import datetime
+    start = datetime.strptime(start_str, '%H:%M').time()
+    end = datetime.strptime(end_str, '%H:%M').time()
+    return start, end
+
 def upload_timetable_excel(request):
     if request.method == 'POST':
         form = TimetableUploadForm(request.POST, request.FILES)
@@ -224,11 +246,11 @@ def upload_timetable_excel(request):
                     continue
                 
                 day = row[0]
-                time_start = row[1]
-                time_end = row[2]
-                course_name = row[3]
-                venue = row[4]
-                entry_type = row[5]
+                time_range = row[1]
+                course_name = row[2]
+                venue = row[3]
+                entry_type = row[4]
+                level = row[5] if len(row) > 5 else 'level1'  # default to level1 if not provided
                 
                 # --- Validate day ---
                 try:
@@ -240,32 +262,25 @@ def upload_timetable_excel(request):
                     errors.append(f"Row {idx}: Invalid day value '{day}' (must be a number 1-7)")
                     continue
                 
-                # --- Validate times (handle both HH:MM and HH:MM:SS) ---
-                time_start_str = str(time_start).strip()
-                time_end_str = str(time_end).strip()
-                
-                def parse_time(t_str):
-                    # Try HH:MM first, then HH:MM:SS
-                    for fmt in ('%H:%M', '%H:%M:%S'):
-                        try:
-                            return datetime.strptime(t_str, fmt).time()
-                        except ValueError:
-                            continue
-                    raise ValueError(f"Invalid time format: '{t_str}'")
-                
+                # Parse time range
                 try:
-                    start = parse_time(time_start_str)
-                    end = parse_time(time_end_str)
+                    start, end = parse_time_range(str(time_range).strip())
                 except ValueError as e:
                     errors.append(f"Row {idx}: {e}")
                     continue
-                
-                # --- Validate entry type ---
+
+                # Validate entry_type
                 entry_type_clean = str(entry_type).strip().lower()
                 if entry_type_clean not in ['tutorial', 'islamiyya']:
-                    errors.append(f"Row {idx}: Entry type must be 'tutorial' or 'islamiyya', got '{entry_type}'")
+                    errors.append(f"Row {idx}: entry_type must be 'tutorial' or 'islamiyya'")
                     continue
-                
+
+                # Validate level
+                level_clean = str(level).strip().lower()
+                if level_clean not in ['level1', 'level2']:
+                    errors.append(f"Row {idx}: level must be 'level1' or 'level2'")
+                    continue
+                            
                 # --- Create entry ---
                 TimetableEntry.objects.create(
                     day=day,
@@ -274,6 +289,7 @@ def upload_timetable_excel(request):
                     course_name=str(course_name).strip()[:200],
                     venue=str(venue).strip()[:200] if venue else '',
                     entry_type=entry_type_clean,
+                    level=level_clean,
                     is_active=True
                 )
                 created_count += 1
@@ -421,6 +437,11 @@ def submit_resource(request):
         form = ResourceSubmissionForm()
     return render(request, 'academics/submit_resource.html', {'form': form})
 
+def download_resource(request, pk):
+    resource = get_object_or_404(UserResourceSubmission, pk=pk)
+    resource.download_count += 1
+    resource.save(update_fields=['download_count'])
+    return redirect(resource.file.url)
 
 def competition_results(request):
     # Start with all active results

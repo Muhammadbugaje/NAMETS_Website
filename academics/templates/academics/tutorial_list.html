@@ -51,34 +51,52 @@
 {% endif %}
 
 <!-- Timetable -->
-{% if timetable %}
-<div class="section-heading reveal mt-lg">
-    <h2>Tutorial Timetable</h2>
-    <div class="section-heading-line"></div>
-</div>
+{% if timetable_level1 or timetable_level2 %}
+    <!-- Level 1 Timetable -->
+    {% if timetable_level1 %}
+    <div class="section-heading reveal mt-lg">
+        <h2>📘 Level 1 Tutorials</h2>
+        <div class="section-heading-line"></div>
+    </div>
+    <div class="glass card-reveal" style="padding: 0; overflow: hidden;">
+        <table class="custom-table-striped">
+            <thead><tr><th>Day</th><th>Time</th><th>Course</th><th>Venue</th></tr></thead>
+            <tbody>
+                {% for entry in timetable_level1 %}
+                <tr>
+                    <td data-label="Day">{{ entry.get_day_display }}</td>
+                    <td data-label="Time">{{ entry.time_start|time:"g:i A" }} – {{ entry.time_end|time:"g:i A" }}</td>
+                    <td data-label="Course">{{ entry.course_name }}</td>
+                    <td data-label="Venue">{{ entry.venue|default:"TBA" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
 
-<div class="glass card-reveal" style="padding: 0; overflow: hidden;">
-    <table class="custom-table-striped">
-        <thead>
-            <tr>
-                <th>Day</th>
-                <th>Time</th>
-                <th>Course</th>
-                <th>Venue</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in timetable %}
-            <tr>
-                <td data-label="Day">{{ entry.get_day_display }}</td>
-                <td data-label="Time">{{ entry.time_start|time:"g:i A" }} – {{ entry.time_end|time:"g:i A" }}</td>
-                <td data-label="Course">{{ entry.course_name }}</td>
-                <td data-label="Venue">{{ entry.venue|default:"TBA" }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+    <!-- Level 2 Timetable -->
+    {% if timetable_level2 %}
+    <div class="section-heading reveal mt-lg">
+        <h2>📗 Level 2 Tutorials</h2>
+        <div class="section-heading-line"></div>
+    </div>
+    <div class="glass card-reveal" style="padding: 0; overflow: hidden;">
+        <table class="custom-table-striped">
+            <thead><tr><th>Day</th><th>Time</th><th>Course</th><th>Venue</th></tr></thead>
+            <tbody>
+                {% for entry in timetable_level2 %}
+                <tr>
+                    <td data-label="Day">{{ entry.get_day_display }}</td>
+                    <td data-label="Time">{{ entry.time_start|time:"g:i A" }} – {{ entry.time_end|time:"g:i A" }}</td>
+                    <td data-label="Course">{{ entry.course_name }}</td>
+                    <td data-label="Venue">{{ entry.venue|default:"TBA" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
 {% else %}
 <div class="empty-state glass card-reveal">
     <span class="empty-state-icon">📅</span>

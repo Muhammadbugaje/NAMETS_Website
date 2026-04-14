@@ -14,6 +14,7 @@ from datetime import datetime
 from .views import upload_timetable_excel
 from django.utils import timezone
 from core.services.webhooks import send_webhook
+from django.utils.html import format_html
 
 # Register your models here.
 
@@ -183,8 +184,8 @@ class TutorEvaluationAdmin(ModelAdmin):
     
 @admin.register(TimetableEntry)
 class TimetableEntryAdmin(ModelAdmin):
-    list_display = ('course_name', 'entry_type', 'day', 'time_start', 'time_end', 'venue', 'is_active')
-    list_filter = ('entry_type', 'day', 'is_active')
+    list_display = ('course_name', 'entry_type', 'level', 'day', 'time_start', 'time_end', 'venue', 'is_active')
+    list_filter = ('entry_type', 'level', 'day', 'is_active')
     search_fields = ('course_name', 'venue')
     list_editable = ('is_active',)
     actions = ['export_selected']  # optional
@@ -265,10 +266,10 @@ class IslamiyyaRegistrationAdmin(ModelAdmin):
     
 @admin.register(UserResourceSubmission)
 class UserResourceSubmissionAdmin(ModelAdmin):
-    list_display   = ('title', 'submitted_by', 'email', 'status', 'submitted_at', 'reviewed_at')
+    list_display   = ('title', 'submitted_by', 'email', 'status', 'submitted_at', 'download_link')
     list_filter    = ('status', 'submitted_at')
     search_fields  = ('title', 'description', 'submitted_by', 'email')
-    readonly_fields = ('submitted_at', 'submitted_by', 'email', 'title', 'description', 'file', 'reviewed_at')
+    readonly_fields = ('submitted_at', 'submitted_by', 'email', 'title', 'description', 'file', 'download_link_in_form')
     ordering       = ('-submitted_at',)
     actions        = ['approve_submissions', 'reject_submissions']
 
@@ -283,6 +284,23 @@ class UserResourceSubmissionAdmin(ModelAdmin):
         queryset.update(status='rejected', reviewed_at=timezone.now())
         self.message_user(request, f"{queryset.count()} submission(s) rejected.")
     reject_submissions.short_description = "Reject selected submissions"
+
+    def download_link(self, obj):
+        """Link in list view"""
+        if obj.file:
+            # If using Cloudinary, get the URL
+            file_url = obj.file.url if hasattr(obj.file, 'url') else obj.file
+            return format_html('<a href="{}" target="_blank" class="button">📥 Download</a>', file_url)
+        return "—"
+    download_link.short_description = 'Download File'
+
+    def download_link_in_form(self, obj):
+        """Link in change form (read-only field)"""
+        if obj.file:
+            file_url = obj.file.url if hasattr(obj.file, 'url') else obj.file
+            return format_html('<a href="{}" target="_blank" class="button" style="background:#c9a84c; color:#1a1a1a; padding:5px 10px; border-radius:30px;">📥 Download File</a>', file_url)
+        return "—"
+    download_link_in_form.short_description = 'Download File'
 
 @admin.register(CompetitionResult)
 class CompetitionResultAdmin(ModelAdmin):

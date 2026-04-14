@@ -14,6 +14,9 @@
     <div class="acad-hero-badge">📊 Results</div>
     <h1>{{ course.name }}</h1>
     <p>Search your name below to check your scores and grades.</p>
+    {% if total_mark %}
+      <p>Total Marks: {{ total_mark }}</p>
+    {% endif %}
   </div>
 </div>
 
@@ -46,9 +49,7 @@
           <td>
             <div class="marks-bar-wrap">
               <span class="marks-val">{{ result.marks_obtained }}</span>
-              <div class="marks-bar">
-                <div class="marks-fill" style="width:{{ result.marks_obtained }}%"></div>
-              </div>
+
             </div>
           </td>
           <td>
@@ -88,14 +89,4 @@
 
 </div>
 
-<script>
-  // Animate grade bar widths on load
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.marks-fill').forEach(function (bar) {
-      var w = bar.style.width;
-      bar.style.width = '0';
-      setTimeout(function () { bar.style.width = w; }, 100);
-    });
-  });
-</script>
 {% endblock %}

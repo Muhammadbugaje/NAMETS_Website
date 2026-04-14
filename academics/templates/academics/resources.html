@@ -37,9 +37,12 @@
                     <p class="resource-description">{{ res.description|truncatewords:30 }}</p>
                     <div class="resource-meta">
                         {% if res.submitted_by %}
-                            <span>👤 {{ res.submitted_by }}</span>
+                            <span class="submitted-by">👤 {{ res.submitted_by }}</span>
                         {% endif %}
-                        <a href="{{ res.file.url }}" class="btn-download" download>📥 Download</a>
+                        <div class="download-area">
+                            <a href="{% url 'academics:download_resource' res.id %}" class="btn-download">📥 Download</a>
+                            <span class="download-count">⬇️ {{ res.download_count }}</span>
+                        </div>
                     </div>
                 </div>
             {% endfor %}

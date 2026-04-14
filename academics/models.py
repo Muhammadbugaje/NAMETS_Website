@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 from cloudinary.models import CloudinaryField
+import os
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 
@@ -137,6 +139,10 @@ class TimetableEntry(models.Model):
         ('tutorial', 'Tutorial'),
         ('islamiyya', 'Islamiyya'),
     ]
+    LEVEL_CHOICES = [
+    ('level1', 'Level 1'),
+    ('level2', 'Level 2'),
+    ]
 
     day = models.IntegerField(choices=DAYS_OF_WEEK)
     time_start = models.TimeField()
@@ -146,9 +152,10 @@ class TimetableEntry(models.Model):
     entry_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
-
+    level = models.CharField(max_length=10, choices=LEVEL_CHOICES, default='level1', help_text="Which level this entry belongs to")
+    
     class Meta:
-        ordering = ['entry_type', 'day', 'time_start', 'order']
+        ordering = ['entry_type', 'level', 'day', 'time_start', 'order']
 
     def __str__(self):
         return f"{self.get_entry_type_display()}: {self.course_name} - {self.get_day_display()} {self.time_start}"
@@ -231,6 +238,14 @@ class UserResourceSubmission(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     submitted_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
+    download_count = models.PositiveIntegerField(default=0)
+
+    def clean(self):
+        if self.file:
+            ext = os.path.splitext(self.file.name)[1][1:].lower()
+            allowed_extensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'zip']
+            if ext not in allowed_extensions:
+                raise ValidationError({'file': f'Unsupported file type. Allowed: {", ".join(allowed_extensions)}'})
 
     class Meta:
         ordering = ['-submitted_at']

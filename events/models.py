@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from cloudinary.models import CloudinaryField
+from ckeditor.fields import RichTextField
 
 # Create your models here.
 
@@ -19,7 +20,7 @@ class EventCategory(models.Model):
 class Event(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
-    description = models.TextField()
+    description = RichTextField(blank=True, null=True)
     category = models.ForeignKey(EventCategory, on_delete=models.SET_NULL, null=True, blank=True)
     start_datetime = models.DateTimeField()
     end_datetime = models.DateTimeField()

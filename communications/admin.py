@@ -11,11 +11,12 @@ from utils.admin_helpers import cloudinary_thumbnail
 @admin.register(Announcement)
 # customize how admin display list items, makes it easier than just liting them
 class AnnouncementAdmin(ModelAdmin):
-    list_display = ('image_thumbnail', 'title', 'category', 'is_pinned', 'publish_at', 'is_active', 'send_email')
+    list_display = ('image_thumbnail', 'title', 'category', 'is_pinned', 'publish_at', 'is_active', 'send_email','preview_button')
     list_filter = ('category', 'is_pinned', 'is_active', 'send_email') # sidebar filters
     search_fields = ('title', 'content') 
     prepopulated_fields = {'slug': ('title',)}
     actions = ['mark_send_email'] # bulk action to select emails for sending
+    readonly_fields = ('preview_button',)
 
     # update email status of sent email
     def mark_send_email(self, request, queryset):
@@ -25,6 +26,13 @@ class AnnouncementAdmin(ModelAdmin):
     def image_thumbnail(self, obj):
         return cloudinary_thumbnail(obj.image)
     image_thumbnail.short_description = 'Image'
+
+    def preview_button(self, obj):
+        if obj.pk:
+            url = reverse('communications:announcement_detail', args=[obj.slug])
+            return format_html('<a href="{}" target="_blank" class="button">Preview</a>', url)
+        return "—"
+    preview_button.short_description = 'Preview'
 
 
 @admin.register(PrayerSchedule)

@@ -76,6 +76,51 @@
             font-size: 1.5rem;
         }
     }
+
+    .social-share {
+        display: flex;
+        gap: 12px;
+        margin: 1rem 0;
+        flex-wrap: wrap;
+    }
+
+    .share-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(4px);
+        color: #1a1a1a;
+        font-size: 1.3rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .share-icon:hover {
+        transform: translateY(-3px);
+        background: white;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Optional: brand colours on hover */
+    .share-icon.whatsapp:hover { color: #25D366; border-color: #25D366; }
+    .share-icon.twitter:hover   { color: #1DA1F2; border-color: #1DA1F2; }
+    .share-icon.facebook:hover  { color: #4267B2; border-color: #4267B2; }
+    .share-icon.linkedin:hover  { color: #0077B5; border-color: #0077B5; }
+    .share-icon.telegram:hover  { color: #0088cc; border-color: #0088cc; }
+
+    /* Mobile – slightly smaller */
+    @media (max-width: 640px) {
+        .share-icon {
+            width: 38px;
+            height: 38px;
+            font-size: 1.1rem;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -97,6 +142,24 @@
             {{ article.content|linebreaks }}
         </div>
     </article>
+
+    <div class="social-share">
+        <a href="https://wa.me/?text={{ article.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" target="_blank" class="share-icon whatsapp" aria-label="Share on WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+        <a href="https://twitter.com/intent/tweet?text={{ article.title|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="share-icon twitter" aria-label="Share on Twitter">
+            <i class="fab fa-twitter"></i>
+        </a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" target="_blank" class="share-icon facebook" aria-label="Share on Facebook">
+            <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.build_absolute_uri|urlencode }}&title={{ article.title|urlencode }}" target="_blank" class="share-icon linkedin" aria-label="Share on LinkedIn">
+            <i class="fab fa-linkedin-in"></i>
+        </a>
+        <a href="https://t.me/share/url?url={{ request.build_absolute_uri|urlencode }}&text={{ article.title|urlencode }}" target="_blank" class="share-icon telegram" aria-label="Share on Telegram">
+            <i class="fab fa-telegram-plane"></i>
+        </a>
+    </div>
     <div class="back-link-wrapper">
         <a href="{% url 'communications:article_list' %}" class="back-link">← Back to Articles</a>
     </div>
