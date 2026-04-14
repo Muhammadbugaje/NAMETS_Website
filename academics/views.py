@@ -58,12 +58,12 @@ def course_results(request, slug):
     course = get_object_or_404(Course, slug=slug, is_active=True)
     student_name = request.GET.get('student', '')
     results = selectors.get_results_for_course(course, student_name)
-    exam = get_object_or_404(Evaluation, course=course, is_active=True)
+    exam = Evaluation.objects.filter(course=course, is_active=True).first()
     context = {
         'course': course,
         'results': results,
         'student_name': student_name,
-        'total_mark': exam.total_marks,
+        'total_mark': exam.total_marks if exam else 0,
     }
     return render(request, 'academics/course_results.html', context)
 
