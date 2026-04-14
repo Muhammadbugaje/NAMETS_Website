@@ -103,6 +103,7 @@ def exam_list(request, slug=None):
 
     
 def tutorial_list(request):
+    courses = selectors.get_active_courses(course_type='tutorial')
     timetable_level1 = TimetableEntry.objects.filter(
         entry_type='tutorial', level='level1', is_active=True
     ).order_by('day', 'time_start')
@@ -110,6 +111,7 @@ def tutorial_list(request):
         entry_type='tutorial', level='level2', is_active=True
     ).order_by('day', 'time_start')
     return render(request, 'academics/tutorial_list.html', {
+        'courses': courses,
         'timetable_level1': timetable_level1,
         'timetable_level2': timetable_level2,
     })
