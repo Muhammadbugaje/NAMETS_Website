@@ -58,7 +58,7 @@
         {{ patron.bio|linebreaks|default:"No additional biography provided." }}
     </div>
     <div class="back-link">
-        <a href="{% url 'community:patron_list' %}" class="btn btn-secondary">← Back to All Patrons</a>
+        <a href="{% url 'community:patron_list' %}">← Back to All Patrons</a>
     </div>
 </div>
 {% endblock %}
