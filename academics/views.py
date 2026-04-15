@@ -54,16 +54,23 @@ def course_detail(request, slug):
     }
     return render(request, 'academics/course_detail.html', context)
 
+from django.db.models import Q
+
 def course_results(request, slug):
     course = get_object_or_404(Course, slug=slug, is_active=True)
-    student_name = request.GET.get('student', '')
-    results = selectors.get_results_for_course(course, student_name)
+    search_query = request.GET.get('q', '').strip()
+    results = selectors.get_results_for_course(course, '')
+    if search_query:
+        results = results.filter(
+            Q(student_name__icontains=search_query) |
+            Q(registration_number__icontains=search_query)
+        )
     exam = Evaluation.objects.filter(course=course, is_active=True).first()
     context = {
         'course': course,
         'results': results,
-        'student_name': student_name,
-        'total_mark': exam.total_marks if exam else 0,
+        'search_query': search_query,
+        'total_mark': exam.total_marks if exam else None,
     }
     return render(request, 'academics/course_results.html', context)
 

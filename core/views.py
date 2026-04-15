@@ -44,14 +44,14 @@ def homepage(request):
         'featured_event': get_cached(
             'hp_featured_event', lambda: get_featured_events().first(), 60*3),
         'upcoming_events': get_cached(
-            'hp_upcoming_events', lambda: get_upcoming_events()[:3], 60*3),
+            'hp_upcoming_events', lambda: get_upcoming_events()[:2], 60*3),
         'upcoming_sessions': get_cached(
             'hp_sessions', lambda: get_upcoming_sessions()[:5], 60*5),
         'recent_items': get_cached(
-            'hp_lost_found', lambda: get_recent_unclaimed()[:2], 60*5),
+            'hp_lost_found', lambda: get_recent_unclaimed()[:1], 60*5),
         'featured_patron':    get_cached('hp_patron',     get_featured_patron,                60*10),
         'active_developers':  get_cached('hp_developers', lambda: get_active_developers()[:3], 60*10),
-        'active_campaigns':   get_cached('hp_campaigns',  lambda: get_active_donation_campaigns()[:2], 60*5),
+        'active_campaigns':   get_cached('hp_campaigns',  lambda: get_active_donation_campaigns()[:1], 60*5),
         'recent_gallery_images': get_cached(
             'hp_gallery', lambda: get_recent_gallery_images(6), 60*10),
     }

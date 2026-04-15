@@ -110,13 +110,11 @@
     <p>Sessions will appear here once they are scheduled. Check back later!</p>
 </div>
 {% endif %}
-<div class="scroll-hint" id="scrollHint">→</div>
-<!-- Back link (not needed on main page, but kept for consistency) -->
-<!-- <div class="back-link-wrap reveal">
-    <a href="{% url 'academics:course_list' %}" class="btn btn-secondary">← Back to Academics</a>
-</div> -->
-<a href="{% url 'academics:competition_results' %}" class="btn btn-primary">Competitions</a>
-<a href="{% url 'academics:resources' %}" class="btn btn-primary">More Resources</a>
+
+<div class="button-group" style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin: 2rem 0;">
+    <a href="{% url 'academics:competition_results' %}" class="btn btn-primary" style="border-radius: 10px">Competitions</a>
+    <a href="{% url 'academics:resources' %}" class="btn btn-primary" style="border-radius: 10px">More Resources</a>
+</div>
 <!-- GPA Calculator -->
 <div class="section-heading reveal mt-lg">
     <h2>GPA Calculator</h2>

@@ -6,6 +6,44 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/global.css' %}">
 <link rel="stylesheet" href="{% static 'academics/css/academics.css' %}">
+<style>
+/* Responsive table – no horizontal scroll, text wraps except time */
+.timetable-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+.timetable-table th,
+.timetable-table td {
+    padding: 0.5rem 0.4rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+    word-break: break-word;
+    white-space: normal;
+}
+/* Time column – never wrap */
+.timetable-table td:nth-child(2),
+.timetable-table th:nth-child(2) {
+    white-space: nowrap;
+    word-break: keep-all;
+}
+.timetable-table th {
+    background-color: rgba(15,61,46,0.08);
+    font-weight: 600;
+    color: #0F3D2E;
+    font-size: 0.7rem;
+    padding: 0.5rem 0.4rem;
+}
+/* Mobile: even tighter */
+@media (max-width: 640px) {
+    .timetable-table th,
+    .timetable-table td {
+        padding: 0.3rem 0.3rem;
+        font-size: 0.78rem;
+    }
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -41,7 +79,6 @@
     </div>
     {% endfor %}
 </div>
-
 {% else %}
 <div class="empty-state glass card-reveal">
     <span class="empty-state-icon">📚</span>
@@ -50,7 +87,7 @@
 </div>
 {% endif %}
 
-<!-- Timetable -->
+<!-- Timetable Sections -->
 {% if timetable_level1 or timetable_level2 %}
     <!-- Level 1 Timetable -->
     {% if timetable_level1 %}
@@ -59,13 +96,20 @@
         <div class="section-heading-line"></div>
     </div>
     <div class="glass card-reveal" style="padding: 0; overflow: hidden;">
-        <table class="custom-table-striped">
-            <thead><tr><th>Day</th><th>Time</th><th>Course</th><th>Venue</th></tr></thead>
+        <table class="timetable-table">
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Course</th>
+                    <th>Venue</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for entry in timetable_level1 %}
                 <tr>
                     <td data-label="Day">{{ entry.get_day_display }}</td>
-                    <td data-label="Time">{{ entry.time_start|time:"g:i A" }} – {{ entry.time_end|time:"g:i A" }}</td>
+                    <td data-label="Time">{{ entry.time_start|time:"H:i" }} – {{ entry.time_end|time:"H:i" }}</td>
                     <td data-label="Course">{{ entry.course_name }}</td>
                     <td data-label="Venue">{{ entry.venue|default:"TBA" }}</td>
                 </tr>
@@ -82,13 +126,20 @@
         <div class="section-heading-line"></div>
     </div>
     <div class="glass card-reveal" style="padding: 0; overflow: hidden;">
-        <table class="custom-table-striped">
-            <thead><tr><th>Day</th><th>Time</th><th>Course</th><th>Venue</th></tr></thead>
+        <table class="timetable-table">
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Course</th>
+                    <th>Venue</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for entry in timetable_level2 %}
                 <tr>
                     <td data-label="Day">{{ entry.get_day_display }}</td>
-                    <td data-label="Time">{{ entry.time_start|time:"g:i A" }} – {{ entry.time_end|time:"g:i A" }}</td>
+                    <td data-label="Time">{{ entry.time_start|time:"H:i" }} – {{ entry.time_end|time:"H:i" }}</td>
                     <td data-label="Course">{{ entry.course_name }}</td>
                     <td data-label="Venue">{{ entry.venue|default:"TBA" }}</td>
                 </tr>
@@ -104,9 +155,10 @@
     <p>Check back later for scheduled sessions.</p>
 </div>
 {% endif %}
+
 <div class="back-link-wrap reveal">
-    <a href="{% url 'academics:course_list' %}" class="btn btn-secondary">← Back to Academics</a>
-    <a href="{% url 'community:tutor_apply' %}" class="btn btn-secondary">Apply to be a Tutor</a>
+    <a href="{% url 'academics:course_list' %}" style="border-radius: 30px; margin-right: 5px;" class="btn btn-secondary">Back to Academics</a>
+    <a href="{% url 'community:tutor_apply' %}" style="border-radius: 30px;" class="btn btn-secondary">Apply to be a Tutor</a>
 </div>
 
 {% endblock %}

@@ -1,14 +1,124 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Unsubscribe | NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .unsubscribe-wrapper {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+    .unsubscribe-card {
+        max-width: 520px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(200, 169, 81, 0.5);
+        border-radius: 48px;  /* rounder card */
+        padding: 2.5rem 2rem;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(200,169,81,0.2);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .unsubscribe-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 28px 50px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(200,169,81,0.4);
+    }
+    .unsubscribe-card h1 {
+        font-family: 'Amiri', serif;
+        font-size: 2.2rem;
+        color: #0F3D2E;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+    }
+    .unsubscribe-card .lead {
+        color: #2c3e2f;
+        font-size: 1rem;
+        margin-bottom: 1.8rem;
+        font-weight: 500;
+        line-height: 1.4;
+    }
+    .unsubscribe-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        margin-top: 0.5rem;
+    }
+    .form-input {
+        background: #ffffff;
+        border: 2px solid #e0e0e0;
+        border-radius: 60px;   /* very round */
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        width: 100%;
+        transition: all 0.2s;
+        outline: none;
+        color: #1A1A1A;
+        box-sizing: border-box;
+    }
+    .form-input:focus {
+        border-color: #C8A951;
+        box-shadow: 0 0 0 4px rgba(200, 169, 81, 0.2);
+    }
+    .btn-unsubscribe {
+        background: #e74c3c;   /* fresh red */
+        color: white;
+        border: none;
+        border-radius: 60px;   /* very round */
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        letter-spacing: 0.5px;
+    }
+    .btn-unsubscribe:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(231, 76, 60, 0.4);
+    }
+    .text-muted {
+        color: #5A5A5A;
+        font-size: 0.85rem;
+        margin-top: 1.2rem;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding-top: 1rem;
+    }
+    @media (max-width: 480px) {
+        .unsubscribe-card {
+            padding: 1.8rem 1.2rem;
+            border-radius: 36px;
+        }
+        .unsubscribe-card h1 {
+            font-size: 1.8rem;
+        }
+        .form-input, .btn-unsubscribe {
+            padding: 0.8rem 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container text-center">
-    <h1>Unsubscribe from Notifications</h1>
-    <p>Enter your email address to unsubscribe from all NAMETS notifications.</p>
-    <form method="post" class="unsubscribe-form">
-        {% csrf_token %}
-        <input type="email" name="email" placeholder="Your email address" required class="form-input">
-        <button type="submit" class="btn btn-secondary" style=" border: none; border-radius:12px; background-color: rgb(170, 28, 28); color: white; padding:7px;">Unsubscribe</button>
-    </form>
-    <p class="text-muted mt-3">We'll permanently remove your email from our records.</p>
+<div class="unsubscribe-wrapper">
+    <div class="unsubscribe-card card-reveal">
+        <h1>🔔 Unsubscribe</h1>
+        <p class="lead">We’re sorry to see you leave. Enter your email to stop all NAMETS notifications.</p>
+        <form method="post" class="unsubscribe-form">
+            {% csrf_token %}
+            <input type="email" name="email" placeholder="Your email address" required class="form-input" style="border-radius: 30px;">
+            <button type="submit" class="btn-unsubscribe" style="margin-top:-15px;">Yes, unsubscribe me</button>
+        </form>
+        <p class="text-muted">Your email will be permanently removed. No further emails will be sent.</p>
+    </div>
 </div>
 {% endblock %}
