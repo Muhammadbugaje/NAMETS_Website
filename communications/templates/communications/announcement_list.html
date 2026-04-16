@@ -43,7 +43,7 @@
             <h3 class="card-title">
                 <a href="{% url 'communications:announcement_detail' announcement.slug %}">{{ announcement.title }}</a>
             </h3>
-            <p class="card-desc">{{ announcement.content|truncatewords:25 }}</p>
+            <p class="card-desc">{{ announcement.content|striptags|truncatewords:25 }}</p>
             <div class="card-footer">
                 <span class="date">{{ announcement.publish_at|date:"M j, Y" }}</span>
                 <a href="{% url 'communications:announcement_detail' announcement.slug %}" class="btn btn-primary btn-sm">Read More</a>

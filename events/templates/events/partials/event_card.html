@@ -10,7 +10,7 @@
         <h3 class="card-title">
             <a href="{% url 'events:detail' event.slug %}">{{ event.title }}</a>
         </h3>
-        <p class="card-desc">{{ event.description|truncatewords:20 }}</p>
+        <p class="card-desc">{{ event.description|striptags|truncatewords:20 }}</p>
         <p class="text-muted">{{ event.start_datetime|date:"M j, g:i A" }}</p>
     </div>
     <div class="card-footer">

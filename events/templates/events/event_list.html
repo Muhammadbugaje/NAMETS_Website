@@ -241,7 +241,7 @@
                     <span>{{ event.start_datetime|date:"g:i A" }} – {{ event.end_datetime|date:"g:i A" }}</span>
                     <span>📍 {{ event.location|default:"TBA" }}</span>
                 </div>
-                <p class="event-card-description">{{ event.description|truncatewords:15 }}</p>
+                <p class="event-card-description">{{ event.description|striptags|truncatewords:15 }}</p>
                 <div class="event-card-footer">
                     <a href="{% url 'events:detail' event.slug %}" class="btn btn-primary btn-sm">Details</a>
                     <span class="badge badge-{{ event.status }}">{{ event.status|title }}</span>
