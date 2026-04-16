@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.shortcuts import render
 from .models import Event, EventCategory
 from . import selectors
+from django.utils.html import strip_tags
 # Create your views here.
 
 def event_list(request):
@@ -56,6 +57,7 @@ def past_events(request):
     context = {'events': events}
     return render(request, 'events/past.html', context)
 
+
 def calendar_ics(request, slug):
     event = get_object_or_404(Event, slug=slug, is_active=True)
 
@@ -68,7 +70,9 @@ def calendar_ics(request, slug):
     ical_event.add('dtstart', event.start_datetime)
     ical_event.add('dtend', event.end_datetime)
     ical_event.add('location', event.location or 'TBA')
-    ical_event.add('description', event.description)
+    # Strip HTML tags and replace &nbsp; with space
+    plain_description = strip_tags(event.description).replace('&nbsp;', ' ')
+    ical_event.add('description', plain_description)
     ical_event.add('uid', f'event-{event.id}@namets.org')
     ical_event.add('dtstamp', timezone.now())
 
