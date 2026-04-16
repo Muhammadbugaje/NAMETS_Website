@@ -332,7 +332,7 @@
 
         <!-- Description -->
         <div class="event-description">
-            {{ event.description|linebreaks }}
+            {{ event.description|safe }}
         </div>
         <div class="social-share">
             <a href="https://wa.me/?text={{ event.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" target="_blank" class="share-icon whatsapp" aria-label="Share on WhatsApp">

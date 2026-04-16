@@ -71,7 +71,7 @@
         </div>
         {% endif %}
         <div class="content-text">
-            {{ announcement.content|linebreaks }}
+            {{ announcement.content|safe }}
         </div>
     </article>
 

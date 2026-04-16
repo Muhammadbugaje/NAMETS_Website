@@ -14,7 +14,7 @@
     <div class="acad-hero-badge">📘 Course</div>
     <h1>{{ course.name }}</h1>
     {% if course.description %}
-    <p>{{ course.description }}</p>
+    <p>{{ course.description|safe }}</p>
     {% endif %}
   </div>
 </div>
