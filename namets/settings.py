@@ -200,7 +200,7 @@ class N8NAuthentication(BaseAuthentication):
 N8N_API_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlZDhmZTI0Ny1mYjU2LTQ5NDYtOGQxOS05ZTQ1MmFhY2E0YjIiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiYTg4OTkzN2UtNmZiYy00NzZhLThmN2YtNTU2NGI4NWFjOTkwIiwiaWF0IjoxNzc0MzI5NjQxfQ.uhm4T81lzsZ33zXwcJnChH6lV06_jpj6EuYedyhGiko' 
 
 
-N8N_WEBHOOK_URL='https://namets-n8n.duckdns.org/webhook/namets-events'
+N8N_WEBHOOK_URL='https://namets-n8n-gn03.onrender.com/webhook/namets-events'
 WEBHOOK_SECRET = 'qnonxhxlwftbyyqm'
 
 # for hosting on render and allowing render to send requests to our webhook endpoint, we need to allow render's domain in the allowed hosts and csrf trusted origins.
