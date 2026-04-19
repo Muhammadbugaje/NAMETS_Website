@@ -274,10 +274,24 @@ class UserResourceSubmissionAdmin(ModelAdmin):
     actions        = ['approve_submissions', 'reject_submissions']
 
     def approve_submissions(self, request, queryset):
-        from django.utils import timezone
-        queryset.update(status='approved', reviewed_at=timezone.now())
-        self.message_user(request, f"{queryset.count()} submission(s) approved.")
-    approve_submissions.short_description = "Approve selected submissions"
+        approved = 0
+        for obj in queryset:
+            if obj.status != 'approved' and not obj.email_sent:
+                obj.status = 'approved'
+                obj.reviewed_at = timezone.now()
+                obj.save()
+                # Send webhook
+                submitter_name = obj.submitted_by if obj.submitted_by else 'User'
+                send_webhook('resource_approved', {
+                    'emial': obj.email,
+                    'recipients': [obj.email],
+                    'name': submitter_name,
+                    'title': obj.title
+                })
+                obj.email_sent = True
+                obj.save(update_fields=['email_sent'])
+                approved += 1
+        self.message_user(request, f"{approved} submission(s) approved.")
 
     def reject_submissions(self, request, queryset):
         from django.utils import timezone

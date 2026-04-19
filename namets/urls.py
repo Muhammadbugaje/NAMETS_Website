@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from communications.views_admin import send_custom_message
+from django.shortcuts import redirect
 
 urlpatterns = [
     path('', include('core.urls')),

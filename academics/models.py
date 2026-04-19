@@ -239,13 +239,16 @@ class UserResourceSubmission(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
     download_count = models.PositiveIntegerField(default=0)
+    email_sent = models.BooleanField(default=False)
 
     def clean(self):
         if self.file:
-            ext = os.path.splitext(self.file.name)[1][1:].lower()
-            allowed_extensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'zip']
-            if ext not in allowed_extensions:
-                raise ValidationError({'file': f'Unsupported file type. Allowed: {", ".join(allowed_extensions)}'})
+            # Cloudinary fields don't have .name – use the URL or public_id
+            url = self.file.url
+            ext = url.split('.')[-1].split('?')[0].lower()
+            allowed = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'zip','pptx']
+            if ext not in allowed:
+                raise ValidationError(f'Unsupported file type: {ext}. Allowed: {", ".join(allowed)}')
 
     class Meta:
         ordering = ['-submitted_at']
