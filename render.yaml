@@ -3,6 +3,7 @@ services:
     name: namets
     runtime: python
     plan: free
+    pythonVersion: 3.12        # add this line
     buildCommand: |
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
