@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     'storages', # for django-storages for image cloud buket storage
     'cloudinary_storage',  # cloudinary storage backend for media files
     'cloudinary',
-    'ckeditor',         
+    'ckeditor',       
 ]
 
 MIDDLEWARE = [
@@ -78,6 +78,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'namets.urls'
 
@@ -132,7 +133,7 @@ DATABASES = {
 """
 
 # Aiven database
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -147,7 +148,13 @@ DATABASES = {
         },
     }
 }
+"""
 
+import dj_database_url
+DATABASES = {
+    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
+}
+""""""
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
@@ -216,7 +223,7 @@ N8N_API_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlZDhmZTI0Ny1mYj
 
 N8N_WEBHOOK_URL='https://namets-n8n-gn03.onrender.com/webhook/namets-events'
 WEBHOOK_SECRET = 'qnonxhxlwftbyyqm'
-
+"""
 # for hosting on render and allowing render to send requests to our webhook endpoint, we need to allow render's domain in the allowed hosts and csrf trusted origins.
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
@@ -229,7 +236,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
 ]
-"""
+
 
 # Clodinary configuration for media file storage
 import cloudinary

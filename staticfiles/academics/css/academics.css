@@ -1909,3 +1909,105 @@
   .mat-actions { width: 100%; }
   .btn-download, .btn-drive { width: 100%; justify-content: center; }
 }
+
+/* Resource card – glassy, modern, responsive */
+.resource-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(200, 169, 81, 0.25);
+    border-radius: 24px;
+    padding: 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.resource-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.resource-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0F3D2E;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.resource-description {
+    font-size: 0.9rem;
+    color: #5A5A5A;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    flex: 1;
+}
+
+.resource-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.submitted-by {
+    font-size: 0.75rem;
+    color: #0F3D2E;
+    background: rgba(15, 61, 46, 0.08);
+    padding: 0.2rem 0.6rem;
+    border-radius: 30px;
+}
+
+.download-area {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-download {
+    background: #0F3D2E;
+    color: white;
+    border: none;
+    border-radius: 40px;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.btn-download:hover {
+    background: #C8A951;
+    color: #1A1A1A;
+    transform: translateY(-2px);
+}
+
+.download-count {
+    font-size: 0.7rem;
+    color: #C8A951;
+    background: rgba(200, 169, 81, 0.15);
+    padding: 0.2rem 0.5rem;
+    border-radius: 30px;
+    font-weight: 600;
+}
+
+/* Responsive: stack on very small screens */
+@media (max-width: 480px) {
+    .resource-meta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .download-area {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
