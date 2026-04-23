@@ -24,10 +24,7 @@ from urllib.parse import urlparse, parse_qsl
 
 load_dotenv()   # loads variables from .env file into environment
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -37,7 +34,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-dev-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'false'
+DEBUG = os.environ.get('DEBUG', 'True') == 'true'
 
 
 # Application definition
@@ -108,14 +105,14 @@ WSGI_APPLICATION = 'namets.wsgi.application'
 
 # Database local sqlite3 for development, inbuilt with django
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+"""
 """
 # uncomment this section and comment the section above to use the neon postgres database in production.
 # Replace the DATABASES section of your settings.py with this
@@ -133,6 +130,24 @@ DATABASES = {
     }
 }
 """
+
+# Aiven database
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'defaultdb'),
+        'USER': os.environ.get('DB_USER', 'avnadmin'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+        'OPTIONS': {
+            'sslmode': 'require',
+            'sslrootcert': os.environ.get('DB_CA_CERT', 'ca.pem'),  # optional if you place ca.pem
+        },
+    }
+}
+
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
@@ -199,10 +214,9 @@ class N8NAuthentication(BaseAuthentication):
 # API token for n8n authentication
 N8N_API_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlZDhmZTI0Ny1mYjU2LTQ5NDYtOGQxOS05ZTQ1MmFhY2E0YjIiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiYTg4OTkzN2UtNmZiYy00NzZhLThmN2YtNTU2NGI4NWFjOTkwIiwiaWF0IjoxNzc0MzI5NjQxfQ.uhm4T81lzsZ33zXwcJnChH6lV06_jpj6EuYedyhGiko' 
 
-
 N8N_WEBHOOK_URL='https://namets-n8n-gn03.onrender.com/webhook/namets-events'
 WEBHOOK_SECRET = 'qnonxhxlwftbyyqm'
-
+"""
 # for hosting on render and allowing render to send requests to our webhook endpoint, we need to allow render's domain in the allowed hosts and csrf trusted origins.
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
@@ -215,7 +229,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
 ]
-"""
+
 
 # Clodinary configuration for media file storage
 import cloudinary

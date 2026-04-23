@@ -137,6 +137,15 @@
 .social-links a:hover {
     color: #C8A951;
 }
+.prev-site-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.prev-site-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255,255,255,0.9);
+    border-color: #C8A951;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+}
 
 /* Mobile – cards are centered, not full width */
 @media (max-width: 639px) {
@@ -153,7 +162,9 @@
     .card-title {
         font-size: 1.1rem;
     }
+    .previous-sites-grid { flex-direction: column; align-items: center; }
 }
+
 </style>
 {% endblock %}
 
@@ -196,5 +207,29 @@
         <p class="no-results">No developer information available.</p>
         {% endfor %}
     </div>
+    
+    <!-- Previous NAMETS Websites – Glassy Credits -->
+<!-- Previous NAMETS Websites – Glassy Credits -->
+<div class="section-heading reveal mt-lg">
+    <h2>📜 Our Digital Heritage</h2>
+    <div class="section-heading-line"></div>
+</div>
+<p class="text-muted" style="margin-top: 0.5rem; font-size: 0.8rem;">Credit to previous NAMETS teams for their foundational work.</p>
+<div class="previous-sites-grid" style="display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; margin: 1.5rem 0;">
+    <a href="https://www.nametsabu.com.ng/" target="_blank" rel="noopener noreferrer" class="glass-card prev-site-card" style="text-decoration: none; padding: 1rem 1.5rem; border-radius: 20px; transition: all 0.2s; display: flex; align-items: center; gap: 1rem;">
+        <i class="fas fa-globe-africa" style="font-size: 2rem; color: #C8A951;"></i>
+        <div>
+            <strong style="color: #0F3D2E;">Original NAMETS Site</strong>
+            <small style="display: block; color: #5A5A5A;">nametsabu.com.ng</small>
+        </div>
+    </a>
+    <a href="https://nametsabu.wordpress.com/home/" target="_blank" rel="noopener noreferrer" class="glass-card prev-site-card" style="text-decoration: none; padding: 1rem 1.5rem; border-radius: 20px; display: flex; align-items: center; gap: 1rem;">
+        <i class="fab fa-wordpress" style="font-size: 2rem; color: #21759b;"></i>
+        <div>
+            <strong style="color: #0F3D2E;">WordPress Archive</strong>
+            <small style="display: block; color: #5A5A5A;">nametsabu.wordpress.com</small>
+        </div>
+    </a>
+</div>
 </div>
 {% endblock %}
