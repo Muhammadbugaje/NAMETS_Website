@@ -3,8 +3,11 @@ services:
     name: namets
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    python manage.py loaddata datadump.json
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+      python manage.py migrate
+      python manage.py loaddata datadump.json
     startCommand: gunicorn namets.wsgi:application --workers 4 --log-level info
     envVars:
       - key: SECRET_KEY
@@ -14,7 +17,7 @@ services:
       - key: ALLOWED_HOSTS
         value: .onrender.com
       - key: DATABASE_URL
-        sync: false          # you'll add manually
+        sync: false
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY
