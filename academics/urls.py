@@ -20,7 +20,6 @@ urlpatterns = [
     path('islamiyya/register/', views.islamiyya_register, name='islamiyya_register'),
     path('islamiyya/status/', views.islamiyya_check_status, name='islamiyya_check_status'),
     path('islamiyya/dashboard/', views.islamiyya_dashboard, name='islamiyya_dashboard'),
-    #path('islamiyya/download/', views.islamiyya_download_slip, name='islamiyya_download_slip'),
     path('resources/', views.resources_page, name='resources'),
     path('submit-resource/', views.submit_resource, name='submit_resource'),
     path('download/<int:pk>/', views.download_resource, name='download_resource'),

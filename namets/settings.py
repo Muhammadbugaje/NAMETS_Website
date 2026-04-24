@@ -34,8 +34,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-dev-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'true'
-
+DEBUG = os.environ.get('DEBUG', 'True') == 'false'
+#DEBUG = True
 
 # Application definition
 
@@ -78,7 +78,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
 ROOT_URLCONF = 'namets.urls'
 
 TEMPLATES = [
@@ -102,17 +101,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'namets.wsgi.application'
 
-
 # Database local sqlite3 for development, inbuilt with django
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-"""
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-"""
+""""""
 """
 # uncomment this section and comment the section above to use the neon postgres database in production.
 # Replace the DATABASES section of your settings.py with this
@@ -148,12 +146,13 @@ DATABASES = {
     }
 }
 """
-
+# Aiven simplified url
+"""
 import dj_database_url
 DATABASES = {
     'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
 }
-""""""
+"""
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
