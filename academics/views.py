@@ -393,27 +393,6 @@ def islamiyya_dashboard(request):
         'whatsapp_link': whatsapp_link,
         'expired': expired,
     })
-
-def islamiyya_download_slip(request):
-    app_id = request.session.get('islamiyya_app_id')
-    if not app_id:
-        messages.error(request, 'Please check your status first.')
-        return redirect('academics:islamiyya_check_status')
-    registration = get_object_or_404(IslamiyyaRegistration, application_id=app_id)
-
-    # Build absolute static URL for logos
-    static_url = request.build_absolute_uri('/static/')
-    pdf = render_to_pdf('academics/islamiyya_application_slip.html', {
-        'registration': registration,
-        'static_url': static_url,
-    })
-    if pdf:
-        response = pdf
-        response['Content-Disposition'] = f'attachment; filename="application_{registration.application_id}.pdf"'
-        return response
-    else:
-        messages.error(request, 'Error generating PDF.')
-        return redirect('academics:islamiyya_dashboard')
     
 
 def resources_page(request):
