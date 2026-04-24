@@ -2,7 +2,6 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from cloudinary.models import CloudinaryField
-from ckeditor.fields import RichTextField
 
 # subscribers models from inbuilt django user model
 import uuid
@@ -20,7 +19,7 @@ class Announcement(models.Model):
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
-    content = RichTextField(blank=True, null=True)
+    content = models.CharField(blank=True, null=True)
     image = CloudinaryField('image', folder='announcements', blank=True, null=True)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='general')
     is_pinned = models.BooleanField(default=False)
