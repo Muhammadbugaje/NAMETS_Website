@@ -11,7 +11,6 @@ from datetime import datetime, timedelta
 from .selectors import get_all_results
 from cloudinary.utils import cloudinary_url
 from core.models import SiteSettings
-from .utils import render_to_pdf
 from django.urls import reverse
 from django.utils import timezone
 from django.conf import settings
