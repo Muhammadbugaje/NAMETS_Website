@@ -35,9 +35,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-dev-key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 #DEBUG = True
-SITE_BASE_URL = 'http://127.0.0.1:8000'  # Change to https://yourdomain.com in production
+# SITE_BASE_URL = 'http://127.0.0.1:8000'  # Change to https://yourdomain.com in production
 
-# SITE_BASE_URL = os.environ.get('SITE_BASE_URL', 'https://namets.org.ng')
+SITE_BASE_URL = os.environ.get('SITE_BASE_URL', 'https://namets-website.onrender.com/')
 
 # Logo URL for emails — stored on Cloudinary so it doesn't depend on the website domain
 LOGO_URL = os.environ.get('LOGO_URL', 'https://res.cloudinary.com/dgkin4erd/image/upload/v1788637376/Namets_oaapzr.jpg')
@@ -116,14 +116,14 @@ WSGI_APPLICATION = 'namets.wsgi.application'
 
 # Database local sqlite3 for development, inbuilt with django
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-""""""
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+"""
 """
 # uncomment this section and comment the section above to use the neon postgres database in production.
 # Replace the DATABASES section of your settings.py with this
@@ -160,17 +160,17 @@ DATABASES = {
 }
 """
 # Aiven simplified url
-"""
+""""""
 import dj_database_url
 DATABASES = {
     'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
 }
-"""
+
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
 
-"""
+
 # for hosting on render and allowing render to send requests to our webhook endpoint, we need to allow render's domain in the allowed hosts and csrf trusted origins.
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
@@ -183,7 +183,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
 ]
-
+"""
 
 
 AUTH_PASSWORD_VALIDATORS = [
