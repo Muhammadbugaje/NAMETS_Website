@@ -1,0 +1,358 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 800px; margin: 0 auto; }
+
+.form-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.form-back:hover { text-decoration: underline; }
+
+.form-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.75rem 2rem;
+    margin-bottom: 1.25rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22);
+}
+.form-head::before {
+    content: "📝"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.1;
+}
+.form-head-inner { position: relative; z-index: 1; }
+.form-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.form-head h2 { font-size: 1.35rem; font-weight: 800; margin: 0 0 0.3rem; }
+.form-head p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+
+.form-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem; box-shadow: var(--shadow-sm);
+}
+
+.form-section-title {
+    font-size: 0.7rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a6a1a; margin: 0 0 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.form-section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent);
+}
+.form-section-title:not(:first-child) { margin-top: 2rem; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.9rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label {
+    font-weight: 700; color: #0F3D2E;
+    font-size: 0.8rem; margin-bottom: 0.35rem;
+}
+.form-group label .required { color: #e53e3e; margin-left: 0.15rem; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.65rem 0.9rem;
+    border: 1px solid #d0d9d6; border-radius: 10px;
+    font-size: 0.9rem; background: #fff;
+    font-family: inherit; transition: all 0.2s;
+    color: #0F3D2E;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 4px rgba(200,169,81,0.15);
+}
+.form-group .help {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.3rem; line-height: 1.4;
+}
+.form-group .error {
+    font-size: 0.78rem; color: #c0392b;
+    margin-top: 0.35rem;
+    padding: 0.4rem 0.7rem;
+    background: #fdecea; border-radius: 6px;
+}
+
+/* Radio-style choice between person/office */
+.assign-choice {
+    display: flex;
+    gap: 0.5rem;
+    background: #f0f4f2;
+    border-radius: 12px;
+    padding: 0.35rem;
+    margin-bottom: 1rem;
+}
+.assign-choice-btn {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-align: center;
+    cursor: pointer;
+    font-family: inherit;
+    border: none;
+    background: transparent;
+    color: #4a5568;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+.assign-choice-btn:hover { color: #0F3D2E; }
+.assign-choice-btn.active {
+    background: #fff;
+    color: #0F3D2E;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.assign-panel { display: none; }
+.assign-panel.active { display: block; animation: fadeIn 0.25s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+.priority-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+.priority-radio {
+    position: relative;
+    cursor: pointer;
+}
+.priority-radio input {
+    position: absolute; opacity: 0; pointer-events: none;
+}
+.priority-radio .inner {
+    padding: 0.75rem 0.5rem;
+    border-radius: 12px;
+    text-align: center;
+    border: 2px solid transparent;
+    background: #f8faf9;
+    font-size: 0.78rem;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+.priority-radio:hover .inner { border-color: rgba(200,169,81,0.4); }
+.priority-radio input:checked + .inner {
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff;
+    border-color: #0F3D2E;
+    box-shadow: 0 6px 16px rgba(15,61,46,0.2);
+}
+
+.form-actions {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    margin-top: 2rem; padding-top: 1.5rem;
+    border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-submit {
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff;
+    padding: 0.85rem 2rem;
+    border: none; border-radius: 50px;
+    font-weight: 800; font-size: 0.9rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    box-shadow: 0 6px 20px rgba(15,61,46,0.25);
+    transition: all 0.25s;
+}
+.btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(15,61,46,0.35); }
+.btn-submit:disabled { opacity: 0.6; cursor: wait; }
+
+.btn-cancel {
+    background: var(--gold); color: var(--primary);
+    padding: 0.85rem 1.75rem;
+    border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.88rem;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.btn-cancel:hover { background: #E0C96E; color: var(--primary); transform: translateY(-2px); }
+
+@media (max-width: 640px) {
+    .form-card { padding: 1.5rem 1.25rem; }
+    .form-row { grid-template-columns: 1fr; gap: 0.75rem; }
+    .priority-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn-submit, .form-actions .btn-cancel {
+        width: 100%; justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="form-container">
+
+    <a href="{% url 'governance:task_list' %}" class="form-back">
+        <i class="fas fa-arrow-left"></i> Back to Tasks
+    </a>
+
+    <div class="form-head">
+        <div class="form-head-inner">
+            <span class="form-eyebrow">Governance · Task</span>
+            <h2>{{ title }}</h2>
+            <p>{% if task %}Update task details.{% else %}Assign work to a person or an entire office.{% endif %}</p>
+        </div>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div style="background:#fdecea;border-left:4px solid #c0392b;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;color:#9b2c2c;font-size:0.88rem;">
+        <strong style="display:block;margin-bottom:0.4rem;">Please fix the following:</strong>
+        <ul style="margin:0;padding-left:1.2rem;">
+            {% for err in form.non_field_errors %}<li>{{ err }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="form-card" novalidate id="taskForm">
+        {% csrf_token %}
+
+        <!-- BASIC INFO -->
+        <div class="form-section-title"><i class="fas fa-align-left"></i> Task Details</div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.title.id_for_label }}">Title <span class="required">*</span></label>
+                {{ form.title }}
+                {% if form.title.errors %}<div class="error">{{ form.title.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.description.id_for_label }}">Description</label>
+                {{ form.description }}
+                <div class="help">Add any context, links, or specifics the assignee will need.</div>
+                {% if form.description.errors %}<div class="error">{{ form.description.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- ASSIGNMENT -->
+        <div class="form-section-title"><i class="fas fa-user-check"></i> Assignment</div>
+
+        <div class="assign-choice" id="assignChoice">
+            <button type="button" class="assign-choice-btn active" data-target="person">
+                <i class="fas fa-user"></i> Assign to a person
+            </button>
+            <button type="button" class="assign-choice-btn" data-target="office">
+                <i class="fas fa-building"></i> Assign to an office
+            </button>
+        </div>
+
+        <div class="assign-panel active" data-panel="person">
+            <div class="form-group">
+                <label for="{{ form.assigned_to.id_for_label }}">Person</label>
+                {{ form.assigned_to }}
+                <div class="help">Pick a specific person from your office or scope.</div>
+                {% if form.assigned_to.errors %}<div class="error">{{ form.assigned_to.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="assign-panel" data-panel="office">
+            <div class="form-group">
+                <label for="{{ form.assigned_office.id_for_label }}">Office</label>
+                {{ form.assigned_office }}
+                <div class="help">The task appears on every active member of that office's dashboard.</div>
+                {% if form.assigned_office.errors %}<div class="error">{{ form.assigned_office.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- PRIORITY + DEADLINE -->
+        <div class="form-section-title"><i class="fas fa-flag"></i> Priority & Deadline</div>
+
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Priority</label>
+            <div class="priority-grid" id="priorityGrid">
+                <label class="priority-radio">
+                    <input type="radio" name="priority" value="low" {% if form.priority.value == 'low' %}checked{% endif %}>
+                    <div class="inner">🟢 Low</div>
+                </label>
+                <label class="priority-radio">
+                    <input type="radio" name="priority" value="medium" {% if not form.priority.value or form.priority.value == 'medium' %}checked{% endif %}>
+                    <div class="inner">🟡 Medium</div>
+                </label>
+                <label class="priority-radio">
+                    <input type="radio" name="priority" value="high" {% if form.priority.value == 'high' %}checked{% endif %}>
+                    <div class="inner">🟠 High</div>
+                </label>
+                <label class="priority-radio">
+                    <input type="radio" name="priority" value="urgent" {% if form.priority.value == 'urgent' %}checked{% endif %}>
+                    <div class="inner">🔴 Urgent</div>
+                </label>
+            </div>
+            {% if form.priority.errors %}<div class="error">{{ form.priority.errors|join:" " }}</div>{% endif %}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.deadline.id_for_label }}">Deadline (optional)</label>
+                {{ form.deadline }}
+                {% if form.deadline.errors %}<div class="error">{{ form.deadline.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- SUBMIT -->
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> {{ button_text }}
+            </button>
+            <a href="{% url 'governance:task_list' %}" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+
+    </form>
+</div>
+
+<script>
+// ============ ASSIGNMENT MODE TOGGLE ============
+(function() {
+    const choice = document.getElementById('assignChoice');
+    if (!choice) return;
+    const btns = choice.querySelectorAll('.assign-choice-btn');
+    const panels = document.querySelectorAll('.assign-panel');
+
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            btns.forEach(b => b.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            const target = btn.dataset.target;
+            document.querySelector(`.assign-panel[data-panel="${target}"]`).classList.add('active');
+        });
+    });
+
+    // Auto-select the active tab based on existing values
+    const toField = document.getElementById('{{ form.assigned_to.id_for_label }}');
+    const officeField = document.getElementById('{{ form.assigned_office.id_for_label }}');
+    if (officeField && officeField.value && (!toField || !toField.value)) {
+        // Office is set, switch to that panel
+        document.querySelector('.assign-choice-btn[data-target="office"]').click();
+    }
+})();
+
+// ============ SUBMIT STATE ============
+document.getElementById('taskForm').addEventListener('submit', function() {
+    const btn = this.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+});
+</script>
+
+{% endblock %}

@@ -5,356 +5,608 @@
 
 {% block extra_css %}
 <style>
-/* ===== Event Detail Page – Refined Mobile Version ===== */
-.event-detail-container {
-    max-width: 900px;
+.event-detail {
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 15px;
+    padding: 0;
 }
 
-/* Glass card */
-.event-card {
-    background: var(--bg-card, rgba(255,255,255,0.3));
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--border-glass, rgba(255,255,255,0.4));
-    border-radius: 24px;
-    padding: 25px;
-    box-shadow: var(--shadow-sm, 0 8px 20px rgba(0,0,0,0.05));
-    margin-bottom: 5px;
-    margin-top: -35px;
-}
-
-/* Header */
-.event-header {
-    margin-bottom: 5px;
-    border-bottom: 1px solid var(--border-light, #E2E0D8);
-    padding-bottom: 15px;
-}
-.event-category {
+/* ══════════════════════════════════════════════════════════
+   SHARED STATUS BADGE
+   ══════════════════════════════════════════════════════════ */
+.status-badge {
     display: inline-block;
-    background: var(--accent-light, rgba(200,169,81,0.15));
-    color: var(--accent, #C8A951);
-    padding: 5px 14px;
-    border-radius: 30px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 1px;
-    margin-top: -5px;
-}
-.event-title {
-    font-family: 'Georgia, serif';
-    font-weight: bold;
-    font-size: 2.4rem;
-    color: var(--text-primary, #1A1A1A);
-    margin-bottom: 2px;
-    line-height: 1.2;
-}
-
-/* Date & time section – left aligned, compact */
-.event-datetime {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 5px;
-}
-.event-date-block {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-/* Refined date badge – wider, taller, left aligned */
-.event-date-badge {
-    height: 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    min-width: 100px;
-    background: var(--primary, #0F3D2E);
-    color: white;
-    border-radius: 16px;
-    padding: 12px 15px;
-    padding-top: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-.event-date-badge .month {
-    font-size: 1rem;
-    text-transform: uppercase;
-    font-weight: 400;
-    opacity: 0.9;
-    letter-spacing: 1px;
-}
-.event-date-badge .day {
-    font-size: 2.2rem;
+    padding: 0.25rem 1rem;
+    border-radius: 50px;
+    font-size: 0.7rem;
     font-weight: 700;
-    line-height: 1;
-    margin: 2px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
-.event-date-badge .year {
-    font-size: 1rem;
-    opacity: 0.8;
+.status-badge.upcoming { background: #0F3D2E; color: #fff; }
+.status-badge.ongoing  { background: #C8A951; color: #0F3D2E; }
+.status-badge.past     { background: #6b6b6b; color: #fff; }
+
+/* ══════════════════════════════════════════════════════════
+   OVERLAY LAYOUT — text on image
+   ══════════════════════════════════════════════════════════ */
+.detail-hero.overlay {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    aspect-ratio: 16 / 8;
+    padding: 2.5rem 2.5rem 2rem;
 }
-.event-time-detail {
-    flex: 1;
-    font-size: 1rem;
-    color: var(--text-secondary, #947f0b);
-    line-height: 1.4;
+.detail-hero.overlay .hero-image {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 0;
 }
-.event-time-detail strong {
-    color: var(--text-primary, #1A1A1A);
-    font-weight: 600;
-    display: inline-block;
+.detail-hero.overlay .hero-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(0deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.25) 55%, transparent 100%);
+    z-index: 1;
+}
+.detail-hero.overlay .hero-content {
+    position: relative;
+    z-index: 2;
+    color: #fff;
+    max-width: 700px;
+}
+.detail-hero.overlay .status-badge { margin-bottom: 0.5rem; }
+.detail-hero.overlay h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin: 0.2rem 0 0.5rem;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    line-height: 1.2;
+}
+.detail-hero.overlay .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    font-size: 0.95rem;
+    opacity: 0.92;
+}
+.detail-hero.overlay .meta span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.detail-hero.overlay .actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
-/* Location with label */
-.event-location {
+/* ══════════════════════════════════════════════════════════
+   SEPARATE LAYOUT — image, then a distinct, lively info panel
+   Redesigned to feel like its own thing, not "overlay minus glow":
+     • a floating date-chip that straddles the image/panel seam
+     • gold accent rail running down the left of the meta block
+     • soft gradient wash instead of flat white
+     • category badge pinned top-right of the image itself
+   ══════════════════════════════════════════════════════════ */
+.detail-hero.separate {
+    border-radius: 24px;
+    overflow: visible; /* let the floating date-chip escape the image edge */
+    margin-bottom: 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    position: relative;
+}
+.detail-hero.separate .hero-image-wrapper {
+    width: 100%;
+    border-radius: 24px 24px 0 0;
+    overflow: hidden;
+    background: #f0f4f2;
+    aspect-ratio: 16 / 8;
+    position: relative;
+}
+.detail-hero.separate .hero-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.detail-hero.separate .hero-image-placeholder {
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 1rem;
-    color: var(--text-secondary, #2c2929);
-    margin-bottom: 5px;
-    padding: 5px 0;
+    justify-content: center;
+    background: linear-gradient(135deg, #f0f4f2, #e4ece8);
+    font-size: 4rem;
+    color: #b8c4bf;
 }
-.event-location i {
-    color: var(--accent, #C8A951);
-    font-style: normal;
-    font-size: 1.1rem;
+/* Category pill floating over the top-right of the image */
+.detail-hero.separate .image-category-pill {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(15,61,46,0.85);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.3rem 0.9rem;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
-.location-label {
-    font-weight: 600;
-    color: var(--text-primary, #1A1A1A);
-    margin-right: 5px;
+/* Floating date chip that straddles the image bottom edge and panel top —
+   this is the piece that gives "separate" its own identity */
+.date-chip {
+    position: absolute;
+    left: 2rem;
+    bottom: -34px;
+    z-index: 3;
+    background: linear-gradient(135deg, #C8A951, #E0C96E);
+    color: #0F3D2E;
+    border-radius: 16px;
+    padding: 0.6rem 1.1rem;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(200,169,81,0.4);
+    min-width: 64px;
+    line-height: 1.1;
+}
+.date-chip .day {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+.date-chip .month {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-/* Calendar button */
-.calendar-btn {
+.hero-info-panel {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfaf6 100%);
+    border: 1px solid rgba(200,169,81,0.15);
+    border-top: none;
+    border-radius: 0 0 24px 24px;
+    padding: 2.75rem 2.25rem 2rem 2.75rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+.hero-info-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.hero-info-left {
+    flex: 1;
+    min-width: 240px;
+    border-left: 4px solid #C8A951;
+    padding-left: 1.25rem;
+}
+.hero-info-panel .status-badge { margin-bottom: 0.6rem; }
+.hero-info-panel h1 {
+    font-size: 2.1rem;
+    font-weight: 800;
+    margin: 0 0 0.75rem;
+    line-height: 1.2;
+    color: var(--text-primary, #1A1A1A);
+}
+.hero-info-panel .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem 1.5rem;
+    font-size: 0.93rem;
+    color: var(--text-secondary, #2d3748);
+}
+.hero-info-panel .meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+.hero-info-panel .meta i {
+    color: #C8A951;
+    width: 1.1rem;
+    font-size: 0.95rem;
+}
+.hero-info-panel .actions {
+    margin-top: 0.25rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   BUTTONS (shared across both hero layouts)
+   ══════════════════════════════════════════════════════════ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+    border: none;
+    cursor: pointer;
+    font-size: 0.92rem;
+    font-family: inherit;
+}
+.btn-primary { background: #C8A951; color: #0F3D2E; }
+.btn-primary:hover { background: #E0C96E; transform: translateY(-3px); }
+.detail-hero.overlay .btn-outline {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+}
+.detail-hero.overlay .btn-outline:hover { background: rgba(255,255,255,0.25); transform: translateY(-3px); }
+.hero-info-panel .btn-outline {
+    background: #f0f4f2;
+    border: 1px solid #d0d9d6;
+    color: #1a1a1a;
+}
+.hero-info-panel .btn-outline:hover {
+    background: #0F3D2E;
+    border-color: #0F3D2E;
+    color: #fff;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CONTENT CARD
+   ══════════════════════════════════════════════════════════ */
+.detail-card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin: -1rem 1.5rem 2rem;
+    position: relative;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+}
+/* When layout is "separate", give the floating date-chip room to breathe
+   before the content card starts */
+.hero-info-panel + .detail-card {
+    margin-top: 2rem;
+}
+.detail-card .description {
+    font-size: 1.05rem;
+    line-height: 1.9;
+    color: var(--text-secondary, #2d3748);
+}
+.detail-card .description p { margin-bottom: 1.2em; }
+
+/* ══════════════════════════════════════════════════════════
+   LINKS
+   ══════════════════════════════════════════════════════════ */
+.links-section {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #f0f4f2;
+}
+.links-section h4 { color: var(--text-primary, #1A1A1A); margin-bottom: 0.75rem; font-size: 1.1rem; }
+.links-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.links-grid .link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.2rem;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(4px);
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.05);
+    text-decoration: none;
+    color: #1a1a1a;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+.links-grid .link-btn.primary { border-color: #C8A951; background: rgba(200,169,81,0.1); }
+.links-grid .link-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.links-grid .link-btn i { font-size: 0.9rem; }
+.links-grid .link-desc { color: #8a9b95; font-size: 0.7rem; }
+.links-grid .link-primary-tag {
+    font-size: 0.6rem;
+    background: #C8A951;
+    color: #fff;
+    padding: 0.05rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SOCIAL SHARE — 5 platform icons + one general share pill below
+   ══════════════════════════════════════════════════════════ */
+.social-share-block {
+    margin: 1.75rem 0 1.25rem;
+}
+.social-share-block .share-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted, #5A5A5A);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+.share-icons-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+.share-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    background: var(--accent-light, rgba(200,169,81,0.15));
-    border: 1px solid var(--accent, #C8A951);
-    color: var(--accent, #C8A951);
-    padding: 10px 20px;
-    border-radius: 30px;
-    font-weight: 600;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(4px);
+    color: #1a1a1a;
+    font-size: 1.3rem;
+    transition: all 0.2s ease;
     text-decoration: none;
-    transition: all 0.2s;
-    margin-bottom: 3px;
-    width: fit-content;
+    border: 1px solid rgba(0,0,0,0.05);
 }
-.calendar-btn:hover {
-    background: var(--accent, #C8A951);
-    color: white;
-}
-.calendar-btn i {
-    font-size: 1.2rem;
-}
+.share-icon:hover { transform: translateY(-3px); background: white; box-shadow: 0 6px 14px rgba(0,0,0,0.1); }
+.share-icon.whatsapp:hover { color: #25D366; border-color: #25D366; }
+.share-icon.twitter:hover   { color: #1DA1F2; border-color: #1DA1F2; }
+.share-icon.facebook:hover  { color: #4267B2; border-color: #4267B2; }
+.share-icon.linkedin:hover  { color: #0077B5; border-color: #0077B5; }
+.share-icon.telegram:hover  { color: #0088cc; border-color: #0088cc; }
 
-/* Event image */
-.event-image {
-    width: 100%;
-    max-height: 400px;
-    object-fit: cover;
-    border-radius: 16px;
-    margin: 15px 0 15px;
-    box-shadow: var(--shadow-sm, 0 4px 12px rgba(0,0,0,0.1));
-}
-
-/* Description */
-.event-description {
-    font-size: 1.2rem;
-    font-family: 'Optima, sans-serif';
-    line-height: 1.2;
-    color: var(--text-secondary, #0f0f0f);
-    margin: 20px 0;
-}
-.event-description p {
-    margin-bottom: 1em;
-}
-
-/* Back button */
-.back-btn {
+/* General share button — below the icon row, full native share sheet */
+.btn-general-share {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: var(--primary, #0F3D2E);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 30px;
+    gap: 0.55rem;
+    padding: 0.6rem 1.4rem;
+    border-radius: 50px;
     font-weight: 600;
+    font-size: 0.88rem;
     text-decoration: none;
-    transition: background 0.2s;
-    width: fit-content;
+    transition: all 0.25s ease;
+    background: #0F3D2E;
+    border: 1px solid #0F3D2E;
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
 }
-.back-btn:hover {
+.btn-general-share:hover {
     background: #1a5a44;
-    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15,61,46,0.28);
+}
+.btn-general-share i { font-size: 1rem; }
+
+/* ══════════════════════════════════════════════════════════
+   BACK LINK
+   ══════════════════════════════════════════════════════════ */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    color: var(--text-muted, #5A5A5A);
     text-decoration: none;
+    transition: color 0.2s;
 }
-.back-btn i {
-    font-size: 1.1rem;
+.back-link:hover { color: #C8A951; }
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    .detail-hero.overlay {
+        aspect-ratio: 4 / 3;
+        padding: 1.75rem 1.25rem;
+        border-radius: 18px;
+    }
+    .detail-hero.overlay h1 { font-size: 1.7rem; }
+    .detail-hero.overlay .meta { flex-direction: column; gap: 0.4rem; }
+
+    .detail-hero.separate { margin-bottom: 0; }
+    .detail-hero.separate .hero-image-wrapper { aspect-ratio: 4 / 3; border-radius: 18px 18px 0 0; }
+    .date-chip { left: 1.25rem; bottom: -26px; padding: 0.45rem 0.8rem; min-width: 52px; }
+    .date-chip .day { font-size: 1.15rem; }
+    .date-chip .month { font-size: 0.6rem; }
+    .hero-info-panel {
+        padding: 2.25rem 1.25rem 1.25rem 1.5rem;
+        border-radius: 0 0 18px 18px;
+    }
+    .hero-info-left { padding-left: 0.85rem; border-left-width: 3px; }
+    .hero-info-panel h1 { font-size: 1.6rem; }
+    .hero-info-panel .meta { flex-direction: column; gap: 0.5rem; }
+    .hero-info-header { flex-direction: column; }
+    .hero-info-panel .actions { width: 100%; }
+    .hero-info-panel .actions .btn { width: 100%; justify-content: center; }
+
+    .detail-card { padding: 1.25rem; margin: -0.5rem 0.75rem 1.5rem; }
+    .hero-info-panel + .detail-card { margin-top: 1.5rem; }
+    .detail-card .description { font-size: 0.95rem; }
+    .share-icon { width: 38px; height: 38px; font-size: 1.1rem; }
+    .social-share-block .share-label { font-size: 0.72rem; }
 }
-
-/* Mobile specific overrides – already compact, but ensure minimal gaps */
-@media (max-width: 600px) {
-    .event-detail-container {
-        padding: 10px;
-    }
-    .event-card {
-        padding: 18px;
-    }
-    .event-title {
-        font-size: 2.2rem;
-    }
-    .event-date-block {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    .event-date-badge {
-        min-width: 100%;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 15px;
-        max-height: 60px;
-    }
-    .event-date-badge .month, .event-date-badge .year {
-        font-size: 1rem;
-    }
-    .event-date-badge .day {
-        font-size: 1.8rem;
-        margin: 0;
-    }
-    .event-time-detail {
-        width: 100%;
-    }
-}
-
-    .social-share {
-        display: flex;
-        gap: 12px;
-        margin: 1rem 0;
-        flex-wrap: wrap;
-    }
-
-    .share-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(4px);
-        color: #1a1a1a;
-        font-size: 1.3rem;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-
-    .share-icon:hover {
-        transform: translateY(-3px);
-        background: white;
-        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Optional: brand colours on hover */
-    .share-icon.whatsapp:hover { color: #25D366; border-color: #25D366; }
-    .share-icon.twitter:hover   { color: #1DA1F2; border-color: #1DA1F2; }
-    .share-icon.facebook:hover  { color: #4267B2; border-color: #4267B2; }
-    .share-icon.linkedin:hover  { color: #0077B5; border-color: #0077B5; }
-    .share-icon.telegram:hover  { color: #0088cc; border-color: #0088cc; }
-    .share-icon.instagram:hover { color: #d10d31; border-color: #E4405F; }
-    /* Mobile – slightly smaller */
-    @media (max-width: 640px) {
-        .share-icon {
-            width: 38px;
-            height: 38px;
-            font-size: 1.1rem;
-        }
-    }   
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="event-detail-container">
-    <div class="event-card card-reveal">
-        <div class="event-header">
-            {% if event.category %}
-                <span class="event-category">{{ event.category.name }}</span>
-            {% endif %}
-            <h1 class="event-title">{{ event.title }}</h1>
-        </div>
 
-        <!-- Date & time section -->
-        <div class="event-datetime">
-            <div class="event-date-block">
-                <div class="event-date-badge">
-                    <span class="month">{{ event.start_datetime|date:"M" }}</span>
-                    <span class="day">{{ event.start_datetime|date:"d" }}</span>
-                    <span class="year">{{ event.start_datetime|date:"Y" }}</span>
-                </div>
-                <div class="event-time-detail">
-                    {% if event.start_datetime.date == event.end_datetime.date %}
-                        <strong>{{ event.start_datetime|date:"l, F j, Y" }}</strong><br>
-                        {{ event.start_datetime|time:"g:i A" }} – {{ event.end_datetime|time:"g:i A" }}
-                    {% else %}
-                        <strong>Starts:</strong> {{ event.start_datetime|date:"l, F j, Y" }} at {{ event.start_datetime|time:"g:i A" }}<br>
-                        <strong>Ends:</strong> {{ event.end_datetime|date:"l, F j, Y" }} at {{ event.end_datetime|time:"g:i A" }}
+<div class="event-detail">
+    {% if event.hero_layout == 'separate' %}
+        <!-- ══════════════════════════════════════════════
+             SEPARATE LAYOUT — image + floating date chip,
+             then a gold-accented info panel below
+             ══════════════════════════════════════════════ -->
+        <div class="detail-hero separate">
+            <div class="hero-image-wrapper">
+                {% if event.image %}
+                    <img src="{{ event.image.url }}" alt="{{ event.title }}" loading="lazy">
+                {% else %}
+                    <div class="hero-image-placeholder">📅</div>
+                {% endif %}
+                {% if event.category %}
+                <span class="image-category-pill">{{ event.category.name }}</span>
+                {% endif %}
+            </div>
+
+            <div class="date-chip">
+                <span class="day">{{ event.start_datetime|date:"d" }}</span>
+                <span class="month">{{ event.start_datetime|date:"M" }}</span>
+            </div>
+
+            <div class="hero-info-panel">
+                <div class="hero-info-header">
+                    <div class="hero-info-left">
+                        <span class="status-badge {{ event.status }}">{{ event.get_status_display|default:event.status|title }}</span>
+                        <h1>{{ event.title }}</h1>
+                        <div class="meta">
+                            <span><i class="far fa-calendar-alt"></i> {{ event.start_datetime|date:"l, F j, Y" }}</span>
+                            <span><i class="far fa-clock"></i> {{ event.start_datetime|date:"g:i A" }} – {{ event.end_datetime|date:"g:i A" }}</span>
+                            <span><i class="fas fa-map-marker-alt"></i> {{ event.location|default:"TBA" }}</span>
+                        </div>
+                    </div>
+                    {% if event.status == 'upcoming' %}
+                    <div class="actions">
+                        <a href="{% url 'events:calendar_ics' event.slug %}" class="btn btn-primary">
+                            <i class="fas fa-calendar-plus"></i> Add to Calendar
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Location with label -->
-        <div class="event-location">
-            <i>📍</i>
-            <span><span class="location-label">Location:</span> {{ event.location|default:"TBA" }}</span>
+    {% else %}
+        <!-- ══════════════════════════════════════════════
+             OVERLAY LAYOUT — text on image
+             ══════════════════════════════════════════════ -->
+        <div class="detail-hero overlay">
+            {% if event.image %}
+                <img src="{{ event.image.url }}" alt="{{ event.title }}" class="hero-image">
+                <div class="hero-overlay"></div>
+            {% endif %}
+            <div class="hero-content">
+                <span class="status-badge {{ event.status }}">{{ event.get_status_display|default:event.status|title }}</span>
+                <h1>{{ event.title }}</h1>
+                <div class="meta">
+                    <span><i class="far fa-calendar-alt"></i> {{ event.start_datetime|date:"l, F j, Y" }}</span>
+                    <span><i class="far fa-clock"></i> {{ event.start_datetime|date:"g:i A" }} – {{ event.end_datetime|date:"g:i A" }}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> {{ event.location|default:"TBA" }}</span>
+                    {% if event.category %}
+                    <span><i class="fas fa-tag"></i> {{ event.category.name }}</span>
+                    {% endif %}
+                </div>
+                {% if event.status == 'upcoming' %}
+                <div class="actions">
+                    <a href="{% url 'events:calendar_ics' event.slug %}" class="btn btn-outline">
+                        <i class="fas fa-calendar-plus"></i> Add to Calendar
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ══════════════════════════════════════════════════
+         CONTENT CARD
+         ══════════════════════════════════════════════════ -->
+    <div class="detail-card">
+        <div class="description">
+            {{ event.description|safe|default:"<p>No description provided.</p>" }}
         </div>
 
-        <!-- Calendar reminder link – only for upcoming events -->
-        {% if event.status == 'upcoming' %}
-            <a href="{% url 'events:calendar_ics' event.slug %}" class="calendar-btn">
-                <i>📅</i> Add to Calendar
-            </a>
-        {% endif %}
-        
-        <!-- Event image -->
-        {% if event.image %}
-            <img src="{{ event.image.url }}" alt="{{ event.title }}" class="event-image">
+        {% if event.links.exists %}
+        <div class="links-section">
+            <h4>🔗 Event Links</h4>
+            <div class="links-grid">
+                {% for link in event.links.all %}
+                <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="link-btn {% if link.is_primary %}primary{% endif %}">
+                    <span style="color: {{ link.get_color }};"><i class="fas {{ link.get_icon }}"></i></span>
+                    {{ link.get_link_type_display }}
+                    {% if link.description %}
+                    <span class="link-desc">— {{ link.description }}</span>
+                    {% endif %}
+                    {% if link.is_primary %}
+                    <span class="link-primary-tag">Primary</span>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
         {% endif %}
 
-        <!-- Description -->
-        <div class="event-description">
-            {{ event.description|safe }}
+        <!-- ══════════════════════════════════════════════
+             SHARE — 5 platform icons, then one general share pill
+             ══════════════════════════════════════════════ -->
+        <div class="social-share-block">
+            <span class="share-label">Share this event</span>
+            <div class="share-icons-row">
+                <a href="https://wa.me/?text={{ event.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener" class="share-icon whatsapp" aria-label="Share on WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+                <a href="https://twitter.com/intent/tweet?text={{ event.title|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener" class="share-icon twitter" aria-label="Share on Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener" class="share-icon facebook" aria-label="Share on Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.build_absolute_uri|urlencode }}&title={{ event.title|urlencode }}" target="_blank" rel="noopener" class="share-icon linkedin" aria-label="Share on LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+                <a href="https://t.me/share/url?url={{ request.build_absolute_uri|urlencode }}&text={{ event.title|urlencode }}" target="_blank" rel="noopener" class="share-icon telegram" aria-label="Share on Telegram">
+                    <i class="fab fa-telegram-plane"></i>
+                </a>
+            </div>
+
+            <button class="btn-general-share" id="generalShareBtn" aria-label="Share this event">
+                <i class="fas fa-share-alt"></i> Share Event
+            </button>
         </div>
-        <div class="social-share">
-            <a href="https://wa.me/?text={{ event.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" target="_blank" class="share-icon whatsapp" aria-label="Share on WhatsApp">
-                <i class="fab fa-whatsapp"></i>
-            </a>
-            <a href="https://twitter.com/intent/tweet?text={{ event.title|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="share-icon twitter" aria-label="Share on Twitter">
-                <i class="fab fa-twitter"></i>
-            </a>
-            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" target="_blank" class="share-icon facebook" aria-label="Share on Facebook">
-                <i class="fab fa-facebook-f"></i>
-            </a>
-            <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.build_absolute_uri|urlencode }}&title={{ event.title|urlencode }}" target="_blank" class="share-icon linkedin" aria-label="Share on LinkedIn">
-                <i class="fab fa-linkedin-in"></i>
-            </a>
-            <a href="https://t.me/share/url?url={{ request.build_absolute_uri|urlencode }}&text={{ event.title|urlencode }}" target="_blank" class="share-icon telegram" aria-label="Share on Telegram">
-                <i class="fab fa-telegram-plane"></i>
-            </a>
-        </div>
-        <!-- Back button -->
-        <a href="{% url 'events:list' %}" class="back-btn">
-            <i>←</i> Back to Events
+
+        <a href="{% url 'events:list' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Events
         </a>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const shareBtn = document.getElementById('generalShareBtn');
+        if (!shareBtn) return;
+
+        shareBtn.addEventListener('click', function() {
+            const shareData = {
+                title: '{{ event.title|escapejs }}',
+                text: '{{ event.title|escapejs }} — NAMETS',
+                url: window.location.href,
+            };
+
+            // Native share sheet where supported (most mobile browsers)
+            if (navigator.share) {
+                navigator.share(shareData).catch(function(err) {
+                    if (err.name !== 'AbortError') {
+                        console.warn('Share failed:', err);
+                    }
+                });
+                return;
+            }
+
+            // Desktop fallback: no native share sheet exists, so just
+            // open the WhatsApp share intent as the most universal option.
+            const fallbackUrl =
+                'https://wa.me/?text=' +
+                encodeURIComponent(shareData.title + ' ' + shareData.url);
+            window.open(fallbackUrl, '_blank', 'noopener');
+        });
+    });
+</script>
 {% endblock %}

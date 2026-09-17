@@ -6,3 +6,4 @@ class LostfoundConfig(AppConfig):
 
     def ready(self):
         import lostfound.signals
+        import lostfound.dashboard_widgets

@@ -1,0 +1,422 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{% if book %}Edit “{{ book.title }}”{% else %}Add Book{% endif %} · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.bf-wrap { max-width: 900px; margin: 0 auto; }
+
+.bf-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.25rem;
+    color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 12px 36px rgba(15,61,46,0.22);
+}
+.bf-hero::before {
+    content: "✏️"; font-size: 7rem;
+    position: absolute; right: 1rem; top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.1; pointer-events: none;
+}
+.bf-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.bf-hero h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.3rem; }
+.bf-hero p { color: rgba(255,255,255,0.82); font-size: 0.85rem; margin: 0; }
+.bf-hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.2rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem;
+    text-decoration: none; border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.12); color: #fff;
+    transition: all 0.25s;
+}
+.bf-hbtn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+
+.bf-form { display: flex; flex-direction: column; gap: 1.15rem; }
+
+.bf-section {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    padding: 1.5rem 1.65rem;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+}
+.bf-section h2 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #8a6a1a;
+    margin: 0 0 1.15rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.bf-section h2::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.35), transparent);
+}
+.bf-section .hint {
+    font-size: 0.76rem; color: #8a9b95;
+    margin: -0.6rem 0 1rem; line-height: 1.5;
+}
+
+.bf-field { margin-bottom: 1rem; }
+.bf-field:last-child { margin-bottom: 0; }
+.bf-field label {
+    display: block;
+    font-size: 0.78rem; font-weight: 700;
+    color: #0F3D2E; margin-bottom: 0.35rem;
+}
+.bf-field label .req { color: #dc3545; }
+.bf-field input[type="text"],
+.bf-field input[type="url"],
+.bf-field input[type="number"],
+.bf-field input[type="email"],
+.bf-field textarea,
+.bf-field select {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid #d5dcd9;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    background: #fff;
+    color: #0F3D2E;
+    transition: all 0.2s;
+}
+.bf-field textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+.bf-field input:focus,
+.bf-field textarea:focus,
+.bf-field select:focus {
+    outline: none;
+    border-color: #C8A951;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.15);
+}
+.bf-field .helper {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.35rem; line-height: 1.5;
+}
+
+.bf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+.bf-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.9rem; }
+@media (max-width: 640px) {
+    .bf-row, .bf-row-3 { grid-template-columns: 1fr; }
+}
+
+.bf-file-input {
+    font-size: 0.82rem;
+    padding: 0.55rem;
+    border: 1px dashed #c0c9c6;
+    border-radius: 10px;
+    width: 100%;
+    background: #fafbfb;
+    cursor: pointer;
+}
+.bf-file-input::file-selector-button {
+    background: #0F3D2E; color: #fff;
+    border: none; padding: 0.4rem 0.9rem;
+    border-radius: 6px; font-size: 0.78rem;
+    font-weight: 600; cursor: pointer;
+    margin-right: 0.6rem;
+    font-family: inherit;
+}
+
+.bf-check {
+    display: flex; align-items: flex-start; gap: 0.65rem;
+    padding: 0.75rem 0.9rem;
+    background: #f8faf9;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 0.6rem;
+}
+.bf-check:hover { background: #f0f4f2; }
+.bf-check input[type="checkbox"] {
+    width: 18px; height: 18px; accent-color: #0F3D2E;
+    margin-top: 0.15rem; cursor: pointer; flex-shrink: 0;
+}
+.bf-check .txt { font-size: 0.82rem; }
+.bf-check .txt strong { color: #0F3D2E; display: block; margin-bottom: 0.1rem; }
+.bf-check .txt span { color: #8a9b95; font-size: 0.74rem; line-height: 1.5; }
+
+.bf-cover-preview {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.9rem;
+    background: #f8faf9;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+.bf-cover-box {
+    width: 70px; height: 96px; border-radius: 9px;
+    background: linear-gradient(135deg, #eef3f0, #e2eae6);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0;
+    color: #0F3D2E; font-size: 1.4rem; opacity: 0.7;
+    box-shadow: 0 6px 16px rgba(15,61,46,0.1);
+}
+.bf-cover-box img { width: 100%; height: 100%; object-fit: cover; }
+.bf-cover-info { font-size: 0.8rem; color: #4a5568; line-height: 1.5; }
+.bf-cover-info strong { color: #0F3D2E; }
+
+.bf-actions {
+    display: flex; justify-content: flex-end; gap: 0.65rem;
+    padding-top: 0.5rem; flex-wrap: wrap;
+}
+.bf-btn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.75rem 1.5rem; border-radius: 50px;
+    font-size: 0.85rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    border: none; transition: all 0.25s;
+    font-family: inherit;
+}
+.bf-btn.cancel {
+    background: transparent; color: #8a9b95;
+    border: 1px solid #d5dcd9;
+}
+.bf-btn.cancel:hover { background: #f0f4f2; color: #0F3D2E; }
+.bf-btn.save {
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(15,61,46,0.25);
+}
+.bf-btn.save:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(15,61,46,0.35); }
+.bf-btn.danger {
+    background: #fdecea; color: #9b2c2c;
+    border: 1px solid rgba(220,53,69,0.3);
+    margin-right: auto;
+}
+.bf-btn.danger:hover { background: #dc3545; color: #fff; }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="bf-wrap">
+
+    <div class="bf-hero">
+        <div class="bf-hero-inner">
+            <div>
+                <h1>{% if book %}✏️ Edit “{{ book.title }}”{% else %}➕ Add New Book{% endif %}</h1>
+                <p>{% if book %}Update the details below.{% else %}Fill in the details to add this book to the library.{% endif %}</p>
+            </div>
+            <a href="{% url 'academics:library_manage' %}" class="bf-hbtn">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="bf-form">
+        {% csrf_token %}
+
+        <div class="bf-section">
+            <h2><i class="fas fa-book"></i> Basic information</h2>
+
+            <div class="bf-field">
+                <label>Book title <span class="req">*</span></label>
+                <input type="text" name="title" required
+                       value="{{ book.title|default:'' }}"
+                       placeholder="e.g. Introduction to Electrical Engineering">
+            </div>
+
+            <div class="bf-field">
+                <label>Description</label>
+                <textarea name="description"
+                          placeholder="A short summary of what this book covers…">{{ book.description|default:'' }}</textarea>
+            </div>
+
+            <div class="bf-row-3">
+                <div class="bf-field">
+                    <label>Author</label>
+                    <input type="text" name="author"
+                           value="{{ book.author|default:'' }}"
+                           placeholder="e.g. Prof. Ibrahim">
+                </div>
+                <div class="bf-field">
+                    <label>Publisher</label>
+                    <input type="text" name="publisher"
+                           value="{{ book.publisher|default:'' }}"
+                           placeholder="e.g. Oxford Press">
+                </div>
+                <div class="bf-field">
+                    <label>Year published</label>
+                    <input type="number" name="publication_year" min="1000" max="2100"
+                           value="{{ book.publication_year|default:'' }}"
+                           placeholder="2024">
+                </div>
+            </div>
+
+            <div class="bf-row-3">
+                <div class="bf-field">
+                    <label>ISBN</label>
+                    <input type="text" name="isbn"
+                           value="{{ book.isbn|default:'' }}"
+                           placeholder="978-3-16-148410-0">
+                </div>
+                <div class="bf-field">
+                    <label>Edition</label>
+                    <input type="text" name="edition"
+                           value="{{ book.edition|default:'' }}"
+                           placeholder="2nd">
+                </div>
+                <div class="bf-field">
+                    <label>Pages</label>
+                    <input type="number" name="pages" min="1"
+                           value="{{ book.pages|default:'' }}"
+                           placeholder="320">
+                </div>
+            </div>
+
+            <div class="bf-row">
+                <div class="bf-field">
+                    <label>Language</label>
+                    <input type="text" name="language"
+                           value="{{ book.language|default:'English' }}"
+                           placeholder="English">
+                </div>
+                <div class="bf-field">
+                    <label>Category</label>
+                    <select name="category">
+                        <option value="">— Uncategorized —</option>
+                        {% for c in categories %}
+                        <option value="{{ c.pk }}" {% if book.category_id == c.pk %}selected{% endif %}>
+                            {{ c.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="bf-section">
+            <h2><i class="fas fa-image"></i> Cover image</h2>
+            <div class="hint">
+                Upload an image file, <strong>or</strong> paste a link (Google Drive, etc).
+                Uploaded images take priority.
+            </div>
+
+            {% if book and book.has_cover %}
+            <div class="bf-cover-preview">
+                <div class="bf-cover-box">
+                    <img src="{{ book.cover_url }}" alt="Current cover">
+                </div>
+                <div class="bf-cover-info">
+                    <strong>Current cover</strong><br>
+                    Upload a new file below to replace it.
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="bf-field">
+                <label>Upload cover file</label>
+                <input type="file" name="cover_image" accept="image/*" class="bf-file-input">
+            </div>
+
+            <div class="bf-field">
+                <label>Or: External cover URL</label>
+                <input type="url" name="external_cover_url"
+                       value="{{ book.external_cover_url|default:'' }}"
+                       placeholder="https://drive.google.com/uc?id=...">
+                <div class="helper">
+                    For Google Drive: upload the image → Share → Anyone with the link →
+                    use the URL format
+                    <code style="font-size:0.7rem; background:#f0f4f2; padding:0.15rem 0.4rem; border-radius:4px;">
+                    https://drive.google.com/uc?export=view&amp;id=FILE_ID
+                    </code>
+                </div>
+            </div>
+        </div>
+
+        <div class="bf-section">
+            <h2><i class="fas fa-file-download"></i> Book file (required)</h2>
+            <div class="hint">
+                Upload a PDF, EPUB, or other file — <strong>or</strong> paste a download link
+                (Google Drive, archive.org, etc). External link takes priority.
+            </div>
+
+            {% if book and book.has_file %}
+            <div style="padding:0.9rem; background:#f8faf9; border-radius:12px; margin-bottom:1rem;
+                        display:flex; align-items:center; gap:0.75rem;">
+                <div style="width:44px; height:44px; border-radius:10px; background:rgba(200,169,81,0.18);
+                            color:#8a6a1a; display:flex; align-items:center; justify-content:center;
+                            font-size:1.1rem; flex-shrink:0;">
+                    <i class="fas {{ book.file_icon }}"></i>
+                </div>
+                <div style="font-size:0.8rem; color:#4a5568;">
+                    <strong style="color:#0F3D2E;">Current file</strong><br>
+                    {% if book.file_extension %}Format: {{ book.file_extension|upper }}{% endif %}
+                    {% if book.external_file_url %} · Linked externally{% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="bf-field">
+                <label>Upload book file</label>
+                <input type="file" name="file" class="bf-file-input"
+                       accept=".pdf,.epub,.mobi,.docx,.doc,.pptx,.ppt,.zip,.txt">
+                <div class="helper">Recommended: PDF or EPUB.</div>
+            </div>
+
+            <div class="bf-field">
+                <label>Or: External download URL</label>
+                <input type="url" name="external_file_url"
+                       value="{{ book.external_file_url|default:'' }}"
+                       placeholder="https://drive.google.com/file/d/.../view">
+                <div class="helper">Make sure the file is shared as "Anyone with the link can view".</div>
+            </div>
+
+            <div class="bf-field">
+                <label>Button label</label>
+                <input type="text" name="external_file_label"
+                       value="{{ book.external_file_label|default:'Download' }}"
+                       placeholder="e.g. Download PDF, Read on Google Drive">
+            </div>
+        </div>
+
+        <div class="bf-section">
+            <h2><i class="fas fa-eye"></i> Visibility & ordering</h2>
+
+            <label class="bf-check">
+                <input type="checkbox" name="is_published"
+                       {% if not book or book.is_published %}checked{% endif %}>
+                <div class="txt">
+                    <strong>Published</strong>
+                    <span>If unchecked, only staff can see this book. Useful for drafts.</span>
+                </div>
+            </label>
+
+            <label class="bf-check">
+                <input type="checkbox" name="is_featured"
+                       {% if book and book.is_featured %}checked{% endif %}>
+                <div class="txt">
+                    <strong>Feature on library home</strong>
+                    <span>Pins this book to the "Featured Picks" strip.</span>
+                </div>
+            </label>
+
+            <div class="bf-field" style="margin-top:1rem;">
+                <label>Display order</label>
+                <input type="number" name="order" min="0"
+                       value="{{ book.order|default:0 }}">
+                <div class="helper">Lower numbers appear first.</div>
+            </div>
+        </div>
+
+        <div class="bf-actions">
+            {% if book %}
+            <a href="{% url 'academics:library_book_delete' book.pk %}" class="bf-btn danger"
+               onclick="return confirm('Delete this book from the library?');">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+            {% endif %}
+            <a href="{% url 'academics:library_manage' %}" class="bf-btn cancel">Cancel</a>
+            <button type="submit" class="bf-btn save">
+                <i class="fas fa-save"></i> {% if book %}Save Changes{% else %}Add Book{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

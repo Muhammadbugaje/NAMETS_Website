@@ -6,159 +6,262 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/global.css' %}">
 <style>
-/* Patron page specific styles */
-.patron-page {
+/* ============================================================
+   HERO
+   ============================================================ */
+.patron-hero {
     max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
+    margin: 1.5rem auto 2rem;
+    padding: 0 20px;
+}
+.patron-hero-inner {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 60%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 2.5rem 2.25rem 2.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 16px 44px rgba(15,61,46,0.22);
+}
+.patron-hero-inner::before {
+    content: "🤲";
+    font-size: 9rem;
+    position: absolute; bottom: -2.5rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.patron-hero-inner::after {
+    content: ''; position: absolute;
+    top: -40%; left: -10%;
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(200,169,81,0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+.patron-hero-content { position: relative; z-index: 1; }
+.patron-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.66rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #C8A951;
+    background: rgba(200,169,81,0.18);
+    padding: 0.3rem 0.9rem; border-radius: 20px;
+    margin-bottom: 0.85rem;
+}
+.patron-hero-content h1 {
+    font-size: 2.1rem; font-weight: 800;
+    color: #fff; margin: 0 0 0.5rem;
+    letter-spacing: -0.02em;
+}
+.patron-hero-content p {
+    color: rgba(255,255,255,0.82);
+    font-size: 0.98rem; margin: 0;
+    max-width: 560px; line-height: 1.6;
 }
 
-/* Responsive grid – same as announcements/events */
+/* ============================================================
+   GRID
+   ============================================================ */
+.patron-container {
+    max-width: 1200px;
+    margin: 0 auto 3rem;
+    padding: 0 20px;
+}
 .patron-grid {
     display: grid;
-    gap: 30px;
     grid-template-columns: 1fr;
-    margin-top: 30px;
+    gap: 1.25rem;
 }
 @media (min-width: 640px) {
-    .patron-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .patron-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (min-width: 1024px) {
-    .patron-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
+    .patron-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
-/* Patron card – clean, with subtle shadow */
+/* ============================================================
+   PATRON CARD
+   ============================================================ */
 .patron-card {
-    background: #FFFFFF;
+    background: #fff;
     border-radius: 24px;
     overflow: hidden;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 8px 26px rgba(15,61,46,0.08);
+    border: 1px solid rgba(0,0,0,0.03);
+    transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
     display: flex;
     flex-direction: column;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
     height: 100%;
 }
 .patron-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 16px 28px rgba(0,0,0,0.1);
+    transform: translateY(-8px);
+    box-shadow: 0 24px 50px rgba(15,61,46,0.16);
+    border-color: rgba(200,169,81,0.4);
+}
+.patron-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #0F3D2E, #C8A951);
+    opacity: 0.85;
+    z-index: 2;
 }
 
-/* Image container – square, for portraits */
-.card-image-wrapper {
+/* Photo */
+.patron-photo-wrap {
     width: 100%;
     aspect-ratio: 1 / 1;
-    background: #F0EDE6;
+    background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 100%);
+    display: flex; align-items: center; justify-content: center;
     overflow: hidden;
+    position: relative;
 }
-.card-image {
+.patron-photo {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s;
+    transition: transform 0.5s ease;
 }
-.patron-card:hover .card-image {
-    transform: scale(1.03);
-}
-
-/* Placeholder when no photo */
-.image-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
+.patron-card:hover .patron-photo { transform: scale(1.06); }
+.patron-photo-placeholder {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%;
     color: #C8A951;
-    background: #F0EDE6;
+    background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 100%);
 }
+.patron-photo-placeholder svg { opacity: 0.55; }
 
-/* Card content */
-.card-body {
-    padding: 20px;
+/* Body */
+.patron-body {
+    padding: 1.35rem 1.4rem 1.25rem;
     text-align: center;
-    flex: 1;
     display: flex;
     flex-direction: column;
-}
-.card-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 4px;
-    color: #1A1A1A;
-}
-.card-meta {
-    font-size: 0.85rem;
-    color: #C8A951;
-    font-weight: 500;
-    margin-bottom: 12px;
-}
-.card-desc {
-    font-size: 0.9rem;
-    color: #5A5A5A;
-    line-height: 1.5;
-    margin-bottom: 0;
     flex: 1;
 }
+.patron-name {
+    font-size: 1.15rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.4rem;
+    letter-spacing: -0.01em;
+}
+.patron-designation {
+    display: inline-block;
+    font-size: 0.68rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a6a1a;
+    background: rgba(200,169,81,0.15);
+    padding: 0.28rem 0.75rem; border-radius: 20px;
+    margin: 0 auto 0.85rem;
+    align-self: center;
+}
+.patron-bio {
+    font-size: 0.85rem; color: #5A5A5A;
+    line-height: 1.6; margin: 0 0 1rem;
+    flex: 1;
+}
+.patron-read-more {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.78rem; font-weight: 800;
+    color: #C8A951;
+    align-self: center;
+    transition: gap 0.3s ease;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    width: 100%;
+    justify-content: center;
+    margin-top: auto;
+}
+.patron-card:hover .patron-read-more { gap: 0.65rem; }
 
-/* Mobile adjustments */
-@media (max-width: 600px) {
-    .patron-page {
-        padding: 12px;
-    }
-    .patron-grid {
-        gap: 20px;
-    }
-    .card-body {
-        padding: 16px;
-    }
-    .card-title {
-        font-size: 1rem;
-    }
-    .card-meta {
-        font-size: 0.75rem;
-    }
-    .card-desc {
-        font-size: 0.8rem;
-    }
+/* Empty state */
+.patron-empty {
+    text-align: center;
+    padding: 4rem 1.5rem;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    border: 2px dashed rgba(200,169,81,0.35);
+    border-radius: 20px;
+    grid-column: 1 / -1;
+}
+.patron-empty .icon { font-size: 3.5rem; display: block; margin-bottom: 0.75rem; }
+.patron-empty h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1.1rem; }
+.patron-empty p { color: #8a9b95; font-size: 0.88rem; margin: 0; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+    .patron-hero-inner { padding: 1.75rem 1.35rem 1.5rem; border-radius: 22px; }
+    .patron-hero-content h1 { font-size: 1.55rem; }
+    .patron-hero-content p { font-size: 0.88rem; }
+    .patron-hero-inner::before { font-size: 6rem; }
+
+    .patron-body { padding: 1.15rem 1.15rem 1.05rem; }
+    .patron-name { font-size: 1.02rem; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="patron-page">
-    <h1 class="page-title animate-on-scroll">Our Patrons</h1>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="patron-hero">
+    <div class="patron-hero-inner">
+        <div class="patron-hero-content">
+            <span class="patron-eyebrow">🤲 Guidance &amp; Support</span>
+            <h1>Our Patrons</h1>
+            <p>
+                Esteemed scholars, lecturers, and community leaders whose guidance
+                and support keep NAMETS thriving.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     PATRON GRID
+     ============================================================ -->
+<div class="patron-container">
     <div class="patron-grid">
         {% for patron in patrons %}
-        <a href="{% url 'community:patron_detail' patron.slug %}" style="text-decoration: none; color: inherit;">
-            <div class="patron-card animate-on-scroll">
-                <div class="card-image-wrapper">
-                    {% if patron.image %}
-                        <img src="{{ patron.image.url }}" alt="{{ patron.name }}" class="card-image">
-                    {% else %}
-                        <div class="image-placeholder">
-                            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#C8A951" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                            </svg>
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="card-body">
-                    <h3 class="card-title">{{ patron.name }}</h3>
-                    <p class="card-meta">{{ patron.designation }}</p>
-                    {% if patron.bio %}
-                        <p class="card-desc">{{ patron.bio|truncatewords:30 }}</p>
-                    {% endif %}
-                </div>
+        <a href="{% url 'community:patron_detail' patron.slug %}" class="patron-card">
+            <div class="patron-photo-wrap">
+                {% if patron.image %}
+                    <img src="{{ patron.image.url }}" alt="{{ patron.name }}" class="patron-photo" loading="lazy">
+                {% else %}
+                    <div class="patron-photo-placeholder">
+                        <svg viewBox="0 0 24 24" width="72" height="72" fill="none"
+                             stroke="currentColor" stroke-width="1.2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                {% endif %}
             </div>
 
+            <div class="patron-body">
+                <h3 class="patron-name">{{ patron.name }}</h3>
+                {% if patron.designation %}
+                <div class="patron-designation">{{ patron.designation }}</div>
+                {% endif %}
+                {% if patron.bio %}
+                    <p class="patron-bio">{{ patron.bio|truncatewords:28 }}</p>
+                {% endif %}
+
+                <div class="patron-read-more">
+                    Read Profile <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+        </a>
         {% empty %}
-        <p class="no-results">No patrons listed yet.</p>
+        <div class="patron-empty">
+            <span class="icon">🤲</span>
+            <h3>No patrons listed yet</h3>
+            <p>Our esteemed patrons will be showcased here once added.</p>
+        </div>
         {% endfor %}
     </div>
 </div>
+
 {% endblock %}

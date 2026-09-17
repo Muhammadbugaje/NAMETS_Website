@@ -1,0 +1,544 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 800px; margin: 0 auto; }
+.form-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+.form-back:hover { text-decoration: underline; }
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.form-header h2 { margin: 0; color: var(--text-primary); }
+.form-header p { color: var(--text-muted); margin: 0.25rem 0 0; }
+.form-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+.form-group label .required { color: #e53e3e; font-size: 1.1rem; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.6rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.95rem; background: var(--card-bg);
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--gold); outline: none;
+}
+.form-group .help-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+.form-group .error-text {
+    font-size: 0.8rem;
+    color: #e53e3e;
+    margin-top: 0.2rem;
+}
+.form-check-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+}
+.form-check-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--gold);
+    cursor: pointer;
+}
+.form-check-group label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+.form-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.05); }
+.btn-primary {
+    background: var(--primary); color: #fff;
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; transition: var(--transition);
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; text-decoration: none; text-align: center;
+    transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+.btn-outline {
+    background: transparent;
+    border: 1px solid #d0d9d6;
+    color: var(--text-secondary);
+    padding: 0.6rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: var(--transition);
+}
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+.image-preview {
+    margin-top: 0.5rem;
+    max-width: 300px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e8edec;
+}
+.image-preview img { width: 100%; height: auto; display: block; }
+
+/* Live slug indicator */
+.slug-live {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 0.2rem 0.5rem;
+    background: #f8faf9;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 0.2rem;
+}
+.slug-live strong { color: var(--text-primary); }
+
+@media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="form-container">
+    <a href="{% url 'communications:announcement_admin_list' %}" class="form-back">← Back to Announcements</a>
+
+    <div class="form-header">
+        <div>
+            <h2>{{ title }}</h2>
+            <p>{{ button_text }} for the NAMETS community.</p>
+        </div>
+        {% if announcement and announcement.slug %}
+        <a href="{% url 'communications:announcement_detail' announcement.slug %}" target="_blank" class="btn-outline" style="padding:0.4rem 1.2rem; font-size:0.85rem;">
+            <i class="fas fa-eye"></i> Preview
+        </a>
+        {% endif %}
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="form-card" id="announcementForm">
+        {% csrf_token %}
+
+        <!-- Title -->
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_title">Title <span class="required">*</span></label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <div class="error-text">{{ form.title.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Slug (with live generation) -->
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_slug">Slug</label>
+                {{ form.slug }}
+                <div class="help-text">
+                    <span class="slug-live">🔗 URL: <strong id="slugPreview">{% if form.instance.slug %}{{ form.instance.slug }}{% else %}auto-generated{% endif %}</strong></span>
+                </div>
+                {% if form.slug.errors %}
+                <div class="error-text">{{ form.slug.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Bullet points input for AI -->
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="ai_bullets">🤖 AI Draft from Bullet Points</label>
+                <textarea id="ai_bullets" class="form-control" rows="3" placeholder="Paste rough bullet points here...&#10;e.g. Islamiyya registration opens next week. Venue: Engineering Mosque. Deadline: Friday."></textarea>
+                <button type="button" id="aiDraftBtn" class="btn-secondary" style="padding:0.4rem 1.2rem; margin-top:0.4rem; font-size:0.8rem;">
+                    <i class="fas fa-wand-magic-sparkles"></i> Generate Draft
+                </button>
+                <div class="help-text">AI will turn these bullet points into a polished announcement.</div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_content">Content</label>
+                {{ form.content }}
+                <div class="help-text">Supports HTML formatting.</div>
+                {% if form.content.errors %}
+                <div class="error-text">{{ form.content.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Image -->
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_image">Image</label>
+                {{ form.image }}
+                <div class="help-text">Upload a banner image for the announcement.</div>
+                {% if form.image.errors %}
+                <div class="error-text">{{ form.image.errors }}</div>
+                {% endif %}
+                {% if form.instance.image %}
+                <div class="image-preview">
+                    <img src="{{ form.instance.image.url }}" alt="Current image">
+                    <div class="help-text" style="padding:0.3rem 0.6rem;">Current image</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Category + Pinned -->
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_category">Category</label>
+                {{ form.category }}
+                {% if form.category.errors %}
+                <div class="error-text">{{ form.category.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; justify-content:center; gap:1rem;">
+                <div class="form-check-group">
+                    {{ form.is_pinned }}
+                    <label for="id_is_pinned">📌 Pin this announcement</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Publish + Expire -->
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_publish_at">Publish Date/Time <span class="required">*</span></label>
+                {{ form.publish_at }}
+                {% if form.publish_at.errors %}
+                <div class="error-text">{{ form.publish_at.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_expire_at">Expire Date/Time</label>
+                {{ form.expire_at }}
+                <div class="help-text">Leave blank for no expiry.</div>
+                {% if form.expire_at.errors %}
+                <div class="error-text">{{ form.expire_at.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Active + Send Email -->
+        <div class="form-row">
+            <div class="form-group" style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+                <div class="form-check-group">
+                    {{ form.is_active }}
+                    <label for="id_is_active">✅ Active</label>
+                </div>
+                <div class="form-check-group">
+                    {{ form.send_email }}
+                    <label for="id_send_email">📧 Send Email Notification</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Errors -->
+        {% if form.non_field_errors %}
+        <div class="form-row">
+            <div class="form-group full">
+                {% for error in form.non_field_errors %}
+                <div class="error-text" style="background:#fdecea; padding:0.8rem 1rem; border-radius:8px; border-left:4px solid #e53e3e;">
+                    {{ error }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ===== LINKS SECTION ===== -->
+        <div class="form-row">
+            <div class="form-group full">
+                <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">🔗 Links</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+                    Add links to Zoom meetings, YouTube streams, registration pages, etc.
+                </p>
+                
+                {{ formset.management_form }}
+                <div id="links-container">
+                    {% for link_form in formset %}
+                    <div class="link-item" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.75rem; padding: 0.75rem; background: #f8faf9; border-radius: 8px; margin-bottom: 0.5rem; align-items: center;">
+                        {{ link_form.id }}
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; color: var(--text-muted);">URL</label>
+                            {{ link_form.url }}
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; color: var(--text-muted);">Type</label>
+                            {{ link_form.link_type }}
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; color: var(--text-muted);">Description</label>
+                            {{ link_form.description }}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; padding-top: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.3rem;">
+                                {{ link_form.is_primary }}
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-primary); cursor: pointer;">★ Primary</label>
+                            </div>
+                            {% if link_form.instance.pk %}
+                            <div style="display: flex; align-items: center; gap: 0.3rem;">
+                                {{ link_form.DELETE }}
+                                <label style="font-size: 0.7rem; font-weight: 600; color: #e53e3e; cursor: pointer;">Remove</label>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" id="add-link-btn" class="btn-secondary" style="padding: 0.3rem 1rem; font-size: 0.8rem; margin-top: 0.5rem; pointer-events: auto !important; cursor: pointer !important;">
+                    <i class="fas fa-plus"></i> Add Link
+                </button>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">{{ button_text }}</button>
+            <a href="{% url 'communications:announcement_admin_list' %}" class="btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // === Live slug generation ===
+    (function() {
+        const titleInput = document.getElementById('id_title');
+        const slugInput = document.getElementById('id_slug');
+        const slugPreview = document.getElementById('slugPreview');
+
+        function generateSlug(value) {
+            return value
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '');
+        }
+
+        function updateSlugPreview() {
+            if (slugInput.value) {
+                slugPreview.textContent = slugInput.value;
+            } else if (titleInput.value) {
+                slugPreview.textContent = generateSlug(titleInput.value) || 'auto-generated';
+            } else {
+                slugPreview.textContent = 'auto-generated';
+            }
+        }
+
+        titleInput.addEventListener('input', function() {
+            if (!slugInput.value) {
+                const generated = generateSlug(this.value);
+                slugInput.value = generated;
+                updateSlugPreview();
+            } else {
+                updateSlugPreview();
+            }
+        });
+
+        slugInput.addEventListener('input', updateSlugPreview);
+        updateSlugPreview();
+    })();
+
+    // === Dynamic "Add Link" — robust version ===
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('links-container');
+        const addBtn = document.getElementById('add-link-btn');
+        const totalForms = document.getElementById('id_links-TOTAL_FORMS');
+
+        // Debug: log to console to confirm the script runs
+        console.log('Add Link script loaded. Button found?', !!addBtn);
+        console.log('Container found?', !!container);
+        console.log('TotalForms found?', !!totalForms);
+
+        if (!addBtn) {
+            console.error('Add Link button not found!');
+            return;
+        }
+
+        // Ensure the button is not disabled
+        addBtn.disabled = false;
+
+        // Remove any inline onclick that might interfere
+        addBtn.onclick = null;
+
+        // Add the click handler
+        addBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent any default action
+            console.log('Add Link button clicked!');
+
+            if (!container || !totalForms) {
+                console.error('Container or totalForms missing!');
+                return;
+            }
+
+            // Get the last link-item (the most recent form)
+            const lastItem = container.querySelector('.link-item:last-child');
+            if (!lastItem) {
+                console.error('No link-item found to clone!');
+                return;
+            }
+
+            const currentCount = parseInt(totalForms.value);
+            const newIndex = currentCount;
+            console.log('Current total forms:', currentCount, 'New index:', newIndex);
+
+            // Clone the last item
+            const newItem = lastItem.cloneNode(true);
+
+            // --- Clear all values ---
+            // Clear text/url inputs
+            newItem.querySelectorAll('input[type="text"], input[type="url"]').forEach(input => {
+                input.value = '';
+            });
+            // Reset selects to first option
+            newItem.querySelectorAll('select').forEach(select => {
+                select.selectedIndex = 0;
+            });
+            // Uncheck all checkboxes (including is_primary and DELETE)
+            newItem.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+            // --- Remove or clear the hidden 'id' field ---
+            const idInput = newItem.querySelector('input[name$="-id"]');
+            if (idInput) {
+                idInput.value = ''; // Clear the value
+                console.log('Cleared id field');
+            }
+
+            // --- Update names and IDs for the new index ---
+            const regex = new RegExp('links-(\\d+)-', 'g');
+            newItem.querySelectorAll('[name], [id]').forEach(el => {
+                if (el.name) {
+                    el.name = el.name.replace(regex, `links-${newIndex}-`);
+                }
+                if (el.id) {
+                    el.id = el.id.replace(regex, `links-${newIndex}-`);
+                }
+            });
+
+            // Also update the 'for' attribute on labels
+            newItem.querySelectorAll('label[for]').forEach(label => {
+                label.htmlFor = label.htmlFor.replace(regex, `links-${newIndex}-`);
+            });
+
+            // Remove the delete checkbox + label for new forms
+            const deleteCheck = newItem.querySelector('input[name$="-DELETE"]');
+            if (deleteCheck) {
+                const deleteContainer = deleteCheck.closest('div');
+                if (deleteContainer) {
+                    deleteContainer.remove();
+                    console.log('Removed delete checkbox for new form');
+                }
+            }
+
+            // Append the new item to the container
+            container.appendChild(newItem);
+            console.log('Appended new link form');
+
+            // Increment the total forms count
+            totalForms.value = newIndex + 1;
+            console.log('Updated TOTAL_FORMS to:', totalForms.value);
+        });
+
+        // Also add a fallback inline onclick (just in case)
+        addBtn.setAttribute('onclick', 'document.getElementById("add-link-btn").click();');
+        // But we already have the event listener, so this is redundant.
+    });
+
+
+    // === AI Draft ===
+    document.addEventListener('DOMContentLoaded', function() {
+        const draftBtn = document.getElementById('aiDraftBtn');
+        const bulletsInput = document.getElementById('ai_bullets');
+        const contentField = document.getElementById('id_content');
+
+        if (!draftBtn || !bulletsInput || !contentField) {
+            console.warn('AI draft elements not found.');
+            return;
+        }
+
+        draftBtn.addEventListener('click', function() {
+            const bullets = bulletsInput.value.trim();
+            if (!bullets) {
+                alert('Please enter some bullet points first.');
+                return;
+            }
+
+            // Show loading state
+            draftBtn.disabled = true;
+            draftBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+            fetch('{% url "communications:ai_draft_announcement" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'bullet_points=' + encodeURIComponent(bullets),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.draft) {
+                    contentField.value = data.draft;
+                    // Optionally also set the title from the first sentence
+                    const firstSentence = data.draft.split('.')[0];
+                    const titleInput = document.getElementById('id_title');
+                    if (titleInput && !titleInput.value) {
+                        titleInput.value = firstSentence.replace(/^["']|["']$/g, '').trim();
+                    }
+                } else if (data.error) {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Something went wrong. Check your API key.');
+                console.error(error);
+            })
+            .finally(() => {
+                draftBtn.disabled = false;
+                draftBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Generate Draft';
+            });
+        });
+    });
+
+
+
+</script>
+{% endblock %}

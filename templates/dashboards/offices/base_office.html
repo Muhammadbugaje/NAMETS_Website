@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'dashboards/css/dashboard.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <!-- Office Switcher -->
+    {% include "dashboards/includes/switcher.html" %}
+
+    <!-- Office Header -->
+    <div class="office-header">
+        <div class="icon-wrapper">{{ office.icon }}</div>
+        <div class="title-group">
+            <h1>{{ assignment.display_label|default:office.name }}</h1>
+            <p class="sub">{{ office.description }}</p>
+        </div>
+        {% if assignment.display_label %}
+            <span class="badge">{{ office.name }}</span>
+        {% endif %}
+        <span class="holder-name"><i class="fas fa-user-circle"></i> <span>{{ assignment.user.get_full_name }}</span></span>
+    </div>
+
+    <!-- Duties -->
+    {% if office.duties %}
+    <div class="duties-section">
+        <h3><i class="fas fa-clipboard-list"></i> Your Duties</h3>
+        <ul>
+            {% for duty in office.duties.splitlines %}
+                {% if duty.strip %}
+                    <li>{{ duty }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Stats Row -->
+    {% block stats %}{% endblock %}
+
+    <!-- Widget Grid -->
+    <div class="widget-grid">
+        {% block widgets %}{% endblock %}
+    </div>
+
+    <!-- Extra Content -->
+    {% block extra_content %}{% endblock %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+{% endblock %}

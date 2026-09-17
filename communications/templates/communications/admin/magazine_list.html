@@ -1,0 +1,308 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Magazines · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.magazine-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.magazine-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.magazine-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.magazine-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.magazine-header-text h1 { font-size: 1.6rem; font-weight: 700; color: #fff; margin: 0 0 0.3rem; }
+.magazine-header-text p { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+.magazine-header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.magazine-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.25s;
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.magazine-btn:hover { background: rgba(255,255,255,0.2); color: #fff; transform: translateY(-2px); }
+
+.magazine-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+.filter-form input {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 200px;
+}
+.filter-form .btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.filter-form .clear {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.magazine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+}
+.magazine-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: var(--transition);
+    cursor: pointer;
+}
+.magazine-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--gold);
+}
+.magazine-card .cover {
+    height: 200px;
+    overflow: hidden;
+    background: #f0f4f2;
+    position: relative;
+}
+.magazine-card .cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+.magazine-card:hover .cover img { transform: scale(1.05); }
+.magazine-card .cover .no-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 3rem;
+    color: #c0c8c5;
+}
+.magazine-card .body {
+    padding: 1rem 1.25rem 1.25rem;
+}
+.magazine-card .body .title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.2rem;
+}
+.magazine-card .body .meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.magazine-card .body .desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0.3rem 0 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.magazine-card .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.magazine-card .footer .btn-sm {
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.badge-sm {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+.badge-success { background: #e8f2ec; color: #1a3c2e; }
+.badge-danger { background: #fdecea; color: #9b2c2c; }
+.empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 3rem 2rem; }
+.empty .empty-icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
+
+.pagination { margin-top: 1.5rem; text-align: center; }
+.pagination .step-links a {
+    color: var(--gold);
+    text-decoration: none;
+    margin: 0 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+}
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.5rem; }
+
+@media (max-width: 768px) {
+    .magazine-header { padding: 1.4rem 1.25rem; border-radius: 18px; }
+    .magazine-header-content { flex-direction: column; align-items: stretch; }
+    .magazine-header-text h1 { font-size: 1.35rem; }
+    .magazine-header-actions { flex-direction: column; }
+    .magazine-btn { width: 100%; justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .magazine-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="magazine-header">
+    <div class="magazine-header-glow" aria-hidden="true"></div>
+    <div class="magazine-header-content">
+        <div class="magazine-header-text">
+            <span class="magazine-eyebrow">Publications</span>
+            <h1>📚 Magazine Issues</h1>
+            <p>Manage Al-Irshad magazine issues and PDFs.</p>
+        </div>
+        <div class="magazine-header-actions">
+            {% if perms.communications.add_magazineissue %}
+            <a href="{% url 'communications:admin_magazine_create' %}" class="magazine-btn">
+                <i class="fas fa-plus-circle"></i> New Issue
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="magazine-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search by title or description..." value="{{ query }}">
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query %}
+        <a href="{% url 'communications:admin_magazine_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="magazine-grid">
+    {% for issue in issues %}
+    <div class="magazine-card" onclick="window.location.href='{% url 'communications:admin_magazine_edit' issue.slug %}'">
+        <div class="cover">
+            {% if issue.cover_image %}
+                <img src="{{ issue.cover_image.url }}" alt="{{ issue.title }}" loading="lazy">
+            {% else %}
+                <div class="no-cover">📚</div>
+            {% endif %}
+        </div>
+        <div class="body">
+            <div class="title">{{ issue.title }}</div>
+            <div class="meta">{{ issue.published_date|date:"M d, Y" }}</div>
+            <div class="desc">{{ issue.description|truncatechars:80 }}</div>
+            <div class="footer">
+                {% if issue.is_active %}
+                <span class="badge-sm badge-success">Active</span>
+                {% else %}
+                <span class="badge-sm badge-danger">Inactive</span>
+                {% endif %}
+                <div style="display:flex; gap:0.3rem;">
+                    <a href="{% url 'communications:admin_magazine_edit' issue.slug %}" class="btn-sm btn-sm-gold" onclick="event.stopPropagation();">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'communications:admin_magazine_delete' issue.slug %}" class="btn-sm btn-sm-danger" onclick="event.stopPropagation();">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+        <span class="empty-icon">📭</span>
+        <h3>No magazine issues found</h3>
+        <p>Create your first magazine issue.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% if query %}&q={{ query }}{% endif %}">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">previous</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+{% endblock %}

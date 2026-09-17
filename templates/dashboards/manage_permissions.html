@@ -1,0 +1,83 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block dash_content %}
+<div class="manage-permissions-container">
+    <h1><i class="fas fa-users-cog"></i> Manage Team Permissions</h1>
+    <p class="sub-text">
+        You can grant any permission that <strong>{{ my_office.name }}</strong> itself holds.
+    </p>
+
+    {% for assignment in target_assignments %}
+    <div class="permission-card">
+        <h3>{{ assignment.user.get_full_name }} — {{ assignment.display_label|default:assignment.office.name }}</h3>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="assignment_id" value="{{ assignment.id }}">
+            <div class="permission-grid">
+                {% for perm in available_permissions %}
+                <label class="permission-checkbox">
+                    <input type="checkbox" name="permissions" value="{{ perm.id }}"
+                           {% if perm in assignment.user.user_permissions.all %}checked{% endif %}>
+                    {{ perm.name }}
+                </label>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn-primary">Save</button>
+        </form>
+    </div>
+    {% empty %}
+    <p class="empty-text">No team members to manage.</p>
+    {% endfor %}
+</div>
+
+<style>
+.manage-permissions-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+.manage-permissions-container h1 {
+    color: var(--text-primary);
+    margin: 0 0 0.25rem;
+}
+.manage-permissions-container .sub-text {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+.permission-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.permission-card h3 {
+    margin-top: 0;
+    color: var(--text-primary);
+}
+.permission-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem 1rem;
+    margin: 1rem 0;
+}
+.permission-checkbox {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+.permission-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--gold);
+    cursor: pointer;
+}
+.empty-text {
+    color: var(--text-muted);
+    padding: 2rem 0;
+}
+</style>
+{% endblock %}

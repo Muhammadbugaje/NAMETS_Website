@@ -1,0 +1,678 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Edit {{ target.get_full_name|default:target.email }} · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.ue-wrap { max-width: 1000px; margin: 0 auto; }
+.ue-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.ue-back:hover { text-decoration: underline; }
+
+/* Profile header */
+.ue-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.75rem 2rem;
+    margin-bottom: 1.25rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22);
+}
+.ue-head::before { content: "👤"; font-size: 6rem; position: absolute; bottom: -1.2rem; right: 1.5rem; opacity: 0.08; }
+.ue-head-inner {
+    position: relative; z-index: 1;
+    display: flex; align-items: center; gap: 1.25rem;
+    flex-wrap: wrap;
+}
+.ue-avatar {
+    width: 84px; height: 84px; border-radius: 50%;
+    background: linear-gradient(135deg, #C8A951, #E0C96E);
+    color: #0F3D2E;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.85rem; font-weight: 800;
+    border: 4px solid rgba(255,255,255,0.3);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+}
+.ue-info { flex: 1; min-width: 0; }
+.ue-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px; margin-bottom: 0.5rem;
+}
+.ue-info h1 { font-size: 1.45rem; font-weight: 800; margin: 0 0 0.3rem; word-break: break-word; }
+.ue-info p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+.ue-badges { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.ue-badge {
+    padding: 0.25rem 0.7rem; border-radius: 20px;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.ue-badge.superuser { background: rgba(200,169,81,0.3); border-color: rgba(200,169,81,0.5); color: #E0C96E; }
+
+/* Tabs */
+.tabs {
+    display: flex; gap: 0.35rem; margin-bottom: 1.25rem;
+    flex-wrap: wrap; background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 50px; padding: 0.35rem;
+    box-shadow: var(--shadow-sm);
+}
+.tab {
+    padding: 0.6rem 1.35rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem;
+    background: transparent; color: var(--text-secondary);
+    border: none; cursor: pointer; font-family: inherit;
+    transition: all 0.25s;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    white-space: nowrap;
+}
+.tab:hover { background: rgba(200,169,81,0.1); color: var(--text-primary); }
+.tab.active {
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff; box-shadow: 0 4px 14px rgba(15,61,46,0.2);
+}
+.tab i { font-size: 0.85rem; }
+
+.pane { display: none; }
+.pane.active { display: block; animation: fadeIn 0.3s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Cards */
+.card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.75rem 2rem; box-shadow: var(--shadow-sm);
+    margin-bottom: 1.25rem;
+}
+.card-title {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #8a6a1a; margin: 0 0 1.1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.card-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.9rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label {
+    font-weight: 700; color: #0F3D2E;
+    font-size: 0.8rem; margin-bottom: 0.35rem;
+}
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 0.65rem 0.9rem;
+    border: 1px solid #d0d9d6; border-radius: 10px;
+    font-size: 0.9rem; background: #fff;
+    font-family: inherit; transition: all 0.2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 4px rgba(200,169,81,0.15);
+}
+.form-group .help {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.3rem; line-height: 1.4;
+}
+
+.check-row {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: #f8faf9;
+    border-radius: 10px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 0.5rem;
+}
+.check-row:hover { border-color: rgba(200,169,81,0.4); background: #fef9ec; }
+.check-row input { width: 18px; height: 18px; accent-color: var(--gold); cursor: pointer; flex-shrink: 0; margin-top: 0.15rem; }
+.check-row .info { flex: 1; }
+.check-row .name { font-weight: 700; color: #0F3D2E; font-size: 0.88rem; }
+.check-row .desc { font-size: 0.75rem; color: #8a9b95; margin-top: 0.15rem; line-height: 1.4; }
+
+/* Group cards */
+.group-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.6rem;
+}
+.group-card {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    background: #fff;
+    border: 1.5px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    cursor: pointer; transition: all 0.15s;
+    position: relative;
+}
+.group-card:hover { border-color: rgba(200,169,81,0.4); background: #fef9ec; }
+.group-card.checked {
+    border-color: #38a169;
+    background: linear-gradient(135deg, #e8f2ec 0%, #f0faf4 100%);
+}
+.group-card input {
+    width: 18px; height: 18px;
+    accent-color: #38a169;
+    cursor: pointer; flex-shrink: 0;
+    margin-top: 0.15rem;
+}
+.group-card .name { font-weight: 700; color: #0F3D2E; font-size: 0.88rem; }
+.group-card .meta { font-size: 0.72rem; color: #8a9b95; margin-top: 0.15rem; }
+
+/* Permission picker */
+.perm-toolbar {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    align-items: center; margin-bottom: 1rem;
+}
+.perm-toolbar input[type="text"] {
+    flex: 1; min-width: 200px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 50px;
+    font-size: 0.85rem; font-family: inherit;
+}
+.perm-toolbar input[type="text"]:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.perm-toolbar .tb {
+    padding: 0.4rem 0.9rem; border-radius: 50px;
+    font-size: 0.75rem; font-weight: 700;
+    background: #f0f4f2; color: #4a5568;
+    border: none; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    transition: all 0.2s;
+}
+.perm-toolbar .tb:hover { background: #e0e8e5; color: #0F3D2E; }
+.perm-toolbar .counter {
+    margin-left: auto;
+    font-size: 0.78rem; color: #8a9b95; font-weight: 700;
+}
+.perm-toolbar .counter strong { color: #0F3D2E; font-weight: 800; }
+
+.perm-group {
+    background: #f8faf9; border-radius: 12px;
+    padding: 1rem 1.15rem; margin-bottom: 0.75rem;
+}
+.perm-group-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 0.75rem;
+}
+.perm-group-title {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a6a1a;
+    display: flex; align-items: center; gap: 0.4rem;
+}
+.perm-group-actions {
+    display: flex; gap: 0.3rem;
+}
+.perm-group-actions button {
+    padding: 0.25rem 0.7rem;
+    border-radius: 20px; font-size: 0.68rem;
+    font-weight: 800; border: none; cursor: pointer;
+    font-family: inherit; background: #fff;
+    color: #4a5568; transition: all 0.15s;
+}
+.perm-group-actions button:hover { background: var(--primary); color: #fff; }
+
+.perm-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.4rem;
+}
+.perm-check {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    background: #fff; border: 1.5px solid transparent;
+    border-radius: 10px; cursor: pointer;
+    font-size: 0.82rem; transition: all 0.15s;
+}
+.perm-check:hover { border-color: rgba(200,169,81,0.4); background: #fef9ec; }
+.perm-check input { width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer; flex-shrink: 0; margin-top: 0.1rem; }
+.perm-check.checked {
+    background: linear-gradient(135deg, #e8f2ec 0%, #f0faf4 100%);
+    border-color: #38a169;
+}
+.perm-check.checked .perm-name { color: #0F3D2E; font-weight: 700; }
+.perm-name { color: #4a5568; line-height: 1.4; }
+
+/* Buttons */
+.actions-row {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.05);
+    margin-top: 1.5rem;
+}
+.btn-save {
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff; padding: 0.85rem 2rem;
+    border: none; border-radius: 50px;
+    font-weight: 800; font-size: 0.9rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    box-shadow: 0 6px 20px rgba(15,61,46,0.25);
+    transition: all 0.25s;
+}
+.btn-save:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(15,61,46,0.35); }
+.btn-save:disabled { opacity: 0.6; cursor: wait; }
+.btn-danger {
+    background: linear-gradient(135deg, #7a1e1e, #c0392b);
+    color: #fff; padding: 0.85rem 1.75rem;
+    border: none; border-radius: 50px;
+    font-weight: 800; font-size: 0.88rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    transition: all 0.25s;
+    margin-left: auto;
+}
+.btn-danger:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(122,30,30,0.35); }
+
+.danger-zone {
+    background: linear-gradient(135deg, #fdf6f3 0%, #fce4e0 100%);
+    border-left: 4px solid #c0392b;
+    border-radius: 14px;
+    padding: 1.5rem 1.75rem;
+    margin-top: 1.5rem;
+}
+.danger-zone h3 {
+    font-size: 0.9rem; font-weight: 800;
+    color: #9b2c2c; margin: 0 0 0.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.danger-zone p {
+    font-size: 0.85rem; color: #4a2020;
+    margin: 0 0 1rem; line-height: 1.55;
+}
+
+@media (max-width: 768px) {
+    .ue-head-inner { flex-direction: column; align-items: flex-start; }
+    .ue-avatar { width: 68px; height: 68px; font-size: 1.5rem; }
+    .ue-info h1 { font-size: 1.2rem; }
+    .card { padding: 1.35rem 1.35rem; }
+    .form-row { grid-template-columns: 1fr; gap: 0.75rem; }
+    .group-grid { grid-template-columns: 1fr; }
+    .perm-items { grid-template-columns: 1fr; }
+    .actions-row { flex-direction: column; }
+    .btn-save, .btn-danger { width: 100%; justify-content: center; margin-left: 0; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="ue-wrap">
+
+    <a href="{% url 'governance:user_list' %}" class="ue-back">
+        <i class="fas fa-arrow-left"></i> Back to User Management
+    </a>
+
+    <!-- HEADER -->
+    <div class="ue-head">
+        <div class="ue-head-inner">
+            <div class="ue-avatar">
+                {% if target.first_name or target.last_name %}
+                    {{ target.first_name|first|upper }}{{ target.last_name|first|upper }}
+                {% else %}
+                    {{ target.email|first|upper }}
+                {% endif %}
+            </div>
+            <div class="ue-info">
+                <span class="ue-eyebrow">User · #{{ target.pk }}</span>
+                <h1>{{ target.get_full_name|default:target.username }}</h1>
+                <p>{{ target.email }}</p>
+                <div class="ue-badges">
+                    {% if target.is_superuser %}<span class="ue-badge superuser">👑 Superuser</span>{% endif %}
+                    {% if target.is_staff %}<span class="ue-badge">🛡 Staff</span>{% endif %}
+                    {% if target.is_active %}<span class="ue-badge">✓ Active</span>
+                    {% else %}<span class="ue-badge">✕ Inactive</span>{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <button type="button" class="tab active" data-tab="info"><i class="fas fa-user"></i> Info</button>
+        <button type="button" class="tab" data-tab="groups"><i class="fas fa-users-cog"></i> Groups</button>
+        <button type="button" class="tab" data-tab="perms"><i class="fas fa-shield-alt"></i> Direct Permissions</button>
+        <button type="button" class="tab" data-tab="offices"><i class="fas fa-building"></i> Offices</button>
+        {% if request.user.is_superuser %}
+        <button type="button" class="tab" data-tab="password"><i class="fas fa-key"></i> Password</button>
+        {% endif %}
+    </div>
+
+    <!-- ==================== INFO ==================== -->
+    <div class="pane active" data-pane="info">
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-user"></i> Personal Info</h3>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_info">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first_name">First Name</label>
+                        <input type="text" name="first_name" id="first_name" value="{{ target.first_name }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name</label>
+                        <input type="text" name="last_name" id="last_name" value="{{ target.last_name }}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full">
+                        <label for="email">Email</label>
+                        <input type="email" name="email" id="email" value="{{ target.email }}" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phone_number">Phone</label>
+                        <input type="text" name="phone_number" id="phone_number"
+                               value="{{ target.phone_number|default:'' }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="matric_number">Matric Number</label>
+                        <input type="text" name="matric_number" id="matric_number"
+                               value="{{ target.matric_number|default:'' }}">
+                    </div>
+                </div>
+
+                {% if request.user.is_superuser %}
+                <div class="form-row" style="margin-top:1rem;">
+                    <div class="form-group full">
+                        <label class="check-row">
+                            <input type="checkbox" name="is_active" {% if target.is_active %}checked{% endif %}>
+                            <div class="info">
+                                <div class="name">Active Account</div>
+                                <div class="desc">When unchecked, this user cannot log in.</div>
+                            </div>
+                        </label>
+                        <label class="check-row">
+                            <input type="checkbox" name="is_staff" {% if target.is_staff %}checked{% endif %}>
+                            <div class="info">
+                                <div class="name">Staff Status</div>
+                                <div class="desc">Grants access to the Django admin panel.</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="actions-row">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save"></i> Save Info
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== GROUPS ==================== -->
+    <div class="pane" data-pane="groups">
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-users-cog"></i> Permission Groups</h3>
+            <p style="font-size:0.85rem;color:#8a9b95;margin:0 0 1rem;line-height:1.55;">
+                Groups bundle permissions. Assigning a group gives this user all its permissions automatically.
+                Manage groups from <a href="{% url 'governance:group_list' %}" style="color:#C8A951;font-weight:700;">the groups page</a>.
+            </p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_groups">
+
+                <div class="group-grid">
+                    {% for g in all_groups %}
+                    <label class="group-card {% if g.id in user_group_ids %}checked{% endif %}">
+                        <input type="checkbox" name="groups" value="{{ g.id }}"
+                               {% if g.id in user_group_ids %}checked{% endif %}
+                               onchange="this.closest('.group-card').classList.toggle('checked', this.checked)">
+                        <div class="info">
+                            <div class="name">{{ g.name }}</div>
+                            <div class="meta">{{ g.permissions.count }} permission{{ g.permissions.count|pluralize }}</div>
+                        </div>
+                    </label>
+                    {% empty %}
+                    <p style="color:#8a9b95;font-size:0.85rem;grid-column:1/-1;">
+                        No groups exist yet.
+                        <a href="{% url 'governance:group_create' %}" style="color:#C8A951;font-weight:700;">Create one</a>.
+                    </p>
+                    {% endfor %}
+                </div>
+
+                <div class="actions-row">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save"></i> Save Groups
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== DIRECT PERMISSIONS ==================== -->
+    <div class="pane" data-pane="perms">
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-shield-alt"></i> Direct Permissions</h3>
+            <p style="font-size:0.85rem;color:#8a9b95;margin:0 0 1rem;line-height:1.55;">
+                Permissions assigned directly to this user, on top of anything inherited from their groups.
+                <strong style="color:#8a6a1a;">{{ direct_perm_count }} of {{ total_perms }}</strong> currently assigned directly.
+            </p>
+
+            <form method="post" id="permForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_permissions">
+
+                <div class="perm-toolbar">
+                    <input type="text" id="permSearch" placeholder="Search permissions…" oninput="filterPerms()">
+                    <button type="button" class="tb" onclick="bulkToggle(true)"><i class="fas fa-check-double"></i> Select all shown</button>
+                    <button type="button" class="tb" onclick="bulkToggle(false)"><i class="fas fa-times"></i> Clear all shown</button>
+                    <span class="counter">Selected: <strong id="permCount">{{ direct_perm_count }}</strong></span>
+                </div>
+
+                {% for app_label, perms in grouped_permissions.items %}
+                <div class="perm-group" data-app="{{ app_label }}">
+                    <div class="perm-group-head">
+                        <div class="perm-group-title"><i class="fas fa-cube"></i> {{ app_label|title }}</div>
+                        <div class="perm-group-actions">
+                            <button type="button" onclick="groupToggle('{{ app_label }}', true)">All</button>
+                            <button type="button" onclick="groupToggle('{{ app_label }}', false)">None</button>
+                        </div>
+                    </div>
+                    <div class="perm-items">
+                        {% for item in perms %}
+                        <label class="perm-check {% if item.granted %}checked{% endif %}"
+                               data-perm-name="{{ item.perm.name|lower }}"
+                               data-perm-codename="{{ item.perm.codename|lower }}">
+                            <input type="checkbox" name="permissions" value="{{ item.perm.id }}"
+                                   {% if item.granted %}checked{% endif %}
+                                   onchange="updateCount()">
+                            <span class="perm-name">{{ item.perm.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="actions-row">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save"></i> Save Permissions
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== OFFICES ==================== -->
+    <div class="pane" data-pane="offices">
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-building"></i> Office Assignments</h3>
+            {% if office_assignments %}
+            <ul style="list-style:none;padding:0;margin:0;">
+                {% for a in office_assignments %}
+                <li style="display:flex;align-items:center;gap:1rem;padding:0.85rem 0;border-bottom:1px solid rgba(0,0,0,0.05);">
+                    <div style="width:42px;height:42px;border-radius:12px;background:{% if a.is_active %}#e8f2ec{% else %}#f0f0f0{% endif %};color:{% if a.is_active %}#1a6b3c{% else %}#777{% endif %};display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-weight:700;color:#0F3D2E;">{{ a.office.name }}</div>
+                        {% if a.display_label %}
+                        <div style="font-size:0.75rem;color:#8a6b1a;">{{ a.display_label }}</div>
+                        {% endif %}
+                    </div>
+                    <span style="font-size:0.7rem;font-weight:800;padding:0.2rem 0.65rem;border-radius:20px;background:{% if a.is_active %}#e8f2ec;color:#1a6b3c{% else %}#f0f0f0;color:#777{% endif %};">
+                        {% if a.is_active %}Active{% else %}Past{% endif %}
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p style="color:#8a9b95;font-size:0.88rem;margin:0;">This user doesn't hold any office.</p>
+            {% endif %}
+            <div class="actions-row">
+                <a href="{% url 'governance:user_office_assignment' %}" class="btn-save" style="text-decoration:none;">
+                    <i class="fas fa-user-plus"></i> Manage Assignments
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== PASSWORD ==================== -->
+    {% if request.user.is_superuser %}
+    <div class="pane" data-pane="password">
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-key"></i> Change Password</h3>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_password">
+
+                <div class="form-row">
+                    <div class="form-group full">
+                        <label for="new_password">New Password</label>
+                        <input type="password" name="new_password" id="new_password" minlength="8" required>
+                        <div class="help">At least 8 characters. User will be forced to change it on next login.</div>
+                    </div>
+                </div>
+
+                <div class="actions-row">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-key"></i> Reset Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ==================== DANGER ZONE ==================== -->
+    {% if request.user.is_superuser and target.pk != request.user.pk and not target.is_superuser %}
+    <div class="danger-zone">
+        <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+        <p>
+            Deleting this user will remove their account, all their office assignments,
+            and any data linked to them. <strong>This cannot be undone.</strong>
+        </p>
+        <button type="button" class="btn-danger" onclick="confirmDelete()">
+            <i class="fas fa-trash"></i> Delete User Permanently
+        </button>
+    </div>
+    {% endif %}
+
+</div>
+
+<form method="post" action="{% url 'governance:user_delete' target.pk %}" id="deleteForm" style="display:none;">
+    {% csrf_token %}
+</form>
+
+<script>
+// ============ TABS ============
+(function() {
+    const tabs = document.querySelectorAll('.tab');
+    const panes = document.querySelectorAll('.pane');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            panes.forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelector(`.pane[data-pane="${tab.dataset.tab}"]`).classList.add('active');
+            try { localStorage.setItem('userEditTab', tab.dataset.tab); } catch(e) {}
+        });
+    });
+    try {
+        const saved = localStorage.getItem('userEditTab');
+        if (saved) {
+            const tab = document.querySelector(`.tab[data-tab="${saved}"]`);
+            if (tab) tab.click();
+        }
+    } catch(e) {}
+})();
+
+// ============ PERMISSION COUNT ============
+function updateCount() {
+    const checked = document.querySelectorAll('input[name="permissions"]:checked');
+    document.getElementById('permCount').textContent = checked.length;
+    document.querySelectorAll('input[name="permissions"]').forEach(cb => {
+        const label = cb.closest('.perm-check');
+        if (cb.checked) label.classList.add('checked');
+        else label.classList.remove('checked');
+    });
+}
+
+function bulkToggle(on) {
+    document.querySelectorAll('.perm-check').forEach(label => {
+        if (label.style.display !== 'none') {
+            const cb = label.querySelector('input');
+            if (cb) cb.checked = on;
+        }
+    });
+    updateCount();
+}
+
+function groupToggle(appLabel, on) {
+    document.querySelectorAll(`.perm-group[data-app="${appLabel}"] input[type="checkbox"]`)
+        .forEach(cb => cb.checked = on);
+    updateCount();
+}
+
+function filterPerms() {
+    const q = document.getElementById('permSearch').value.trim().toLowerCase();
+    document.querySelectorAll('.perm-check').forEach(label => {
+        const name = label.dataset.permName || '';
+        const code = label.dataset.permCodename || '';
+        const match = !q || name.includes(q) || code.includes(q);
+        label.style.display = match ? '' : 'none';
+    });
+    document.querySelectorAll('.perm-group').forEach(g => {
+        const visible = g.querySelectorAll('.perm-check:not([style*="display: none"])').length;
+        g.style.display = visible ? '' : 'none';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', updateCount);
+
+// ============ DELETE ============
+function confirmDelete() {
+    NAMETS.confirm({
+        title: '⚠️ Delete User?',
+        message: 'The user, their office assignments, and all linked data will be permanently removed. This CANNOT be undone.',
+        confirmText: 'Yes, Delete User',
+        danger: true,
+    }).then(ok => { if (ok) document.getElementById('deleteForm').submit(); });
+}
+
+// ============ SUBMIT STATE ============
+document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', function() {
+        const btn = this.querySelector('button[type="submit"]');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,515 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}New Message · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   MESSAGE COMPOSE
+   ============================================================ */
+.mcx-wrap { max-width: 880px; margin: 0 auto; }
+
+.mcx-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 14px 40px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.mcx-hero::before {
+    content: "✏️"; font-size: 10rem;
+    position: absolute; bottom: -2.5rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.mcx-hero::after {
+    content: ''; position: absolute;
+    top: -50%; left: -10%;
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(200,169,81,0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+.mcx-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1.25rem;
+}
+.mcx-hero-left { flex: 1; min-width: 240px; }
+.mcx-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.28rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.6rem;
+}
+.mcx-hero h1 {
+    font-size: 1.85rem; font-weight: 800;
+    margin: 0 0 0.4rem; letter-spacing: -0.02em;
+}
+.mcx-hero p {
+    color: rgba(255,255,255,0.82); font-size: 0.9rem;
+    margin: 0; line-height: 1.55; max-width: 520px;
+}
+.mcx-back-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.65rem 1.35rem; border-radius: 50px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    font-weight: 700; font-size: 0.82rem;
+    text-decoration: none; border: 1px solid rgba(255,255,255,0.25);
+    transition: all 0.25s ease;
+    backdrop-filter: blur(8px);
+}
+.mcx-back-btn:hover {
+    background: rgba(255,255,255,0.22);
+    transform: translateY(-2px);
+}
+
+/* SECTIONS */
+.mcx-section {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    padding: 1.5rem 1.65rem;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+    margin-bottom: 1rem;
+}
+.mcx-section h2 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #8a6a1a;
+    margin: 0 0 1.15rem;
+    display: flex; align-items: center; gap: 0.55rem;
+}
+.mcx-section h2::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.35), transparent);
+}
+
+/* TARGET SELECTOR */
+.mcx-target-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.7rem;
+}
+.mcx-target-option {
+    display: flex; align-items: flex-start; gap: 0.85rem;
+    padding: 1rem 1.1rem;
+    background: #f8faf9;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.22s;
+    position: relative;
+}
+.mcx-target-option:hover {
+    background: #f0f4f2;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15,61,46,0.06);
+}
+.mcx-target-option input[type="radio"] { display: none; }
+.mcx-target-dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid #c0c8c5; flex-shrink: 0;
+    margin-top: 0.15rem;
+    position: relative;
+    transition: all 0.2s;
+    background: #fff;
+}
+.mcx-target-option input[type="radio"]:checked ~ .mcx-target-dot {
+    border-color: #0F3D2E;
+    background: #0F3D2E;
+    box-shadow: inset 0 0 0 4px #fff;
+}
+.mcx-target-option:has(input[type="radio"]:checked) {
+    background: #fff;
+    border-color: #C8A951;
+    box-shadow: 0 6px 18px rgba(200,169,81,0.18);
+}
+.mcx-target-info { flex: 1; min-width: 0; }
+.mcx-target-name {
+    font-size: 0.85rem; font-weight: 800; color: #0F3D2E;
+    margin-bottom: 0.2rem;
+    display: flex; align-items: center; gap: 0.45rem;
+}
+.mcx-target-name i {
+    color: #C8A951; font-size: 0.9rem;
+}
+.mcx-target-desc {
+    font-size: 0.72rem; color: #8a9b95; line-height: 1.45;
+}
+
+/* PICKERS */
+.mcx-picker {
+    display: none;
+    margin-top: 1rem;
+    border: 1px solid #e0e8e5;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fafbfb;
+}
+.mcx-picker.active { display: block; }
+.mcx-picker-search {
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1px solid #e0e8e5;
+    background: #fff;
+    position: relative;
+}
+.mcx-picker-search i {
+    position: absolute; left: 1.25rem; top: 50%;
+    transform: translateY(-50%);
+    color: #8a9b95; font-size: 0.85rem; pointer-events: none;
+}
+.mcx-picker-search input {
+    width: 100%;
+    padding: 0.55rem 0.85rem 0.55rem 2.35rem;
+    border: 1px solid #d5dcd9;
+    border-radius: 9px;
+    font-size: 0.83rem; font-family: inherit;
+    background: #fff;
+}
+.mcx-picker-search input:focus {
+    border-color: #C8A951; outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.mcx-picker-list {
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 0.35rem;
+    background: #fff;
+}
+.mcx-picker-list::-webkit-scrollbar { width: 8px; }
+.mcx-picker-list::-webkit-scrollbar-track { background: #f8faf9; }
+.mcx-picker-list::-webkit-scrollbar-thumb {
+    background: rgba(200,169,81,0.4);
+    border-radius: 4px;
+}
+.mcx-picker-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(200,169,81,0.65);
+}
+
+.mcx-picker-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.mcx-picker-item:hover { background: #f8faf9; }
+.mcx-picker-item input[type="checkbox"] {
+    width: 17px; height: 17px;
+    accent-color: #0F3D2E;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.mcx-pic {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 800;
+    flex-shrink: 0;
+    border: 1.5px solid #C8A951;
+    overflow: hidden;
+}
+.mcx-pic img { width: 100%; height: 100%; object-fit: cover; }
+.mcx-pic.office {
+    background: linear-gradient(135deg, #8a6a1a, #C8A951);
+    color: #fff;
+    border-radius: 10px;
+    font-size: 1rem;
+    border: none;
+}
+.mcx-pi-info { min-width: 0; flex: 1; }
+.mcx-pi-name {
+    font-size: 0.83rem; font-weight: 700;
+    color: #0F3D2E;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.mcx-pi-sub {
+    font-size: 0.7rem; color: #8a9b95;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mcx-empty-picker {
+    padding: 2rem 1rem; text-align: center;
+    color: #8a9b95; font-size: 0.85rem;
+}
+
+/* FIELDS */
+.mcx-field { margin-bottom: 1.1rem; }
+.mcx-field:last-child { margin-bottom: 0; }
+.mcx-field label {
+    display: block;
+    font-size: 0.78rem; font-weight: 700;
+    color: #0F3D2E; margin-bottom: 0.4rem;
+}
+.mcx-field label .req { color: #dc3545; margin-left: 2px; }
+.mcx-field input[type="text"],
+.mcx-field textarea {
+    width: 100%;
+    padding: 0.75rem 0.95rem;
+    border: 1px solid #d5dcd9;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: #fff;
+    color: #0F3D2E;
+    transition: all 0.2s;
+}
+.mcx-field textarea {
+    resize: vertical;
+    min-height: 180px;
+    line-height: 1.65;
+    font-family: 'Inter', 'DM Sans', sans-serif;
+}
+.mcx-field input:focus, .mcx-field textarea:focus {
+    outline: none;
+    border-color: #C8A951;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.15);
+}
+.mcx-field .helper {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.35rem; line-height: 1.5;
+}
+
+/* ACTIONS */
+.mcx-actions {
+    display: flex; justify-content: flex-end; gap: 0.65rem;
+    padding-top: 0.35rem; flex-wrap: wrap;
+}
+.mcx-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.85rem 1.75rem; border-radius: 50px;
+    font-size: 0.88rem; font-weight: 800;
+    text-decoration: none; cursor: pointer;
+    border: none; transition: all 0.25s ease;
+    font-family: inherit;
+}
+.mcx-btn.cancel {
+    background: transparent; color: #8a9b95;
+    border: 1px solid #d5dcd9;
+}
+.mcx-btn.cancel:hover {
+    background: #f0f4f2; color: #0F3D2E;
+    border-color: #c0c8c5;
+}
+.mcx-btn.send {
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(15,61,46,0.25);
+    padding-right: 2rem;
+}
+.mcx-btn.send:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(15,61,46,0.35);
+}
+.mcx-btn.send i {
+    transition: transform 0.25s;
+}
+.mcx-btn.send:hover i { transform: translateX(3px) rotate(-10deg); }
+
+/* MOBILE */
+@media (max-width: 640px) {
+    .mcx-hero { padding: 1.5rem 1.35rem; }
+    .mcx-hero h1 { font-size: 1.35rem; }
+    .mcx-hero-inner { flex-direction: column; align-items: stretch; }
+    .mcx-back-btn { justify-content: center; }
+    .mcx-target-grid { grid-template-columns: 1fr; }
+    .mcx-actions { flex-direction: column-reverse; }
+    .mcx-actions .mcx-btn { width: 100%; justify-content: center; }
+    .mcx-section { padding: 1.15rem 1.15rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="mcx-wrap">
+
+    <!-- HERO -->
+    <div class="mcx-hero">
+        <div class="mcx-hero-inner">
+            <div class="mcx-hero-left">
+                <span class="mcx-eyebrow">✏️ New Message</span>
+                <h1>Compose</h1>
+                <p>Send to specific people, offices, or everyone — all in one place.</p>
+            </div>
+            <a href="{% url 'dashboards:messages' %}" class="mcx-back-btn">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- TARGET SELECTOR -->
+        <div class="mcx-section">
+            <h2><i class="fas fa-bullseye"></i> Who should receive this?</h2>
+
+            <div class="mcx-target-grid">
+                {% for code, label in target_choices %}
+                <label class="mcx-target-option">
+                    <input type="radio" name="target_type" value="{{ code }}"
+                           {% if code == default_target %}checked{% endif %}>
+                    <span class="mcx-target-dot"></span>
+                    <div class="mcx-target-info">
+                        <div class="mcx-target-name">
+                            {% if code == 'direct' %}<i class="fas fa-user"></i>
+                            {% elif code == 'offices' %}<i class="fas fa-building"></i>
+                            {% elif code == 'current' %}<i class="fas fa-users"></i>
+                            {% elif code == 'alumni' %}<i class="fas fa-graduation-cap"></i>
+                            {% elif code == 'everyone' %}<i class="fas fa-globe"></i>
+                            {% endif %}
+                            {{ label }}
+                        </div>
+                        <div class="mcx-target-desc">
+                            {% if code == 'direct' %}Pick specific members and alumni.
+                            {% elif code == 'offices' %}Everyone holding selected offices.
+                            {% elif code == 'current' %}All current (non-alumni) members.
+                            {% elif code == 'alumni' %}All graduated members.
+                            {% elif code == 'everyone' %}Every active user in NAMETS.
+                            {% endif %}
+                        </div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+
+            <!-- PEOPLE PICKER -->
+            <div class="mcx-picker" id="picker-users">
+                <div class="mcx-picker-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="userSearch" placeholder="Search by name or email…">
+                </div>
+                <div class="mcx-picker-list" id="userList">
+                    {% for u in all_users %}
+                    <label class="mcx-picker-item"
+                           data-name="{{ u.get_full_name|default:u.email|lower }} {{ u.email|lower }}">
+                        <input type="checkbox" name="user_ids" value="{{ u.pk }}"
+                               {% if u.pk in preselected_user_ids %}checked{% endif %}>
+                        <div class="mcx-pic">
+                            {% if u.profile_picture %}
+                                <img src="{{ u.profile_picture.url }}" alt="">
+                            {% else %}
+                                {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                            {% endif %}
+                        </div>
+                        <div class="mcx-pi-info">
+                            <div class="mcx-pi-name">{{ u.get_full_name|default:u.email }}</div>
+                            <div class="mcx-pi-sub">
+                                {% if u.is_alumni %}Alumni{% else %}Current member{% endif %}
+                                · {{ u.email }}
+                            </div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- OFFICES PICKER -->
+            <div class="mcx-picker" id="picker-offices">
+                <div class="mcx-picker-list">
+                    {% for o in all_offices %}
+                    <label class="mcx-picker-item">
+                        <input type="checkbox" name="office_ids" value="{{ o.pk }}">
+                        <div class="mcx-pic office"><i class="fas fa-building"></i></div>
+                        <div class="mcx-pi-info">
+                            <div class="mcx-pi-name">{{ o.name }}</div>
+                            <div class="mcx-pi-sub">Office — all active holders receive this</div>
+                        </div>
+                    </label>
+                    {% empty %}
+                    <div class="mcx-empty-picker">No offices defined yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- MESSAGE -->
+        <div class="mcx-section">
+            <h2><i class="fas fa-pen-fancy"></i> Your message</h2>
+
+            <div class="mcx-field">
+                <label>Subject <span class="req">*</span></label>
+                <input type="text" name="subject" required
+                       value="{{ prefill_subject }}"
+                       placeholder="e.g. Reminder: EXCO meeting this Saturday at 5pm">
+            </div>
+
+            <div class="mcx-field">
+                <label>Message <span class="req">*</span></label>
+                <textarea name="body" required
+                          placeholder="Write your message here…
+
+You can use line breaks to structure your message.">{{ prefill_body }}</textarea>
+                <div class="helper">Plain text — line breaks are preserved.</div>
+            </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="mcx-actions">
+            <a href="{% url 'dashboards:messages' %}" class="mcx-btn cancel">
+                Cancel
+            </a>
+            <button type="submit" class="mcx-btn send">
+                <i class="fas fa-paper-plane"></i> Send Message
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+(function() {
+    // ---------- TARGET → PICKER SYNC ----------
+    const radios = document.querySelectorAll('input[name="target_type"]');
+    const userPicker = document.getElementById('picker-users');
+    const officePicker = document.getElementById('picker-offices');
+
+    function refreshPickers() {
+        const val = document.querySelector('input[name="target_type"]:checked')?.value;
+        userPicker.classList.toggle('active', val === 'direct');
+        officePicker.classList.toggle('active', val === 'offices');
+    }
+
+    radios.forEach(r => r.addEventListener('change', refreshPickers));
+    refreshPickers();
+
+    // ---------- LIVE USER SEARCH ----------
+    const search = document.getElementById('userSearch');
+    const userItems = document.querySelectorAll('#userList .mcx-picker-item');
+    if (search) {
+        search.addEventListener('input', () => {
+            const q = search.value.trim().toLowerCase();
+            let visible = 0;
+            userItems.forEach(item => {
+                const haystack = item.dataset.name || '';
+                const match = !q || haystack.includes(q);
+                item.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            // Show "no results" if everything hidden
+            const list = document.getElementById('userList');
+            let noResult = list.querySelector('.mcx-empty-picker');
+            if (visible === 0 && q) {
+                if (!noResult) {
+                    noResult = document.createElement('div');
+                    noResult.className = 'mcx-empty-picker';
+                    noResult.textContent = 'No users match "' + q + '"';
+                    list.appendChild(noResult);
+                } else {
+                    noResult.textContent = 'No users match "' + q + '"';
+                }
+            } else if (noResult) {
+                noResult.remove();
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

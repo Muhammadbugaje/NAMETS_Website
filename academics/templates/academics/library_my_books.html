@@ -1,0 +1,256 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}My Borrowed Books · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.mb-wrap { max-width: 1000px; margin: 0 auto; }
+
+.mb-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 14px 40px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.mb-hero::before {
+    content: "📖"; font-size: 9rem;
+    position: absolute; bottom: -2.5rem; right: 1.5rem;
+    opacity: 0.07; pointer-events: none;
+}
+.mb-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.mb-hero h1 { font-size: 1.65rem; font-weight: 800; margin: 0 0 0.4rem; }
+.mb-hero p { color: rgba(255,255,255,0.82); font-size: 0.9rem; margin: 0; }
+.mb-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.mb-btn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.65rem 1.35rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem;
+    text-decoration: none; border: 1px solid transparent;
+    transition: all 0.25s;
+    cursor: pointer; font-family: inherit;
+}
+.mb-btn.gold { background: #C8A951; color: #0F3D2E; }
+.mb-btn.gold:hover { background: #E0C96E; transform: translateY(-3px); }
+.mb-btn.outline {
+    background: rgba(255,255,255,0.12); color: #fff;
+    border-color: rgba(255,255,255,0.25);
+}
+.mb-btn.outline:hover { background: rgba(255,255,255,0.22); transform: translateY(-3px); }
+
+.mb-alerts { display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1.25rem; }
+.mb-alert {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.9rem 1.15rem;
+    border-radius: 14px;
+    font-size: 0.88rem; font-weight: 600;
+}
+.mb-alert.danger {
+    background: #fdecea; color: #9b2c2c;
+    border-left: 4px solid #dc3545;
+}
+.mb-alert.warning {
+    background: #fff5e0; color: #8a6a1a;
+    border-left: 4px solid #C8A951;
+}
+.mb-alert .ic {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.5); border-radius: 8px;
+    font-size: 0.9rem; flex-shrink: 0;
+}
+
+.mb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+.mb-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    padding: 1.15rem 1.25rem;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+    transition: all 0.25s;
+    display: flex; flex-direction: column;
+    position: relative;
+    border-top: 4px solid transparent;
+}
+.mb-card.overdue { border-top-color: #dc3545; }
+.mb-card.due-soon { border-top-color: #C8A951; }
+.mb-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(15,61,46,0.1); }
+
+.mb-card-top { display: flex; gap: 0.85rem; margin-bottom: 0.85rem; }
+.mb-cover {
+    width: 68px; height: 90px; border-radius: 9px;
+    background: linear-gradient(135deg, #f0f4f2, #e2eae6);
+    display: flex; align-items: center; justify-content: center;
+    color: #0F3D2E; font-size: 1.5rem;
+    flex-shrink: 0; overflow: hidden;
+    box-shadow: 0 4px 12px rgba(15,61,46,0.1);
+}
+.mb-cover img { width: 100%; height: 100%; object-fit: cover; }
+.mb-title {
+    font-size: 0.95rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.25rem;
+    line-height: 1.3;
+}
+.mb-author { font-size: 0.75rem; color: #8a9b95; }
+
+.mb-meta {
+    display: flex; flex-direction: column; gap: 0.4rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    margin-bottom: 0.85rem;
+}
+.mb-meta-row {
+    display: flex; justify-content: space-between;
+    font-size: 0.78rem;
+}
+.mb-meta-row .lbl { color: #8a9b95; font-weight: 600; }
+.mb-meta-row .val { color: #0F3D2E; font-weight: 700; }
+.mb-meta-row .val.danger { color: #dc3545; }
+.mb-meta-row .val.warning { color: #8a6a1a; }
+
+.mb-card-footer {
+    display: flex; gap: 0.5rem;
+    margin-top: auto;
+}
+.mb-card-footer .mb-btn {
+    flex: 1; justify-content: center;
+    font-size: 0.78rem; padding: 0.6rem 0.9rem;
+}
+
+.mb-empty {
+    text-align: center; padding: 4rem 1.5rem;
+    background: #fff;
+    border: 2px dashed rgba(200,169,81,0.35);
+    border-radius: 20px;
+}
+.mb-empty .ic {
+    font-size: 3.5rem; display: block;
+    margin-bottom: 0.85rem; opacity: 0.45; color: #0F3D2E;
+}
+.mb-empty h3 { color: #0F3D2E; margin: 0 0 0.4rem; font-size: 1.1rem; }
+.mb-empty p { color: #8a9b95; font-size: 0.88rem; margin: 0 0 1.25rem; }
+
+@media (max-width: 640px) {
+    .mb-hero { padding: 1.5rem 1.35rem; }
+    .mb-hero h1 { font-size: 1.3rem; }
+    .mb-hero-inner { flex-direction: column; align-items: stretch; }
+    .mb-actions { flex-direction: column; }
+    .mb-btn { justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="mb-wrap">
+
+    <!-- HERO -->
+    <div class="mb-hero">
+        <div class="mb-hero-inner">
+            <div>
+                <h1>📖 My Borrowed Books</h1>
+                <p>Keep track of what you have and when it's due back.</p>
+            </div>
+            <div class="mb-actions">
+                <a href="{% url 'academics:library_home' %}" class="mb-btn gold">
+                    <i class="fas fa-book"></i> Browse Library
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="mb-alerts">
+        {% if overdue_count %}
+        <div class="mb-alert danger">
+            <div class="ic"><i class="fas fa-exclamation-triangle"></i></div>
+            <div>You have <strong>{{ overdue_count }}</strong> overdue book{{ overdue_count|pluralize }}. Please return them as soon as possible.</div>
+        </div>
+        {% endif %}
+        {% if due_soon_count %}
+        <div class="mb-alert warning">
+            <div class="ic"><i class="fas fa-clock"></i></div>
+            <div>{{ due_soon_count }} book{{ due_soon_count|pluralize }} due within 3 days.</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- GRID -->
+    <div class="mb-grid">
+        {% for b in borrowed %}
+        <div class="mb-card {% if b.is_overdue %}overdue{% elif b.days_until_due is not None and b.days_until_due <= 3 %}due-soon{% endif %}">
+            <div class="mb-card-top">
+                <div class="mb-cover">
+                    {% if b.has_cover %}
+                        <img src="{{ b.cover_url }}" alt="{{ b.title }}">
+                    {% else %}
+                        <i class="fas fa-book"></i>
+                    {% endif %}
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <div class="mb-title">{{ b.title }}</div>
+                    <div class="mb-author">{{ b.author|default:"—" }}</div>
+                </div>
+            </div>
+
+            <div class="mb-meta">
+                <div class="mb-meta-row">
+                    <span class="lbl">Borrowed</span>
+                    <span class="val">{{ b.borrowed_at|date:"M d, Y" }}</span>
+                </div>
+                <div class="mb-meta-row">
+                    <span class="lbl">Due</span>
+                    <span class="val {% if b.is_overdue %}danger{% elif b.days_until_due <= 3 %}warning{% endif %}">
+                        {{ b.due_date|date:"M d, Y" }}
+                        {% if b.is_overdue %}
+                            ({{ b.days_until_due }} day{{ b.days_until_due|pluralize }} overdue)
+                        {% elif b.days_until_due is not None %}
+                            ({{ b.days_until_due }} day{{ b.days_until_due|pluralize }} left)
+                        {% endif %}
+                    </span>
+                </div>
+                {% if b.shelf_location %}
+                <div class="mb-meta-row">
+                    <span class="lbl">From</span>
+                    <span class="val">{{ b.shelf_location }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-card-footer">
+                <a href="{% url 'academics:library_detail' b.pk %}" class="mb-btn outline"
+                   style="background:#f4f6f5; color:#0F3D2E; border-color:rgba(0,0,0,0.06);">
+                    <i class="fas fa-eye"></i> Details
+                </a>
+                <form method="post" action="{% url 'academics:library_return' b.pk %}" style="flex:1; display:flex;">
+                    {% csrf_token %}
+                    <button type="submit" class="mb-btn gold" style="width:100%;">
+                        <i class="fas fa-undo"></i> Return
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="mb-empty" style="grid-column: 1/-1;">
+            <i class="fas fa-book-reader ic"></i>
+            <h3>No books borrowed yet</h3>
+            <p>Browse the library and borrow something to read.</p>
+            <a href="{% url 'academics:library_home' %}" class="mb-btn gold">
+                <i class="fas fa-book"></i> Browse Library
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

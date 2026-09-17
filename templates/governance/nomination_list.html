@@ -1,0 +1,399 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Nominations · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.gov-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.6rem 2rem; margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.gov-head::before {
+    content: "🙋"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.gov-head-inner {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.gov-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.85rem; border-radius: 20px; margin-bottom: 0.35rem;
+}
+.gov-head h1 { font-size: 1.4rem; font-weight: 800; margin: 0; }
+.gov-head p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+.gov-head-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.25rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem; text-decoration: none;
+    border: 1px solid transparent; transition: all 0.25s;
+}
+.hbtn-gold { background: #C8A951; color: #0F3D2E; border-color: #C8A951; }
+.hbtn-gold:hover { background: #E0C96E; color: #0F3D2E; transform: translateY(-2px); }
+.hbtn-outline { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2); }
+.hbtn-outline:hover { background: rgba(255,255,255,0.22); color: #fff; transform: translateY(-2px); }
+
+/* Workflow tabs */
+.workflow-tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+.wtab {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.15rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    color: #4a5568; text-decoration: none;
+    transition: all 0.25s;
+}
+.wtab:hover { background: #fff; color: #0F3D2E; transform: translateY(-2px); border-color: rgba(200,169,81,0.4); }
+.wtab.active {
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff; border-color: #0F3D2E;
+    box-shadow: 0 6px 18px rgba(15,61,46,0.25);
+}
+
+/* Filters */
+.filters-bar {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1.2rem; margin-bottom: 1.25rem;
+}
+.filters-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 0.5rem; align-items: center;
+}
+.filters-grid input {
+    padding: 0.5rem 0.85rem; border: 1px solid #d0d9d6;
+    border-radius: 8px; background: #fff;
+    font-size: 0.85rem; font-family: inherit; width: 100%;
+}
+.filters-grid input:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.filters-grid .btn-search {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.55rem 1.1rem; border-radius: 8px; cursor: pointer;
+    font-weight: 700; font-size: 0.82rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    justify-content: center; white-space: nowrap;
+}
+
+/* Nomination cards */
+.nomination-list { display: flex; flex-direction: column; gap: 0.85rem; }
+.nom-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.nom-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(200,169,81,0.4);
+}
+.nom-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; bottom: 0; width: 4px;
+}
+.nom-card.status-pending::before     { background: linear-gradient(180deg,#d69e2e,#ecc94b); }
+.nom-card.status-shortlisted::before { background: linear-gradient(180deg,#185fa5,#4299e1); }
+.nom-card.status-accepted::before    { background: linear-gradient(180deg,#38a169,#48bb78); }
+.nom-card.status-rejected::before    { background: linear-gradient(180deg,#c0392b,#e53e3e); }
+
+.nom-header {
+    display: flex; justify-content: space-between;
+    align-items: flex-start; gap: 1rem;
+    margin-bottom: 0.75rem; flex-wrap: wrap;
+}
+.nom-name {
+    font-size: 1.05rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.3rem;
+    letter-spacing: -0.01em;
+}
+.nom-office {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.78rem; color: #8a6a1a; font-weight: 700;
+}
+.nom-office i { color: #C8A951; }
+
+.nom-status {
+    padding: 0.3rem 0.85rem; border-radius: 50px;
+    font-size: 0.66rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+.nom-status.pending     { background: #fef3e8; color: #a8671a; }
+.nom-status.shortlisted { background: #e6f0fb; color: #185fa5; }
+.nom-status.accepted    { background: #e8f2ec; color: #1a6b3c; }
+.nom-status.rejected    { background: #fdecea; color: #9b2c2c; }
+
+.nom-meta {
+    display: flex; flex-wrap: wrap; gap: 0.85rem;
+    font-size: 0.76rem; color: #8a9b95;
+    margin-bottom: 0.75rem;
+}
+.nom-meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.nom-meta i { color: #C8A951; }
+
+.nom-reason {
+    font-size: 0.85rem; color: #5A5A5A;
+    line-height: 1.6; margin: 0 0 1rem;
+    padding: 0.85rem 1rem;
+    background: #f8faf9;
+    border-radius: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.nom-actions {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.nom-btn {
+    padding: 0.5rem 1.1rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.76rem;
+    text-decoration: none; border: none; cursor: pointer;
+    font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    transition: all 0.2s;
+}
+.nom-btn.shortlist { background: #e6f0fb; color: #185fa5; }
+.nom-btn.shortlist:hover { background: #185fa5; color: #fff; }
+.nom-btn.accept { background: #e8f2ec; color: #1a6b3c; }
+.nom-btn.accept:hover { background: #38a169; color: #fff; }
+.nom-btn.reject { background: #fdecea; color: #9b2c2c; }
+.nom-btn.reject:hover { background: #c0392b; color: #fff; }
+.nom-btn.edit { background: #f5e9c8; color: #8a6a1a; }
+.nom-btn.edit:hover { background: var(--gold); color: #fff; }
+.nom-btn.del { background: #fdecea; color: #9b2c2c; }
+.nom-btn.del:hover { background: #f5c2bc; }
+
+.empty-state {
+    text-align: center; padding: 4rem 1.5rem;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 2px dashed rgba(200,169,81,0.35);
+    border-radius: 18px;
+}
+.empty-state .ic { font-size: 3.5rem; display: block; margin-bottom: 0.75rem; }
+.empty-state h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1.05rem; }
+.empty-state p { color: #8a9b95; font-size: 0.85rem; margin: 0 0 1rem; }
+
+.pagination { margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap; }
+.pagination a, .pagination .current {
+    min-width: 38px; height: 38px; padding: 0 0.8rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.82rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: #0F3D2E;
+}
+.pagination a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pagination .current { background: var(--primary); color: #C8A951; border-color: var(--primary); }
+
+@media (max-width: 768px) {
+    .gov-head-inner { flex-direction: column; align-items: stretch; }
+    .gov-head-actions { flex-direction: column; }
+    .hbtn { justify-content: center; width: 100%; }
+    .filters-grid { grid-template-columns: 1fr; }
+    .nom-header { flex-direction: column; }
+    .nom-actions { flex-direction: column; }
+    .nom-actions .nom-btn { justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="gov-head">
+    <div class="gov-head-inner">
+        <div>
+            <span class="gov-eyebrow">Governance · Shura</span>
+            <h1>Nominations</h1>
+            <p>Intake for the incoming EXCO — tracked here, decided by the Shura Committee.</p>
+        </div>
+        <div class="gov-head-actions">
+            <a href="{% url 'governance:nomination_create' %}" class="hbtn hbtn-gold">
+                <i class="fas fa-plus"></i> New Nomination
+            </a>
+            <a href="{% url 'governance:dashboard' %}" class="hbtn hbtn-outline">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Workflow tabs -->
+<div class="workflow-tabs">
+    <a href="{% url 'governance:nomination_list' %}" class="wtab {% if not status_filter %}active{% endif %}">
+        <i class="fas fa-list"></i> All
+    </a>
+    <a href="?status=pending" class="wtab {% if status_filter == 'pending' %}active{% endif %}">
+        <i class="fas fa-hourglass-half"></i> Pending
+    </a>
+    <a href="?status=shortlisted" class="wtab {% if status_filter == 'shortlisted' %}active{% endif %}">
+        <i class="fas fa-star"></i> Shortlisted
+    </a>
+    <a href="?status=accepted" class="wtab {% if status_filter == 'accepted' %}active{% endif %}">
+        <i class="fas fa-check-circle"></i> Accepted
+    </a>
+    <a href="?status=rejected" class="wtab {% if status_filter == 'rejected' %}active{% endif %}">
+        <i class="fas fa-times-circle"></i> Rejected
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+    <form method="get">
+        <div class="filters-grid">
+            <input type="text" name="q" placeholder="Search nominee name, email, or reason…" value="{{ query }}">
+            <input type="text" name="session" placeholder="Session e.g. 2025/2026" value="{{ session_filter }}">
+            <button type="submit" class="btn-search"><i class="fas fa-search"></i> Filter</button>
+        </div>
+        {% if query or session_filter or status_filter %}
+        <a href="{% url 'governance:nomination_list' %}" class="clear-link" style="display:block;text-align:right;color:#8a9b95;font-size:0.78rem;margin-top:0.5rem;text-decoration:none;">
+            ✕ Clear filters
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Nominations list -->
+<div class="nomination-list">
+    {% for n in nominations %}
+    <div class="nom-card status-{{ n.status }}">
+        <div class="nom-header">
+            <div>
+                <h3 class="nom-name">{{ n.nominated_name }}</h3>
+                {% if n.nominated_office %}
+                <div class="nom-office">
+                    <i class="fas fa-building"></i> {{ n.nominated_office.name }}
+                </div>
+                {% endif %}
+            </div>
+            <span class="nom-status {{ n.status }}">{{ n.get_status_display }}</span>
+        </div>
+
+        <div class="nom-meta">
+            {% if n.nominated_email %}
+            <span><i class="fas fa-envelope"></i> {{ n.nominated_email }}</span>
+            {% endif %}
+            {% if n.nominated_phone %}
+            <span><i class="fas fa-phone"></i> {{ n.nominated_phone }}</span>
+            {% endif %}
+            {% if n.session_label %}
+            <span><i class="fas fa-calendar"></i> {{ n.session_label }}</span>
+            {% endif %}
+            {% if n.nominated_by %}
+            <span><i class="fas fa-user"></i> by {{ n.nominated_by.get_full_name|default:n.nominated_by.username }}</span>
+            {% endif %}
+            <span><i class="far fa-clock"></i> {{ n.created_at|timesince }} ago</span>
+        </div>
+
+        {% if n.reason %}
+        <div class="nom-reason">{{ n.reason }}</div>
+        {% endif %}
+
+        <div class="nom-actions">
+            {% if n.status == 'pending' %}
+            <form method="post" action="{% url 'governance:nomination_set_status' n.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="shortlisted">
+                <button type="submit" class="nom-btn shortlist">
+                    <i class="fas fa-star"></i> Shortlist
+                </button>
+            </form>
+            {% endif %}
+
+            {% if n.status != 'accepted' %}
+            <form method="post" action="{% url 'governance:nomination_set_status' n.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="accepted">
+                <button type="submit" class="nom-btn accept">
+                    <i class="fas fa-check"></i> Accept
+                </button>
+            </form>
+            {% endif %}
+
+            {% if n.status != 'rejected' %}
+            <form method="post" action="{% url 'governance:nomination_set_status' n.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="rejected">
+                <button type="submit" class="nom-btn reject">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+            </form>
+            {% endif %}
+
+            <a href="{% url 'governance:nomination_edit' n.pk %}" class="nom-btn edit">
+                <i class="fas fa-pen"></i> Edit
+            </a>
+
+            {% if perms.governance.delete_nominationintake %}
+            <button type="button" class="nom-btn del"
+                    onclick="confirmDelete('{{ n.pk }}', '{{ n.nominated_name|escapejs }}')">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <span class="ic">🙋</span>
+        <h3>No nominations found</h3>
+        <p>{% if query or session_filter or status_filter %}Try adjusting the filters.{% else %}Nominations for the incoming EXCO will appear here.{% endif %}</p>
+        <a href="{% url 'governance:nomination_create' %}" class="hbtn hbtn-gold" style="display:inline-flex;">
+            <i class="fas fa-plus"></i> Add first nomination
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Hidden delete form -->
+<form method="post" id="nomDeleteForm" style="display:none;">{% csrf_token %}</form>
+
+<script>
+function confirmDelete(pk, name) {
+    NAMETS.confirm({
+        title: 'Delete Nomination?',
+        message: `The nomination for “${name}” will be permanently removed. This cannot be undone.`,
+        confirmText: 'Yes, Delete',
+        danger: true,
+    }).then(ok => {
+        if (!ok) return;
+        const form = document.getElementById('nomDeleteForm');
+        form.action = `/governance/nominations/${pk}/delete/`;
+        form.submit();
+    });
+}
+</script>
+
+{% endblock %}

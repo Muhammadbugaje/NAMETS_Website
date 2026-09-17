@@ -1,0 +1,571 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Academics Dashboard · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.ac-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 1.5rem;
+    display: flex; flex-wrap: wrap; align-items: center;
+    justify-content: space-between; gap: 1rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.ac-hero::before {
+    content: "📚"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.ac-hero-left h1 { font-size: 1.7rem; color: #fff; margin: 0 0 0.3rem; font-weight: 700; }
+.ac-hero-left p { color: rgba(255,255,255,0.8); font-size: 0.92rem; margin: 0; }
+.ac-hero-left .badge {
+    display: inline-block; background: rgba(200,169,81,0.2);
+    color: #E0C96E; padding: 0.2rem 1rem; border-radius: 20px;
+    font-size: 0.7rem; font-weight: 600; margin-top: 0.4rem;
+    letter-spacing: 0.05em;
+}
+.ac-hero-clock {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+    border-radius: 20px; padding: 0.7rem 1.3rem;
+    text-align: center; min-width: 140px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.ac-hero-clock .lbl { font-size: 0.6rem; color: #C8A951; text-transform: uppercase; letter-spacing: 0.06em; }
+.ac-hero-clock .val { font-size: 1.3rem; font-weight: 700; color: #fff; line-height: 1.3; }
+.ac-hero-clock .sub { font-size: 0.62rem; color: rgba(255,255,255,0.7); }
+
+/* ===== Islamiyya snapshot ===== */
+.isl-hero {
+    background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 100%);
+    border-left: 5px solid #C8A951;
+    border-radius: 18px; padding: 1.5rem 1.75rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 6px 24px rgba(200,169,81,0.15);
+}
+.isl-hero::after {
+    content: "🕌"; font-size: 4rem;
+    position: absolute; top: 50%; right: 1.5rem;
+    transform: translateY(-50%); opacity: 0.12;
+}
+.isl-hero-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;
+}
+.isl-hero-title { font-size: 0.7rem; font-weight: 700; color: #8a6a1a; margin: 0 0 0.15rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.isl-hero-session { font-size: 1.35rem; font-weight: 800; color: #0F3D2E; margin: 0; }
+.isl-hero-status {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.35rem 0.9rem; border-radius: 30px;
+    font-size: 0.75rem; font-weight: 700;
+}
+.isl-hero-status.open { background: #d4edda; color: #155724; }
+.isl-hero-status.closed { background: #f8d7da; color: #721c24; }
+.isl-hero-status .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.isl-hero-status.open .dot { animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.isl-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem; position: relative;
+}
+.isl-stat {
+    background: #fff; border-radius: 12px; padding: 0.85rem 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.isl-stat .lbl {
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a9b95; font-weight: 700; margin-bottom: 0.3rem;
+}
+.isl-stat .num { font-size: 1.35rem; font-weight: 800; color: #0F3D2E; line-height: 1.2; }
+.isl-stat .num.green { color: #1a6b3c; }
+.isl-stat .num.amber { color: #a8671a; }
+.isl-stat .sub { font-size: 0.68rem; color: #8a9b95; margin-top: 0.15rem; }
+
+.isl-actions {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    margin-top: 1rem; padding-top: 1rem;
+    border-top: 1px dashed rgba(138,106,26,0.2);
+    position: relative;
+}
+.isl-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.15rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem; text-decoration: none;
+    transition: all 0.25s ease;
+}
+.isl-btn-primary { background: #0F3D2E; color: #fff; box-shadow: 0 4px 12px rgba(15,61,46,0.2); }
+.isl-btn-primary:hover { background: #1a5a44; transform: translateY(-2px); color: #fff; }
+.isl-btn-outline { background: transparent; color: #8a6a1a; border: 1.5px solid rgba(138,106,26,0.35); }
+.isl-btn-outline:hover { background: #8a6a1a; color: #fff; border-color: #8a6a1a; }
+
+/* ===== CBT snapshot ===== */
+.cbt-hero {
+    background: linear-gradient(135deg, #e8f2ec 0%, #f0faf4 100%);
+    border-left: 5px solid #0F3D2E;
+    border-radius: 18px; padding: 1.5rem 1.75rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 6px 24px rgba(15,61,46,0.12);
+}
+.cbt-hero::after {
+    content: "🧠"; font-size: 4rem;
+    position: absolute; top: 50%; right: 1.5rem;
+    transform: translateY(-50%); opacity: 0.1;
+}
+.cbt-hero-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;
+}
+.cbt-hero-title { font-size: 0.7rem; font-weight: 700; color: #1a6b3c; margin: 0 0 0.15rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.cbt-hero-session { font-size: 1.35rem; font-weight: 800; color: #0F3D2E; margin: 0; }
+.cbt-hero-status {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.35rem 0.9rem; border-radius: 30px;
+    font-size: 0.75rem; font-weight: 700;
+}
+.cbt-hero-status.on { background: #d4edda; color: #155724; }
+.cbt-hero-status.off { background: #f8d7da; color: #721c24; }
+.cbt-hero-status .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.cbt-hero-status.on .dot { animation: pulse 1.5s infinite; }
+
+.cbt-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem; position: relative;
+}
+.cbt-stat {
+    background: #fff; border-radius: 12px; padding: 0.85rem 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.cbt-stat .lbl {
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a9b95; font-weight: 700; margin-bottom: 0.3rem;
+}
+.cbt-stat .num { font-size: 1.35rem; font-weight: 800; color: #0F3D2E; line-height: 1.2; }
+.cbt-stat .num.green { color: #1a6b3c; }
+.cbt-stat .num.amber { color: #a8671a; }
+.cbt-stat .num.red   { color: #9b2c2c; }
+.cbt-stat .sub { font-size: 0.68rem; color: #8a9b95; margin-top: 0.15rem; }
+
+.cbt-actions {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    margin-top: 1rem; padding-top: 1rem;
+    border-top: 1px dashed rgba(15,61,46,0.15);
+    position: relative;
+}
+.cbt-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.15rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem; text-decoration: none;
+    transition: all 0.25s ease;
+}
+.cbt-btn-primary { background: #0F3D2E; color: #fff; box-shadow: 0 4px 12px rgba(15,61,46,0.2); }
+.cbt-btn-primary:hover { background: #1a5a44; transform: translateY(-2px); color: #fff; }
+.cbt-btn-outline { background: transparent; color: #0F3D2E; border: 1.5px solid rgba(15,61,46,0.35); }
+.cbt-btn-outline:hover { background: #0F3D2E; color: #fff; border-color: #0F3D2E; }
+.cbt-btn-gold { background: #C8A951; color: #0F3D2E; box-shadow: 0 4px 12px rgba(200,169,81,0.3); }
+.cbt-btn-gold:hover { background: #E0C96E; color: #0F3D2E; transform: translateY(-2px); }
+
+/* KPI grid */
+.stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.85rem; margin-bottom: 1.5rem;
+}
+.stat-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-sm);
+    padding: 0.9rem 1.1rem; text-decoration: none;
+    transition: var(--transition); display: flex; align-items: center;
+    gap: 0.85rem; box-shadow: var(--shadow-sm);
+}
+.stat-card:hover {
+    transform: translateY(-4px); border-color: var(--gold);
+    box-shadow: var(--shadow-md);
+}
+.stat-card .icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; flex-shrink: 0;
+}
+.icon.green { background: #e8f2ec; color: #1a3c2e; }
+.icon.gold  { background: #f5e9c8; color: #8a6a1a; }
+.icon.blue  { background: #e6f0fb; color: #185fa5; }
+.icon.red   { background: #fdecea; color: #9b2c2c; }
+.icon.purple{ background: #f0eafb; color: #6b21a8; }
+.icon.teal  { background: #e0f7f4; color: #0d7a6b; }
+.icon.orange{ background: #fef3e8; color: #a8671a; }
+.stat-card .num { font-size: 1.3rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+.stat-card .lbl { font-size: 0.65rem; color: var(--text-muted); font-weight: 500; display: block; }
+
+/* Sections */
+.section-row {
+    display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.25rem;
+}
+.section-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1.2rem 1.35rem; box-shadow: var(--shadow-sm);
+}
+.section-card .header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.85rem;
+}
+.section-card .header h3 {
+    font-size: 0.88rem; font-weight: 700; color: var(--text-primary);
+    margin: 0; display: flex; align-items: center; gap: 0.5rem;
+}
+.section-card .header a {
+    font-size: 0.75rem; color: var(--gold);
+    text-decoration: none; font-weight: 600;
+}
+.section-card .header a:hover { text-decoration: underline; }
+
+.activity-list { list-style: none; padding: 0; margin: 0; }
+.activity-list li {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 0.75rem; font-size: 0.82rem; color: var(--text-secondary);
+}
+.activity-list li:last-child { border-bottom: none; }
+.activity-list .left { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+.activity-list .left strong { color: var(--text-primary); font-weight: 600; }
+.activity-list .time { font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; }
+.activity-list .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot.green  { background: #38a169; }
+.dot.gold   { background: #C8A951; }
+.dot.red    { background: #e53e3e; }
+.dot.purple { background: #9333ea; }
+.activity-empty { color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem 1rem; }
+
+/* Quick actions */
+.quick-row { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-bottom: 1.5rem; }
+.quick-btn {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 50px; padding: 0.45rem 1.1rem;
+    text-decoration: none; color: var(--text-primary);
+    font-weight: 600; font-size: 0.78rem;
+    transition: var(--transition); display: inline-flex; align-items: center;
+    gap: 0.4rem;
+}
+.quick-btn:hover {
+    background: var(--primary); color: #fff; border-color: var(--primary);
+    transform: translateY(-2px); box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 900px) { .section-row { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+    .ac-hero { padding: 1.4rem 1.25rem; }
+    .ac-hero::before { font-size: 3rem; }
+    .ac-hero-left h1 { font-size: 1.35rem; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+    .stat-card { padding: 0.7rem 0.8rem; }
+    .stat-card .num { font-size: 1.05rem; }
+    .stat-card .icon { width: 34px; height: 34px; font-size: 0.95rem; }
+    .isl-hero, .cbt-hero { padding: 1.15rem 1.15rem; }
+    .isl-hero-session, .cbt-hero-session { font-size: 1.1rem; }
+    .isl-actions, .cbt-actions { flex-direction: column; align-items: stretch; }
+    .isl-btn, .cbt-btn { justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="ac-hero">
+    <div class="ac-hero-left">
+        <h1>📚 Academics</h1>
+        <p>Manage courses, tutors, sessions, Islamiyya, results, CBT, and resources.</p>
+        <span class="badge">Academic Office Dashboard</span>
+    </div>
+    <div class="ac-hero-clock">
+        <div class="lbl">🕐 Current Time</div>
+        <div class="val" id="acHeroClock">--:--:--</div>
+        <div class="sub" id="acHeroDate">Loading…</div>
+    </div>
+</div>
+
+{% if current_islamiyya %}
+<div class="isl-hero">
+    <div class="isl-hero-top">
+        <div>
+            <div class="isl-hero-title">🕌 Current Islamiyya Session</div>
+            <div class="isl-hero-session">{{ current_islamiyya.academic_session }}</div>
+        </div>
+        {% if current_islamiyya.is_currently_open %}
+        <span class="isl-hero-status open"><span class="dot"></span> Registration Open</span>
+        {% else %}
+        <span class="isl-hero-status closed"><span class="dot"></span> Registration Closed</span>
+        {% endif %}
+    </div>
+
+    <div class="isl-stats">
+        <div class="isl-stat">
+            <div class="lbl">Paid</div>
+            <div class="num green">{{ islamiyya_paid }}</div>
+            <div class="sub">registration{{ islamiyya_paid|pluralize }}</div>
+        </div>
+        <div class="isl-stat">
+            <div class="lbl">Pending</div>
+            <div class="num amber">{{ islamiyya_pending }}</div>
+            <div class="sub">awaiting payment</div>
+        </div>
+        <div class="isl-stat">
+            <div class="lbl">Collected</div>
+            <div class="num">₦{{ islamiyya_collected|floatformat:0 }}</div>
+            <div class="sub">this session</div>
+        </div>
+        <div class="isl-stat">
+            <div class="lbl">Fee</div>
+            <div class="num">₦{{ islamiyya_fee|floatformat:0 }}</div>
+            <div class="sub">per student</div>
+        </div>
+    </div>
+
+    <div class="isl-actions">
+        <a href="{% url 'academics:admin_islamiyya_verification_queue' %}" class="isl-btn isl-btn-primary">
+            <i class="fas fa-clipboard-check"></i> Verification Queue
+        </a>
+        <a href="{% url 'academics:admin_islamiyya_registration_list' %}" class="isl-btn isl-btn-outline">
+            <i class="fas fa-list"></i> All Registrations
+        </a>
+        <a href="{% url 'academics:admin_islamiyya_analytics' %}" class="isl-btn isl-btn-outline">
+            <i class="fas fa-chart-line"></i> Analytics
+        </a>
+        <a href="{% url 'academics:admin_islamiyya_settings_edit' current_islamiyya.pk %}" class="isl-btn isl-btn-outline">
+            <i class="fas fa-cog"></i> Settings
+        </a>
+    </div>
+</div>
+{% else %}
+<div class="isl-hero" style="text-align:center;">
+    <div class="isl-hero-title">🕌 Islamiyya Session</div>
+    <p style="color:#5A5A5A;font-size:0.9rem;margin:0.5rem 0 1rem;">No active session configured yet.</p>
+    <a href="{% url 'academics:admin_islamiyya_settings_create' %}" class="isl-btn isl-btn-primary">
+        <i class="fas fa-plus"></i> Create First Session
+    </a>
+</div>
+{% endif %}
+
+{# ===== CBT SNAPSHOT ===== #}
+{% if perms.academics.view_cbtcourse or perms.academics.view_questionbank %}
+<div class="cbt-hero">
+    <div class="cbt-hero-top">
+        <div>
+            <div class="cbt-hero-title">🧠 CBT — Computer-Based Testing</div>
+            <div class="cbt-hero-session">Practice Tests & Question Bank</div>
+        </div>
+        {% if cbt_enabled %}
+        <span class="cbt-hero-status on"><span class="dot"></span> Module is LIVE</span>
+        {% else %}
+        <span class="cbt-hero-status off"><span class="dot"></span> Module is OFF</span>
+        {% endif %}
+    </div>
+
+    <div class="cbt-stats">
+        <div class="cbt-stat">
+            <div class="lbl">Courses</div>
+            <div class="num green">{{ cbt_courses }}</div>
+            <div class="sub">active CBT course{{ cbt_courses|pluralize }}</div>
+        </div>
+        <div class="cbt-stat">
+            <div class="lbl">Questions</div>
+            <div class="num">{{ cbt_questions_active }}</div>
+            <div class="sub">of {{ cbt_questions_total }} total</div>
+        </div>
+        <div class="cbt-stat">
+            <div class="lbl">Needs Review</div>
+            <div class="num {% if cbt_low_quality %}red{% endif %}">{{ cbt_low_quality }}</div>
+            <div class="sub">low-correct-rate Qs</div>
+        </div>
+        <div class="cbt-stat">
+            <div class="lbl">Attempts</div>
+            <div class="num">{{ cbt_attempts_total }}</div>
+            <div class="sub">questions answered</div>
+        </div>
+    </div>
+
+    <div class="cbt-actions">
+        <a href="{% url 'academics:admin_cbt_dashboard' %}" class="cbt-btn cbt-btn-primary">
+            <i class="fas fa-chart-line"></i> CBT Dashboard
+        </a>
+        <a href="{% url 'academics:admin_cbt_course_list' %}" class="cbt-btn cbt-btn-outline">
+            <i class="fas fa-book-open"></i> Courses
+        </a>
+        <a href="{% url 'academics:admin_question_list' %}" class="cbt-btn cbt-btn-outline">
+            <i class="fas fa-question-circle"></i> Question Bank
+        </a>
+        <a href="{% url 'academics:admin_question_list' %}?quality=low" class="cbt-btn cbt-btn-gold">
+            <i class="fas fa-exclamation-triangle"></i> Review Low Performers
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<div class="quick-row">
+    {% if perms.academics.add_course %}
+    <a href="{% url 'academics:admin_course_create' %}" class="quick-btn"><i class="fas fa-plus-circle"></i> New Course</a>
+    {% endif %}
+    {% if perms.academics.add_tutor %}
+    <a href="{% url 'academics:admin_tutor_create' %}" class="quick-btn"><i class="fas fa-user-plus"></i> New Tutor</a>
+    {% endif %}
+    {% if perms.academics.add_session %}
+    <a href="{% url 'academics:admin_session_create' %}" class="quick-btn"><i class="fas fa-calendar-plus"></i> New Session</a>
+    {% endif %}
+    {% if perms.academics.add_material %}
+    <a href="{% url 'academics:admin_material_create' %}" class="quick-btn"><i class="fas fa-file-upload"></i> Upload Material</a>
+    {% endif %}
+    {% if perms.academics.add_evaluation %}
+    <a href="{% url 'academics:admin_evaluation_create' %}" class="quick-btn"><i class="fas fa-file-signature"></i> New Exam</a>
+    {% endif %}
+    {% if perms.academics.add_cbtcourse %}
+    <a href="{% url 'academics:admin_cbt_course_create' %}" class="quick-btn"><i class="fas fa-brain"></i> New CBT Course</a>
+    {% endif %}
+    {% if perms.academics.add_questionbank %}
+    <a href="{% url 'academics:admin_question_create' %}" class="quick-btn"><i class="fas fa-lightbulb"></i> New Question</a>
+    {% endif %}
+</div>
+
+<div class="stats-grid">
+    <a href="{% url 'academics:admin_course_list' %}" class="stat-card">
+        <div class="icon green">📖</div>
+        <div>
+            <div class="num">{{ total_courses }}</div>
+            <span class="lbl">Active Courses</span>
+        </div>
+    </a>
+    <a href="{% url 'academics:admin_tutor_list' %}" class="stat-card">
+        <div class="icon purple">👨‍🏫</div>
+        <div>
+            <div class="num">{{ total_tutors }}</div>
+            <span class="lbl">Tutors</span>
+        </div>
+    </a>
+    <a href="{% url 'academics:admin_session_list' %}" class="stat-card">
+        <div class="icon blue">📅</div>
+        <div>
+            <div class="num">{{ upcoming_sessions }}</div>
+            <span class="lbl">Upcoming Sessions</span>
+        </div>
+    </a>
+    <a href="{% url 'academics:admin_resource_list' %}?status=pending" class="stat-card">
+        <div class="icon orange">📥</div>
+        <div>
+            <div class="num">{{ pending_resources }}</div>
+            <span class="lbl">Pending Resources</span>
+        </div>
+    </a>
+    <a href="{% url 'academics:admin_islamiyya_registration_list' %}?status=paid" class="stat-card">
+        <div class="icon teal">🕌</div>
+        <div>
+            <div class="num">{{ islamiyya_paid }}</div>
+            <span class="lbl">Islamiyya Paid</span>
+        </div>
+    </a>
+    <a href="{% url 'academics:admin_islamiyya_verification_queue' %}" class="stat-card">
+        <div class="icon red">⏳</div>
+        <div>
+            <div class="num">{{ islamiyya_pending }}</div>
+            <span class="lbl">Islamiyya Pending</span>
+        </div>
+    </a>
+
+    {# ===== CBT STAT CARDS ===== #}
+    {% if perms.academics.view_cbtcourse %}
+    <a href="{% url 'academics:admin_cbt_course_list' %}" class="stat-card">
+        <div class="icon teal">📘</div>
+        <div>
+            <div class="num">{{ cbt_courses }}</div>
+            <span class="lbl">CBT Courses</span>
+        </div>
+    </a>
+    {% endif %}
+    {% if perms.academics.view_questionbank %}
+    <a href="{% url 'academics:admin_question_list' %}" class="stat-card">
+        <div class="icon blue">❓</div>
+        <div>
+            <div class="num">{{ cbt_questions_active }}</div>
+            <span class="lbl">CBT Questions</span>
+        </div>
+    </a>
+    <a href="{% url 'academics:admin_question_list' %}?quality=low" class="stat-card">
+        <div class="icon red">🔍</div>
+        <div>
+            <div class="num">{{ cbt_low_quality }}</div>
+            <span class="lbl">Qs — Needs Review</span>
+        </div>
+    </a>
+    <a href="{% url 'academics:admin_cbt_dashboard' %}" class="stat-card">
+        <div class="icon purple">🧠</div>
+        <div>
+            <div class="num">{{ cbt_attempts_total }}</div>
+            <span class="lbl">CBT Attempts</span>
+        </div>
+    </a>
+    {% endif %}
+</div>
+
+<div class="section-row">
+    <div class="section-card">
+        <div class="header">
+            <h3><i class="fas fa-clock" style="color:var(--gold);"></i> Recent Islamiyya Registrations</h3>
+            <a href="{% url 'academics:admin_islamiyya_registration_list' %}">View all →</a>
+        </div>
+        <ul class="activity-list">
+            {% for reg in recent_registrations %}
+            <li>
+                <span class="left">
+                    <span class="dot {% if reg.is_paid %}green{% else %}gold{% endif %}"></span>
+                    <span><strong>{{ reg.name|truncatechars:24 }}</strong> · {{ reg.application_id }}</span>
+                </span>
+                <span class="time">
+                    {% if reg.is_paid %}<span style="color:#1a6b3c;font-weight:600;">Paid</span>
+                    {% else %}<span style="color:#a8671a;font-weight:600;">Pending</span>{% endif %}
+                </span>
+            </li>
+            {% empty %}
+            <li class="activity-empty">No registrations yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="section-card">
+        <div class="header">
+            <h3><i class="fas fa-star" style="color:var(--gold);"></i> Recent Evaluations</h3>
+            <a href="{% url 'academics:admin_tutor_evaluation_list' %}">View all →</a>
+        </div>
+        <ul class="activity-list">
+            {% for ev in recent_evaluations %}
+            <li>
+                <span class="left">
+                    <span class="dot purple"></span>
+                    <span><strong>{{ ev.tutor.name|truncatechars:20 }}</strong> · {{ ev.rating }}/5</span>
+                </span>
+                <span class="time">{{ ev.submitted_at|timesince }} ago</span>
+            </li>
+            {% empty %}
+            <li class="activity-empty">No evaluations yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<script>
+(function() {
+    function tick() {
+        const now = new Date();
+        const clock = document.getElementById('acHeroClock');
+        const dateEl = document.getElementById('acHeroDate');
+        if (clock) clock.textContent = now.toLocaleTimeString();
+        if (dateEl) dateEl.textContent = now.toLocaleDateString('en-US',
+            { weekday: 'long', month: 'long', day: 'numeric' });
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
+</script>
+
+{% endblock %}

@@ -1,0 +1,400 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Contact Directory · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   HERO
+   ============================================================ */
+.dir-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.85rem 2rem; margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 12px 36px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.dir-hero::before {
+    content: "📒"; font-size: 7rem;
+    position: absolute; bottom: -1.8rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.dir-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.dir-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.dir-hero h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.3rem; }
+.dir-hero p { color: rgba(255,255,255,0.8); font-size: 0.88rem; margin: 0; max-width: 520px; }
+.dir-hero-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.dir-hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.25rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem;
+    text-decoration: none; border: 1px solid transparent;
+    transition: all 0.25s;
+}
+.dir-hbtn.gold { background: #C8A951; color: #0F3D2E; }
+.dir-hbtn.gold:hover { background: #E0C96E; color: #0F3D2E; transform: translateY(-2px); }
+.dir-hbtn.outline { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.25); }
+.dir-hbtn.outline:hover { background: rgba(255,255,255,0.22); color: #fff; transform: translateY(-2px); }
+
+/* ============================================================
+   STATS
+   ============================================================ */
+.dir-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem; margin-bottom: 1.25rem;
+}
+.dir-stat {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 0.95rem 1.15rem;
+    box-shadow: var(--shadow-sm);
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; gap: 0.85rem;
+}
+.dir-stat::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.dir-stat.green::before { background: linear-gradient(90deg,#0F3D2E,#38a169); }
+.dir-stat.gold::before  { background: linear-gradient(90deg,#8a6a1a,#E0C96E); }
+.dir-stat.blue::before  { background: linear-gradient(90deg,#185fa5,#4299e1); }
+.dir-stat .ic {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+.dir-stat.green .ic { background: #e8f2ec; color: #1a6b3c; }
+.dir-stat.gold .ic  { background: #f5e9c8; color: #8a6a1a; }
+.dir-stat.blue .ic  { background: #e6f0fb; color: #185fa5; }
+.dir-stat .num { font-size: 1.3rem; font-weight: 800; color: #0F3D2E; line-height: 1; }
+.dir-stat .lbl { font-size: 0.68rem; color: #8a9b95; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-top: 0.2rem; }
+
+/* ============================================================
+   FILTERS
+   ============================================================ */
+.dir-filters {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 0.85rem 1.15rem;
+    margin-bottom: 1.25rem;
+}
+.dir-filters-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 0.5rem; align-items: center;
+}
+@media (max-width: 900px) { .dir-filters-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .dir-filters-grid { grid-template-columns: 1fr; } }
+
+.dir-filters input, .dir-filters select {
+    padding: 0.55rem 0.9rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.85rem; font-family: inherit;
+    width: 100%; color: #0F3D2E;
+    transition: all 0.15s;
+}
+.dir-filters input:focus, .dir-filters select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.dir-filters .btn-search {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.55rem 1.15rem; border-radius: 8px;
+    cursor: pointer; font-weight: 700; font-size: 0.8rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    white-space: nowrap;
+}
+.dir-filters .btn-search:hover { background: var(--primary-dark); }
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+.dir-wrap {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.dir-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.dir-table th {
+    background: var(--primary); color: #fff;
+    padding: 0.75rem 1rem; text-align: left;
+    font-size: 0.66rem; text-transform: uppercase;
+    letter-spacing: 0.05em; font-weight: 800;
+    white-space: nowrap;
+}
+.dir-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    vertical-align: middle;
+}
+.dir-table tbody tr:hover { background: rgba(200,169,81,0.04); }
+.dir-table tbody tr:last-child td { border-bottom: none; }
+
+.dir-cell {
+    display: flex; align-items: center; gap: 0.75rem;
+}
+.dir-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 800;
+    flex-shrink: 0;
+    border: 2px solid #C8A951;
+    overflow: hidden;
+}
+.dir-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.dir-avatar.alumni { background: linear-gradient(135deg, #6b21a8, #a78bfa); border-color: #a78bfa; }
+.dir-name { font-weight: 700; color: #0F3D2E; font-size: 0.86rem; }
+.dir-email { font-size: 0.72rem; color: #8a9b95; margin-top: 0.1rem; }
+
+.dir-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.18rem 0.6rem; border-radius: 20px;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+.dir-badge.alumni { background: #f0eafb; color: #6b21a8; }
+.dir-badge.exco   { background: #e8f2ec; color: #1a6b3c; }
+
+.dir-contact {
+    display: flex; flex-direction: column; gap: 0.15rem;
+    font-size: 0.78rem; color: #4a5568;
+}
+.dir-contact a { color: #185fa5; text-decoration: none; }
+.dir-contact a:hover { text-decoration: underline; }
+
+.dir-actions { display: flex; gap: 0.35rem; }
+.dir-action-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; cursor: pointer; font-size: 0.78rem;
+    text-decoration: none; transition: all 0.2s;
+}
+.dir-action-btn.mail { background: #e6f0fb; color: #185fa5; }
+.dir-action-btn.mail:hover { background: #185fa5; color: #fff; transform: scale(1.08); }
+.dir-action-btn.wa { background: #e8f2ec; color: #1a6b3c; }
+.dir-action-btn.wa:hover { background: #25D366; color: #fff; transform: scale(1.08); }
+
+.dir-empty {
+    text-align: center; padding: 3rem 1.5rem;
+    color: #8a9b95;
+}
+.dir-empty .ic { font-size: 3rem; display: block; margin-bottom: 0.75rem; opacity: 0.5; }
+.dir-empty h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1rem; }
+
+.dir-pagination {
+    margin-top: 1.25rem;
+    display: flex; justify-content: center; gap: 0.3rem; flex-wrap: wrap;
+}
+.dir-pagination a, .dir-pagination .current {
+    min-width: 36px; height: 36px; padding: 0 0.75rem;
+    border-radius: 9px; text-decoration: none;
+    font-size: 0.8rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    color: #0F3D2E; transition: all 0.15s;
+}
+.dir-pagination a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.dir-pagination .current { background: var(--primary); color: #C8A951; border-color: var(--primary); }
+
+@media (max-width: 768px) {
+    .dir-hero { padding: 1.25rem 1.35rem; }
+    .dir-hero-inner { flex-direction: column; align-items: stretch; }
+    .dir-hero-actions { flex-direction: column; }
+    .dir-hbtn { justify-content: center; width: 100%; }
+    .dir-table .hide-sm { display: none; }
+    .dir-table th, .dir-table td { padding: 0.55rem 0.7rem; font-size: 0.78rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- HERO -->
+<div class="dir-hero">
+    <div class="dir-hero-inner">
+        <div>
+            <span class="dir-eyebrow">🎓 NAMETS Directory</span>
+            <h1>Contact Directory</h1>
+            <p>Reach out to fellow alumni, current EXCO, and the wider NAMETS community.</p>
+        </div>
+        <div class="dir-hero-actions">
+            <a href="{% url 'dashboards:alumni_dashboard' %}" class="dir-hbtn gold">
+                <i class="fas fa-home"></i> Alumni Home
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- STATS -->
+<div class="dir-stats">
+    <div class="dir-stat blue">
+        <div class="ic"><i class="fas fa-users"></i></div>
+        <div>
+            <div class="num">{{ total_people }}</div>
+            <div class="lbl">Total Members</div>
+        </div>
+    </div>
+    <div class="dir-stat gold">
+        <div class="ic"><i class="fas fa-graduation-cap"></i></div>
+        <div>
+            <div class="num">{{ alumni_count }}</div>
+            <div class="lbl">Alumni</div>
+        </div>
+    </div>
+    <div class="dir-stat green">
+        <div class="ic"><i class="fas fa-user-tie"></i></div>
+        <div>
+            <div class="num">{{ exco_count }}</div>
+            <div class="lbl">Current EXCO</div>
+        </div>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="dir-filters">
+    <form method="get">
+        <div class="dir-filters-grid">
+            <input type="text" name="q" placeholder="Search by name, email, or phone…" value="{{ q }}">
+            <select name="type">
+                <option value="">Everyone</option>
+                <option value="alumni" {% if filter_type == 'alumni' %}selected{% endif %}>Alumni only</option>
+                <option value="exco" {% if filter_type == 'exco' %}selected{% endif %}>Current EXCO</option>
+            </select>
+            <select name="dept">
+                <option value="">All Departments</option>
+                {% for d in departments %}
+                <option value="{{ d.pk }}" {% if dept_filter == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-search">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- TABLE -->
+<div class="dir-wrap">
+    <table class="dir-table">
+        <thead>
+            <tr>
+                <th>Member</th>
+                <th class="hide-sm">Status</th>
+                <th class="hide-sm">Department</th>
+                <th>Contact</th>
+                <th style="width:80px;">Reach out</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>
+                    <div class="dir-cell">
+                        <div class="dir-avatar {% if u.is_alumni %}alumni{% endif %}">
+                            {% if u.profile_picture %}
+                                <img src="{{ u.profile_picture.url }}" alt="">
+                            {% else %}
+                                {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="dir-name">
+                                {{ u.get_full_name|default:u.email }}
+                                {% if u.pk == request.user.pk %}<span style="color:#C8A951;font-size:0.7rem;"> (you)</span>{% endif %}
+                            </div>
+                            <div class="dir-email">{{ u.email }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="hide-sm">
+                    {% if u.is_alumni %}
+                    <span class="dir-badge alumni">🎓 Alumni</span>
+                    {% elif u.office_assignments.all %}
+                        {% for a in u.office_assignments.all|slice:":1" %}
+                            {% if a.is_active %}
+                            <span class="dir-badge exco">🏛️ {{ a.office.name }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                    <span class="dir-badge" style="background:#f0f4f2;color:#4a5568;">Member</span>
+                    {% endif %}
+                </td>
+                <td class="hide-sm">
+                    {% if u.department %}
+                        <span style="font-size:0.78rem;color:#4a5568;">{{ u.department.name }}</span>
+                    {% else %}
+                        <span style="font-size:0.78rem;color:#c0c8c5;">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="dir-contact">
+                        {% if u.phone_number %}
+                        <span>{{ u.phone_number }}</span>
+                        {% else %}
+                        <span style="color:#c0c8c5;">No phone</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>
+                    <div class="dir-actions">
+                        <a href="mailto:{{ u.email }}" class="dir-action-btn mail" title="Send email">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                        {% if u.phone_number %}
+                        <a href="https://wa.me/{{ u.phone_number }}"
+                           target="_blank" rel="noopener"
+                           class="dir-action-btn wa" title="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">
+                <div class="dir-empty">
+                    <span class="ic">🔍</span>
+                    <h3>No members found</h3>
+                    <p>Try adjusting the search or filters.</p>
+                </div>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- PAGINATION -->
+{% if is_paginated %}
+<div class="dir-pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

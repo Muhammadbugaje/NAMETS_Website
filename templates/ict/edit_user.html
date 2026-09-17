@@ -1,0 +1,1372 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Edit User · NAMETS EXCO{% endblock %}
+
+{% block dash_content %}
+
+<div class="edit-page">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div>
+            <a href="{% url 'ict:user_detail' target_user.id %}" class="back-link">
+                <span>←</span> Back to User
+            </a>
+
+            <div class="title-row">
+                <div class="title-icon">✏️</div>
+                <div>
+                    <h1>Edit User</h1>
+                    <p>
+                        Update the account details for
+                        <strong>{{ target_user.get_full_name }}</strong>.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="account-status {% if target_user.is_active %}active{% else %}inactive{% endif %}">
+            <span class="status-dot"></span>
+            {% if target_user.is_active %}
+                Active Account
+            {% else %}
+                Suspended
+            {% endif %}
+        </div>
+    </div>
+
+
+    <!-- MAIN LAYOUT -->
+    <div class="edit-layout">
+
+        <!-- FORM -->
+        <form method="post" class="edit-card" id="editUserForm">
+            {% csrf_token %}
+
+            <!-- PERSONAL INFORMATION -->
+            <section class="form-section">
+
+                <div class="section-heading">
+                    <div class="section-icon">👤</div>
+                    <div>
+                        <h2>Personal Information</h2>
+                        <p>Basic information about this user.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="first_name">
+                            First Name
+                            <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            name="first_name"
+                            id="first_name"
+                            value="{{ target_user.first_name }}"
+                            placeholder="Enter first name"
+                            autocomplete="given-name"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="last_name">
+                            Last Name
+                            <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            name="last_name"
+                            id="last_name"
+                            value="{{ target_user.last_name }}"
+                            placeholder="Enter last name"
+                            autocomplete="family-name"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group full-width">
+                        <label for="middle_name">
+                            Middle Name
+                        </label>
+
+                        <input
+                            type="text"
+                            name="middle_name"
+                            id="middle_name"
+                            value="{{ target_user.middle_name }}"
+                            placeholder="Enter middle name (optional)"
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="phone_number">
+                            Phone Number
+                        </label>
+
+                        <input
+                            type="tel"
+                            name="phone_number"
+                            id="phone_number"
+                            value="{{ target_user.phone_number }}"
+                            placeholder="e.g. 08012345678"
+                            autocomplete="tel"
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="matric_number">
+                            Matric Number
+                        </label>
+
+                        <input
+                            type="text"
+                            name="matric_number"
+                            id="matric_number"
+                            value="{{ target_user.matric_number }}"
+                            placeholder="Enter matric number"
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="gender">
+                            Gender
+                        </label>
+
+                        <select name="gender" id="gender">
+
+                            <option value="">
+                                — Select Gender —
+                            </option>
+
+                            <option
+                                value="male"
+                                {% if target_user.gender == 'male' %}selected{% endif %}
+                            >
+                                Male
+                            </option>
+
+                            <option
+                                value="female"
+                                {% if target_user.gender == 'female' %}selected{% endif %}
+                            >
+                                Female
+                            </option>
+
+                        </select>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="is_alumni">
+                            Membership Status
+                        </label>
+
+                        <select name="is_alumni" id="is_alumni">
+
+                            <option
+                                value="False"
+                                {% if not target_user.is_alumni %}selected{% endif %}
+                            >
+                                Current Member
+                            </option>
+
+                            <option
+                                value="True"
+                                {% if target_user.is_alumni %}selected{% endif %}
+                            >
+                                Alumni
+                            </option>
+
+                        </select>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ACCOUNT INFORMATION -->
+            <section class="form-section">
+
+                <div class="section-heading">
+                    <div class="section-icon">🔐</div>
+
+                    <div>
+                        <h2>Account Information</h2>
+                        <p>Manage the user's login identity.</p>
+                    </div>
+                </div>
+
+
+                <div class="form-grid">
+
+                    <div class="form-group full-width">
+
+                        <label for="email">
+                            Email Address
+                            <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            id="email"
+                            value="{{ target_user.email }}"
+                            placeholder="user@example.com"
+                            autocomplete="email"
+                            required
+                        >
+
+                        <small>
+                            The email address is also used as the user's username.
+                        </small>
+
+                    </div>
+
+
+                    <div class="form-group full-width">
+
+                        <label>
+                            Username
+                        </label>
+
+                        <div class="username-preview">
+                            <span class="username-icon">✉</span>
+
+                            <span id="usernamePreview">
+                                {{ target_user.email }}
+                            </span>
+
+                            <span class="username-badge">
+                                EMAIL LOGIN
+                            </span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- SECURITY -->
+            <section class="form-section security-section">
+
+                <div class="section-heading">
+                    <div class="section-icon security-icon">🛡️</div>
+
+                    <div>
+                        <h2>Account Security</h2>
+                        <p>Manage password and login requirements.</p>
+                    </div>
+                </div>
+
+
+                <div class="security-info">
+
+                    <div class="security-status">
+
+                        <div class="security-status-icon">
+                            {% if target_user.must_change_password %}
+                                !
+                            {% else %}
+                                ✓
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <strong>
+                                {% if target_user.must_change_password %}
+                                    Password change required
+                                {% else %}
+                                    Password is currently active
+                                {% endif %}
+                            </strong>
+
+                            <p>
+                                {% if target_user.must_change_password %}
+                                    This user will be required to create a new password after logging in.
+                                {% else %}
+                                    The user is not currently required to change their password.
+                                {% endif %}
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group password-group">
+
+                    <label for="temporary_password">
+                        Set New Temporary Password
+                    </label>
+
+                    <div class="password-wrapper">
+
+                        <input
+                            type="password"
+                            name="temporary_password"
+                            id="temporary_password"
+                            placeholder="Leave blank to keep current password"
+                            autocomplete="new-password"
+                        >
+
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            id="togglePassword"
+                            aria-label="Show password"
+                        >
+                            👁
+                        </button>
+
+                    </div>
+
+                    <small>
+                        If you enter a password here, the user should be required to change it on their next login.
+                    </small>
+
+                </div>
+
+
+                <label class="checkbox-card">
+
+                    <input
+                        type="checkbox"
+                        name="resend_credentials"
+                        id="resend_credentials"
+                    >
+
+                    <span class="checkbox-custom"></span>
+
+                    <span class="checkbox-content">
+
+                        <strong>
+                            Resend login credentials
+                        </strong>
+
+                        <small>
+                            Send the user's login email and temporary password to their email address.
+                        </small>
+
+                    </span>
+
+                </label>
+
+            </section>
+
+
+            <!-- ACTIONS -->
+            <div class="form-actions">
+
+                <a
+                    href="{% url 'ict:user_detail' target_user.id %}"
+                    class="btn-cancel"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn-save"
+                    id="saveButton"
+                >
+                    <span class="save-icon">💾</span>
+                    <span>Save Changes</span>
+                </button>
+
+            </div>
+
+        </form>
+
+
+        <!-- SIDEBAR -->
+        <aside class="side-column">
+
+            <!-- ACCOUNT SUMMARY -->
+            <div class="side-card">
+
+                <div class="side-card-header">
+                    <span>Account Summary</span>
+                </div>
+
+
+                <div class="user-mini">
+
+                    <div class="mini-avatar">
+                        {% if target_user.first_name %}
+                            {{ target_user.first_name|first|upper }}
+                        {% else %}
+                            U
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <strong>
+                            {{ target_user.get_full_name|default:"Unnamed User" }}
+                        </strong>
+
+                        <span>
+                            {{ target_user.email }}
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <div class="summary-list">
+
+                    <div class="summary-item">
+                        <span>Account</span>
+
+                        <strong>
+                            {% if target_user.is_active %}
+                                Active
+                            {% else %}
+                                Suspended
+                            {% endif %}
+                        </strong>
+                    </div>
+
+
+                    <div class="summary-item">
+                        <span>Member Type</span>
+
+                        <strong>
+                            {% if target_user.is_alumni %}
+                                Alumni
+                            {% else %}
+                                Current Member
+                            {% endif %}
+                        </strong>
+                    </div>
+
+
+                    <div class="summary-item">
+                        <span>Joined</span>
+
+                        <strong>
+                            {{ target_user.date_joined|date:"M d, Y" }}
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- LOGIN NOTICE -->
+            <div class="side-card notice-card">
+
+                <div class="notice-icon">
+                    🔑
+                </div>
+
+                <div>
+                    <h3>Email Login</h3>
+
+                    <p>
+                        This system uses the user's email address as their login username.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- WARNING -->
+            <div class="side-card warning-card">
+
+                <div class="warning-icon">
+                    ⚠
+                </div>
+
+                <div>
+                    <h3>Password Changes</h3>
+
+                    <p>
+                        Changing the temporary password will invalidate the user's current password.
+                    </p>
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</div>
+
+
+<style>
+
+/* =========================================
+   PAGE
+========================================= */
+
+.edit-page {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-bottom: 3rem;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1.5rem;
+    margin-bottom: 1.75rem;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--gold);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    transition: var(--transition);
+}
+
+.back-link:hover {
+    transform: translateX(-3px);
+}
+
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.title-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    font-size: 1.4rem;
+}
+
+.page-header h1 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    letter-spacing: -0.02em;
+}
+
+.page-header p {
+    margin: 0.3rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+
+/* =========================================
+   ACCOUNT STATUS
+========================================= */
+
+.account-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.account-status.active {
+    background: rgba(34, 197, 94, 0.10);
+    color: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.18);
+}
+
+.account-status.inactive {
+    background: rgba(239, 68, 68, 0.10);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.18);
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+
+/* =========================================
+   LAYOUT
+========================================= */
+
+.edit-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 310px;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+
+/* =========================================
+   FORM CARD
+========================================= */
+
+.edit-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+
+/* =========================================
+   FORM SECTIONS
+========================================= */
+
+.form-section {
+    padding: 1.65rem;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.35rem;
+}
+
+.section-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    background: rgba(0, 0, 0, 0.045);
+    font-size: 1.05rem;
+}
+
+.section-heading h2 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.section-heading p {
+    margin: 0.18rem 0 0;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+
+/* =========================================
+   FORM GRID
+========================================= */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.1rem;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.45rem;
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.required {
+    color: #dc2626;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 46px;
+    padding: 0.72rem 0.85rem;
+    border: 1px solid #d4ddd9;
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    outline: none;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.form-group input::placeholder {
+    color: #9aa5a1;
+}
+
+.form-group input:hover,
+.form-group select:hover {
+    border-color: #b9c5c0;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.45rem;
+    color: var(--text-muted);
+    font-size: 0.74rem;
+    line-height: 1.5;
+}
+
+
+/* =========================================
+   USERNAME PREVIEW
+========================================= */
+
+.username-preview {
+    min-height: 46px;
+    box-sizing: border-box;
+    padding: 0.65rem 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border: 1px dashed #cbd5d1;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.025);
+    color: var(--text-primary);
+    font-size: 0.88rem;
+}
+
+.username-icon {
+    opacity: 0.65;
+}
+
+#usernamePreview {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.username-badge {
+    flex-shrink: 0;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    font-weight: 800;
+    padding: 0.28rem 0.45rem;
+    border-radius: 5px;
+    background: rgba(212, 175, 55, 0.12);
+    color: var(--gold-dark);
+}
+
+
+/* =========================================
+   SECURITY
+========================================= */
+
+.security-section {
+    background: rgba(0, 0, 0, 0.012);
+}
+
+.security-info {
+    margin-bottom: 1.2rem;
+}
+
+.security-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 0.9rem;
+    border-radius: 11px;
+    background: rgba(212, 175, 55, 0.07);
+    border: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+.security-status-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--gold);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.security-status strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 0.82rem;
+}
+
+.security-status p {
+    margin: 0.25rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+
+/* =========================================
+   PASSWORD
+========================================= */
+
+.password-group {
+    margin-top: 1rem;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 3rem;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    opacity: 0.65;
+    transition: var(--transition);
+}
+
+.password-toggle:hover {
+    background: rgba(0, 0, 0, 0.05);
+    opacity: 1;
+}
+
+
+/* =========================================
+   CHECKBOX
+========================================= */
+
+.checkbox-card {
+    margin-top: 1.15rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.9rem;
+    border: 1px solid #d9e0dd;
+    border-radius: 11px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.checkbox-card:hover {
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, 0.035);
+}
+
+.checkbox-card input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.checkbox-custom {
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    border: 2px solid #bcc8c3;
+    border-radius: 5px;
+    position: relative;
+    transition: var(--transition);
+}
+
+.checkbox-card input:checked + .checkbox-custom {
+    background: var(--gold);
+    border-color: var(--gold);
+}
+
+.checkbox-card input:checked + .checkbox-custom::after {
+    content: "✓";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 900;
+}
+
+.checkbox-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.checkbox-content strong {
+    font-size: 0.8rem;
+    color: var(--text-primary);
+}
+
+.checkbox-content small {
+    color: var(--text-muted);
+    font-size: 0.73rem;
+    line-height: 1.45;
+}
+
+
+/* =========================================
+   ACTIONS
+========================================= */
+
+.form-actions {
+    padding: 1.35rem 1.65rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.7rem;
+    background: rgba(0, 0, 0, 0.018);
+}
+
+.btn-cancel,
+.btn-save {
+    min-height: 44px;
+    padding: 0.65rem 1.2rem;
+    border-radius: 10px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid #d1dad6;
+    color: var(--text-primary);
+}
+
+.btn-cancel:hover {
+    transform: translateY(-1px);
+    background: rgba(0, 0, 0, 0.035);
+}
+
+.btn-save {
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.12);
+}
+
+.btn-save:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+}
+
+.btn-save:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+
+/* =========================================
+   SIDEBAR
+========================================= */
+
+.side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: sticky;
+    top: 1rem;
+}
+
+.side-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.15rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.side-card-header {
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+
+/* USER MINI */
+
+.user-mini {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.mini-avatar {
+    width: 43px;
+    height: 43px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(
+        135deg,
+        var(--primary),
+        var(--primary-dark)
+    );
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.user-mini strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+}
+
+.user-mini span {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    word-break: break-word;
+}
+
+
+/* SUMMARY */
+
+.summary-list {
+    margin-top: 0.8rem;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+}
+
+.summary-item span {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.summary-item strong {
+    color: var(--text-primary);
+    font-size: 0.72rem;
+    text-align: right;
+}
+
+
+/* =========================================
+   NOTICES
+========================================= */
+
+.notice-card,
+.warning-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.notice-icon,
+.warning-icon {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    font-size: 0.9rem;
+}
+
+.notice-icon {
+    background: rgba(59, 130, 246, 0.10);
+}
+
+.warning-icon {
+    background: rgba(245, 158, 11, 0.12);
+}
+
+.notice-card h3,
+.warning-card h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.78rem;
+}
+
+.notice-card p,
+.warning-card p {
+    margin: 0.3rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    line-height: 1.5;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 900px) {
+
+    .edit-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .side-column {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .side-column .side-card:first-child {
+        grid-column: 1 / -1;
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .edit-page {
+        padding-bottom: 1.5rem;
+    }
+
+    .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .account-status {
+        align-self: flex-start;
+    }
+
+    .title-row {
+        align-items: flex-start;
+    }
+
+    .title-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .full-width {
+        grid-column: auto;
+    }
+
+    .form-section {
+        padding: 1.2rem;
+    }
+
+    .form-actions {
+        padding: 1.1rem 1.2rem;
+        flex-direction: column-reverse;
+    }
+
+    .btn-cancel,
+    .btn-save {
+        width: 100%;
+    }
+
+    .side-column {
+        display: flex;
+    }
+
+}
+
+
+@media (max-width: 420px) {
+
+    .page-header h1 {
+        font-size: 1.35rem;
+    }
+
+    .page-header p {
+        font-size: 0.8rem;
+    }
+
+    .username-preview {
+        align-items: flex-start;
+    }
+
+    .username-badge {
+        display: none;
+    }
+
+}
+
+
+/* =========================================
+   REDUCED MOTION
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+
+}
+
+</style>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const emailInput = document.getElementById("email");
+    const usernamePreview = document.getElementById("usernamePreview");
+    const passwordInput = document.getElementById("temporary_password");
+    const togglePassword = document.getElementById("togglePassword");
+    const form = document.getElementById("editUserForm");
+    const saveButton = document.getElementById("saveButton");
+
+
+    /* =========================================
+       EMAIL → USERNAME PREVIEW
+    ========================================= */
+
+    if (emailInput && usernamePreview) {
+
+        function updateUsername() {
+            usernamePreview.textContent =
+                emailInput.value.trim().toLowerCase() ||
+                "Username will match email";
+        }
+
+        emailInput.addEventListener("input", updateUsername);
+        emailInput.addEventListener("blur", function () {
+            emailInput.value = emailInput.value.trim().toLowerCase();
+            updateUsername();
+        });
+
+        updateUsername();
+    }
+
+
+    /* =========================================
+       SHOW / HIDE PASSWORD
+    ========================================= */
+
+    if (passwordInput && togglePassword) {
+
+        togglePassword.addEventListener("click", function () {
+
+            const isPassword =
+                passwordInput.type === "password";
+
+            passwordInput.type =
+                isPassword ? "text" : "password";
+
+            togglePassword.textContent =
+                isPassword ? "🙈" : "👁";
+
+            togglePassword.setAttribute(
+                "aria-label",
+                isPassword
+                    ? "Hide password"
+                    : "Show password"
+            );
+
+        });
+
+    }
+
+
+    /* =========================================
+       FORM SUBMISSION
+    ========================================= */
+
+    if (form && saveButton) {
+
+        form.addEventListener("submit", function () {
+
+            saveButton.disabled = true;
+
+            saveButton.innerHTML =
+                '<span>⏳</span><span>Saving Changes...</span>';
+
+        });
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

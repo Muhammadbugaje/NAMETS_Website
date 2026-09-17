@@ -1,0 +1,89 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block dash_content %}
+<div class="choose-office-container">
+    <div class="choose-office-header">
+        <span class="choose-icon">🔄</span>
+        <h1>Select Your Office</h1>
+        <p>You hold multiple offices. Choose which one to view.</p>
+    </div>
+
+    <div class="choose-office-grid">
+        {% for a in assignments %}
+        <a href="{% url 'dashboards:switch_office' a.id %}" class="choose-office-card">
+            <span class="office-icon">{{ a.office.icon }}</span>
+            <div class="office-info">
+                <div class="office-name">{{ a.display_label|default:a.office.name }}</div>
+                <div class="office-desc">{{ a.office.description|truncatechars:60 }}</div>
+            </div>
+            <span class="office-arrow">→</span>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.choose-office-container {
+    max-width: 600px;
+    margin: 3rem auto;
+    padding: 0 1.5rem;
+    text-align: center;
+}
+.choose-office-header .choose-icon {
+    font-size: 3.5rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+.choose-office-header h1 {
+    color: var(--text-primary);
+    margin: 0 0 0.25rem;
+}
+.choose-office-header p {
+    color: var(--text-muted);
+    margin: 0 0 2rem;
+}
+.choose-office-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.choose-office-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: var(--transition);
+}
+.choose-office-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--gold);
+}
+.choose-office-card .office-icon {
+    font-size: 2rem;
+}
+.choose-office-card .office-info {
+    flex: 1;
+    text-align: left;
+}
+.choose-office-card .office-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+.choose-office-card .office-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.choose-office-card .office-arrow {
+    color: var(--gold);
+    font-size: 1.2rem;
+}
+</style>
+{% endblock %}

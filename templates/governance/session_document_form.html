@@ -1,0 +1,405 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{% if doc %}Edit “{{ doc.title }}”{% else %}Upload Session Document{% endif %} · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.sdf-wrap { max-width: 900px; margin: 0 auto; }
+
+.sdf-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.25rem;
+    color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 12px 36px rgba(15,61,46,0.22);
+}
+.sdf-hero::before {
+    content: "📖"; font-size: 7rem;
+    position: absolute; right: 1rem; top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.1; pointer-events: none;
+}
+.sdf-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.sdf-hero h1 { font-size: 1.4rem; font-weight: 800; margin: 0 0 0.3rem; }
+.sdf-hero p { color: rgba(255,255,255,0.82); font-size: 0.85rem; margin: 0; }
+.sdf-hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.2rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem;
+    text-decoration: none; border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.12); color: #fff;
+    transition: all 0.25s;
+}
+.sdf-hbtn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+
+.sdf-form { display: flex; flex-direction: column; gap: 1.15rem; }
+
+.sdf-section {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    padding: 1.5rem 1.65rem;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+}
+.sdf-section h2 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #8a6a1a;
+    margin: 0 0 1.15rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.sdf-section h2::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.35), transparent);
+}
+.sdf-section .hint {
+    font-size: 0.76rem; color: #8a9b95;
+    margin: -0.55rem 0 1rem; line-height: 1.5;
+}
+
+.sdf-field { margin-bottom: 1rem; }
+.sdf-field:last-child { margin-bottom: 0; }
+.sdf-field label {
+    display: block;
+    font-size: 0.78rem; font-weight: 700;
+    color: #0F3D2E; margin-bottom: 0.35rem;
+}
+.sdf-field label .req { color: #dc3545; }
+.sdf-field input[type="text"],
+.sdf-field input[type="url"],
+.sdf-field input[type="number"],
+.sdf-field textarea,
+.sdf-field select {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid #d5dcd9;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    background: #fff;
+    color: #0F3D2E;
+    transition: all 0.2s;
+}
+.sdf-field textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+.sdf-field input:focus,
+.sdf-field textarea:focus,
+.sdf-field select:focus {
+    outline: none;
+    border-color: #C8A951;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.15);
+}
+.sdf-field .helper {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.35rem; line-height: 1.5;
+}
+
+.sdf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+@media (max-width: 640px) { .sdf-row { grid-template-columns: 1fr; } }
+
+.sdf-file-input {
+    font-size: 0.82rem;
+    padding: 0.55rem;
+    border: 1px dashed #c0c9c6;
+    border-radius: 10px;
+    width: 100%;
+    background: #fafbfb;
+    cursor: pointer;
+}
+.sdf-file-input::file-selector-button {
+    background: #0F3D2E; color: #fff;
+    border: none; padding: 0.4rem 0.9rem;
+    border-radius: 6px; font-size: 0.78rem;
+    font-weight: 600; cursor: pointer;
+    margin-right: 0.6rem;
+    font-family: inherit;
+}
+
+.sdf-check {
+    display: flex; align-items: flex-start; gap: 0.65rem;
+    padding: 0.75rem 0.9rem;
+    background: #f8faf9;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 0.6rem;
+}
+.sdf-check:hover { background: #f0f4f2; }
+.sdf-check input[type="checkbox"] {
+    width: 18px; height: 18px; accent-color: #0F3D2E;
+    margin-top: 0.15rem; cursor: pointer; flex-shrink: 0;
+}
+.sdf-check .txt { font-size: 0.82rem; }
+.sdf-check .txt strong { color: #0F3D2E; display: block; margin-bottom: 0.1rem; }
+.sdf-check .txt span { color: #8a9b95; font-size: 0.74rem; line-height: 1.5; }
+
+.sdf-cover-preview {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.9rem;
+    background: #f8faf9;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+.sdf-cover-box {
+    width: 66px; height: 88px; border-radius: 8px;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0;
+    color: rgba(200,169,81,0.7); font-size: 1.4rem;
+    box-shadow: 0 6px 16px rgba(15,61,46,0.15);
+}
+.sdf-cover-box img { width: 100%; height: 100%; object-fit: cover; }
+.sdf-cover-info { font-size: 0.8rem; color: #4a5568; line-height: 1.5; }
+.sdf-cover-info strong { color: #0F3D2E; }
+
+.sdf-file-preview {
+    padding: 0.9rem;
+    background: #f8faf9;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.85rem;
+}
+.sdf-file-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: rgba(200,169,81,0.18);
+    color: #8a6a1a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+}
+.sdf-file-info { font-size: 0.8rem; color: #4a5568; }
+.sdf-file-info strong { color: #0F3D2E; display: block; margin-bottom: 0.15rem; }
+
+.sdf-actions {
+    display: flex; justify-content: flex-end; gap: 0.65rem;
+    padding-top: 0.5rem; flex-wrap: wrap;
+}
+.sdf-btn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.75rem 1.5rem; border-radius: 50px;
+    font-size: 0.85rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    border: none; transition: all 0.25s;
+    font-family: inherit;
+}
+.sdf-btn.cancel {
+    background: transparent; color: #8a9b95;
+    border: 1px solid #d5dcd9;
+}
+.sdf-btn.cancel:hover { background: #f0f4f2; color: #0F3D2E; }
+.sdf-btn.save {
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(15,61,46,0.25);
+}
+.sdf-btn.save:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(15,61,46,0.35); }
+.sdf-btn.danger {
+    background: #fdecea; color: #9b2c2c;
+    border: 1px solid rgba(220,53,69,0.3);
+    margin-right: auto;
+}
+.sdf-btn.danger:hover { background: #dc3545; color: #fff; }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="sdf-wrap">
+
+    <div class="sdf-hero">
+        <div class="sdf-hero-inner">
+            <div>
+                <h1>{% if doc %}✏️ Edit “{{ doc.title }}”{% else %}📖 Upload Session Document{% endif %}</h1>
+                <p>{% if doc %}Update the details below.{% else %}Add a magazine, report, or album to the archive.{% endif %}</p>
+            </div>
+            <a href="{% url 'governance:session_document_manage' %}" class="sdf-hbtn">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="sdf-form">
+        {% csrf_token %}
+
+        <!-- BASIC INFO -->
+        <div class="sdf-section">
+            <h2><i class="fas fa-info-circle"></i> Basic information</h2>
+
+            <div class="sdf-field">
+                <label>Title <span class="req">*</span></label>
+                <input type="text" name="title" required
+                       value="{{ doc.title|default:'' }}"
+                       placeholder="e.g. NAMETS Session Magazine 2023/2024">
+            </div>
+
+            <div class="sdf-field">
+                <label>Description</label>
+                <textarea name="description"
+                          placeholder="A short note about what this document contains…">{{ doc.description|default:'' }}</textarea>
+            </div>
+
+            <div class="sdf-field">
+                <label>Document type</label>
+                <select name="document_type">
+                    {% for code, label in type_choices %}
+                    <option value="{{ code }}"
+                        {% if doc.document_type == code %}selected{% elif not doc and code == 'magazine' %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- SESSION -->
+        <div class="sdf-section">
+            <h2><i class="fas fa-calendar-alt"></i> Session</h2>
+
+            <div class="sdf-row">
+                <div class="sdf-field">
+                    <label>Session label <span class="req">*</span></label>
+                    <input type="text" name="session_label" required
+                           value="{{ doc.session_label|default:'' }}"
+                           placeholder="e.g. 2023/2024">
+                    <div class="helper">Shown as the badge on the archive card.</div>
+                </div>
+                <div class="sdf-field">
+                    <label>End year <span class="req">*</span></label>
+                    <input type="number" name="session_year" required min="1990" max="2100"
+                           value="{{ doc.session_year|default:'' }}"
+                           placeholder="2024">
+                    <div class="helper">The final year of the session, used for sorting.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COVER -->
+        <div class="sdf-section">
+            <h2><i class="fas fa-image"></i> Cover image</h2>
+            <div class="hint">
+                Upload an image, or paste a hosted URL (Google Drive, etc). Uploaded file takes priority.
+            </div>
+
+            {% if doc and doc.has_cover %}
+            <div class="sdf-cover-preview">
+                <div class="sdf-cover-box">
+                    <img src="{{ doc.cover_url }}" alt="Current cover">
+                </div>
+                <div class="sdf-cover-info">
+                    <strong>Current cover</strong><br>
+                    Upload a new file below to replace it.
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="sdf-field">
+                <label>Upload cover file</label>
+                <input type="file" name="cover_image" accept="image/*" class="sdf-file-input">
+            </div>
+
+            <div class="sdf-field">
+                <label>Or external cover URL</label>
+                <input type="url" name="external_cover_url"
+                       value="{{ doc.external_cover_url|default:'' }}"
+                       placeholder="https://drive.google.com/uc?id=...">
+                <div class="helper">
+                    For Google Drive, upload the image → Share → Anyone with the link →
+                    paste as <code style="font-size:0.7rem; background:#f0f4f2; padding:0.15rem 0.4rem; border-radius:4px;">https://drive.google.com/uc?export=view&amp;id=FILE_ID</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- DOCUMENT FILE -->
+        <div class="sdf-section">
+            <h2><i class="fas fa-file-upload"></i> Document file</h2>
+            <div class="hint">
+                Upload a PDF, PPTX, DOCX, or image — <strong>or</strong> paste an external link (Google Drive, Dropbox, etc).
+                External link takes priority if both are provided.
+            </div>
+
+            {% if doc and doc.has_file %}
+            <div class="sdf-file-preview">
+                <div class="sdf-file-icon">
+                    <i class="fas {{ doc.file_icon }}"></i>
+                </div>
+                <div class="sdf-file-info">
+                    <strong>Current file</strong>
+                    {% if doc.file_extension %}Format: {{ doc.file_extension|upper }}{% endif %}
+                    {% if doc.external_file_url %} · Linked externally{% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="sdf-field">
+                <label>Upload document file</label>
+                <input type="file" name="file" class="sdf-file-input"
+                       accept=".pdf,.pptx,.ppt,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp">
+                <div class="helper">Recommended: PDF for magazines and reports. Upload takes priority if provided.</div>
+            </div>
+
+            <div class="sdf-field">
+                <label>Or external document URL</label>
+                <input type="url" name="external_file_url"
+                       value="{{ doc.external_file_url|default:'' }}"
+                       placeholder="https://drive.google.com/file/d/.../view">
+                <div class="helper">Make sure the file is set to "Anyone with the link can view".</div>
+            </div>
+
+            <div class="sdf-field">
+                <label>Button label</label>
+                <input type="text" name="external_file_label"
+                       value="{{ doc.external_file_label|default:'Open document' }}"
+                       placeholder="e.g. Read on Google Drive, Download PDF">
+            </div>
+        </div>
+
+        <!-- VISIBILITY -->
+        <div class="sdf-section">
+            <h2><i class="fas fa-eye"></i> Visibility & ordering</h2>
+
+            <label class="sdf-check">
+                <input type="checkbox" name="is_published"
+                       {% if not doc or doc.is_published %}checked{% endif %}>
+                <div class="txt">
+                    <strong>Published</strong>
+                    <span>If unchecked, only managers can see this document. Useful for drafts.</span>
+                </div>
+            </label>
+
+            <label class="sdf-check">
+                <input type="checkbox" name="is_featured"
+                       {% if doc and doc.is_featured %}checked{% endif %}>
+                <div class="txt">
+                    <strong>Feature on archive</strong>
+                    <span>Pins this document to the top of the archive grid.</span>
+                </div>
+            </label>
+
+            <div class="sdf-field" style="margin-top:1rem;">
+                <label>Display order</label>
+                <input type="number" name="order" min="0"
+                       value="{{ doc.order|default:0 }}">
+                <div class="helper">Lower numbers appear first within the same session.</div>
+            </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="sdf-actions">
+            {% if doc %}
+            <a href="{% url 'governance:session_document_delete' doc.pk %}" class="sdf-btn danger"
+               onclick="return confirm('Delete this document? This cannot be undone.');">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+            {% endif %}
+            <a href="{% url 'governance:session_document_manage' %}" class="sdf-btn cancel">Cancel</a>
+            <button type="submit" class="sdf-btn save">
+                <i class="fas fa-save"></i> {% if doc %}Save Changes{% else %}Upload Document{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

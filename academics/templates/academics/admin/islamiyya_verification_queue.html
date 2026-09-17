@@ -1,0 +1,464 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Verification Queue · Islamiyya{% endblock %}
+
+{% block extra_css %}
+<style>
+.vq-hero {
+    background: linear-gradient(135deg, #7a4a1a 0%, #a8671a 100%);
+    border-radius: 24px; padding: 2rem 2rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(168,103,26,0.25);
+}
+.vq-hero::before {
+    content: "⏳"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 2rem; opacity: 0.12;
+}
+.vq-hero-content {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.vq-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; color: #ffe4a8;
+    background: rgba(255,255,255,0.15);
+    padding: 0.15rem 0.8rem; border-radius: 20px; margin-bottom: 0.3rem;
+}
+.vq-hero h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
+.vq-hero p { color: rgba(255,255,255,0.85); font-size: 0.88rem; margin: 0.2rem 0 0; }
+.vq-count {
+    background: rgba(255,255,255,0.15);
+    border-radius: 16px; padding: 0.85rem 1.4rem;
+    text-align: center; backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.vq-count .num { font-size: 2rem; font-weight: 800; line-height: 1; }
+.vq-count .lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85; margin-top: 0.2rem; }
+
+.vq-info {
+    background: linear-gradient(135deg, #fbf3d9 0%, #fef9ec 100%);
+    border-left: 4px solid var(--gold);
+    border-radius: 14px; padding: 1rem 1.35rem; margin-bottom: 1.2rem;
+    font-size: 0.85rem; color: #6b5410; line-height: 1.6;
+}
+.vq-info strong { color: #8a6a1a; }
+
+.vq-filters {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 0.85rem 1.2rem; margin-bottom: 1rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form input, .filter-form select {
+    padding: 0.45rem 0.85rem; border: 1px solid #d0d9d6;
+    border-radius: 8px; background: #fff; flex: 1;
+    min-width: 130px; font-size: 0.85rem;
+}
+.filter-form input:focus, .filter-form select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.filter-form .btn-search {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.5rem 1.1rem; border-radius: 8px; cursor: pointer;
+    font-weight: 600; font-size: 0.85rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+}
+.filter-form .clear { color: var(--text-muted); text-decoration: none; font-size: 0.82rem; }
+
+.bulk-bar {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    color: #fff; border-radius: 14px; padding: 0.9rem 1.2rem;
+    margin-bottom: 1rem; display: none;
+    align-items: center; gap: 0.75rem; flex-wrap: wrap;
+    box-shadow: 0 8px 24px rgba(15,61,46,0.25);
+    position: sticky; top: 0.5rem; z-index: 100;
+}
+.bulk-bar.active { display: flex; }
+.bulk-count {
+    font-weight: 700; font-size: 0.85rem;
+    background: rgba(200,169,81,0.25);
+    padding: 0.25rem 0.75rem; border-radius: 20px;
+}
+.bulk-actions-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-left: auto; }
+.bulk-btn {
+    padding: 0.5rem 1rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem; cursor: pointer;
+    border: none; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    transition: all 0.2s;
+}
+.bulk-btn.paid { background: #4ade80; color: #14532d; }
+.bulk-btn.paid:hover { background: #22c55e; transform: translateY(-1px); }
+.bulk-btn.waive { background: #fef3e8; color: #a8671a; }
+.bulk-btn.waive:hover { background: #fde68a; }
+.bulk-btn.clear { background: rgba(255,255,255,0.15); color: #fff; }
+.bulk-btn.clear:hover { background: rgba(255,255,255,0.25); }
+
+.vq-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+.vq-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1.2rem; transition: var(--transition);
+    box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+}
+.vq-card::before {
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0;
+    width: 4px; background: #C8A951;
+}
+.vq-card:hover {
+    transform: translateY(-4px); border-color: var(--gold);
+    box-shadow: var(--shadow-md);
+}
+.vq-card-select {
+    position: absolute; top: 0.75rem; right: 0.75rem;
+    width: 20px; height: 20px;
+    accent-color: var(--gold); cursor: pointer; z-index: 2;
+}
+.vq-card-top {
+    display: flex; justify-content: flex-start; align-items: flex-start;
+    gap: 0.85rem; margin-bottom: 0.85rem; padding-right: 1.75rem;
+}
+.vq-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 700;
+    overflow: hidden; border: 2px solid rgba(200,169,81,0.4); flex-shrink: 0;
+}
+.vq-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.vq-info-col { flex: 1; min-width: 0; }
+.vq-name { font-size: 0.98rem; font-weight: 700; color: #0F3D2E; margin-bottom: 0.15rem; }
+.vq-app-id { font-size: 0.7rem; color: #8a9b95; font-weight: 600; letter-spacing: 0.04em; }
+.vq-meta { font-size: 0.78rem; color: #5A5A5A; margin-top: 0.4rem; display: flex; flex-direction: column; gap: 0.2rem; }
+.vq-meta span { display: flex; align-items: center; gap: 0.35rem; }
+.vq-meta i { color: var(--gold); width: 14px; flex-shrink: 0; }
+.vq-actions {
+    display: flex; gap: 0.35rem; flex-wrap: wrap;
+    margin-top: 0.85rem; padding-top: 0.85rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.vq-btn {
+    padding: 0.45rem 0.9rem; border-radius: 50px;
+    font-size: 0.72rem; font-weight: 700;
+    text-decoration: none; border: none; cursor: pointer;
+    transition: all 0.2s; display: inline-flex;
+    align-items: center; gap: 0.3rem;
+    font-family: inherit;
+}
+.vq-btn.view { background: #e6f0fb; color: #185fa5; }
+.vq-btn.view:hover { background: #3182ce; color: #fff; }
+.vq-btn.paid { background: var(--primary); color: #fff; }
+.vq-btn.paid:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.vq-btn.waive { background: #fef3e8; color: #a8671a; }
+.vq-btn.waive:hover { background: #fde68a; }
+
+.vq-empty {
+    grid-column: 1 / -1; text-align: center;
+    padding: 4rem 1rem; color: var(--text-muted);
+    background: var(--card-bg); border: 1px dashed rgba(200,169,81,0.3);
+    border-radius: var(--radius-md);
+}
+.vq-empty .icon { font-size: 4rem; display: block; margin-bottom: 0.75rem; }
+.vq-empty h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-weight: 700; }
+.vq-empty p { font-size: 0.9rem; max-width: 420px; margin: 0 auto 1rem; }
+
+.pagination { margin-top: 1rem; text-align: center; display: flex; justify-content: center; gap: 0.3rem; flex-wrap: wrap; }
+.pagination a, .pagination .current {
+    padding: 0.35rem 0.75rem; border-radius: 6px;
+    text-decoration: none; font-size: 0.82rem;
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    color: var(--text-primary);
+}
+.pagination a:hover { background: var(--gold); border-color: var(--gold); color: #fff; }
+.pagination .current { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 700; }
+
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,42,31,0.55); backdrop-filter: blur(4px);
+    z-index: 9999; justify-content: center; align-items: center; padding: 1rem;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+    background: #fff; border-radius: 20px; max-width: 480px; width: 100%;
+    padding: 2rem 1.75rem 1.75rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25); text-align: center;
+    animation: modalIn 0.25s ease-out;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-icon {
+    width: 64px; height: 64px; margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+}
+.modal-icon.success { background: #e8f2ec; color: #1a3c2e; }
+.modal-icon.warning { background: #fef3e8; color: #a8671a; }
+.modal h3 { color: #0F3D2E; margin: 0 0 0.4rem; font-size: 1.15rem; font-weight: 700; }
+.modal p { color: #5A5A5A; font-size: 0.9rem; margin: 0 0 1.25rem; line-height: 1.5; }
+.modal .info-box {
+    background: #f8faf9; border-radius: 10px; padding: 0.85rem 1rem;
+    margin: 0 0 1.25rem; text-align: left; border-left: 3px solid var(--gold);
+}
+.modal .info-box .field {
+    display: flex; justify-content: space-between;
+    padding: 0.25rem 0; font-size: 0.83rem; gap: 0.5rem;
+}
+.modal .info-box .field .label { color: #8a9b95; font-weight: 500; }
+.modal .info-box .field .value { color: #0F3D2E; font-weight: 600; text-align: right; }
+.modal-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+.modal-actions .btn {
+    padding: 0.65rem 1.5rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.85rem; cursor: pointer;
+    transition: all 0.2s ease; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.modal-actions .btn-secondary { background: #f0f4f2; color: #0F3D2E; }
+.modal-actions .btn-secondary:hover { background: #e0e8e5; }
+.modal-actions .btn-success { background: var(--primary); color: #fff; box-shadow: 0 4px 14px rgba(15,61,46,0.25); }
+.modal-actions .btn-success:hover { background: var(--primary-dark); transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+    .vq-hero { padding: 1.5rem 1.25rem; }
+    .vq-hero-content { flex-direction: column; align-items: stretch; }
+    .vq-count { align-self: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .vq-grid { grid-template-columns: 1fr; }
+    .bulk-bar { flex-direction: column; align-items: stretch; }
+    .bulk-actions-row { margin-left: 0; }
+    .bulk-btn { flex: 1; justify-content: center; }
+    .modal { padding: 1.5rem 1.25rem; }
+    .modal-actions .btn { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="vq-hero">
+    <div class="vq-hero-content">
+        <div>
+            <span class="vq-eyebrow">Islamiyya</span>
+            <h1>⏳ Verification Queue</h1>
+            <p>Students awaiting payment verification — either online or at the mosque.</p>
+        </div>
+        <div class="vq-count">
+            <div class="num">{{ page_obj.paginator.count|default:0 }}</div>
+            <div class="lbl">Pending</div>
+        </div>
+    </div>
+</div>
+
+<div class="vq-info">
+    <strong>💡 How to verify:</strong><br>
+    1. Student pays online via Paystack → status updates automatically.<br>
+    2. Student pays cash at the mosque → select them below and click <strong>Mark Paid</strong>.<br>
+    3. Free/waived students → select and click <strong>Waive</strong>.
+</div>
+
+<div class="vq-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search name, email, ID, reg number…" value="{{ query }}">
+        <select name="session">
+            <option value="">All Sessions</option>
+            {% for s in sessions %}
+            <option value="{{ s.pk }}" {% if session_filter == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.academic_session }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-search"><i class="fas fa-search"></i> Filter</button>
+        {% if query or session_filter %}
+        <a href="{% url 'academics:admin_islamiyya_verification_queue' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<form method="post" id="bulkForm" action="">
+    {% csrf_token %}
+
+    <div class="bulk-bar" id="bulkBar">
+        <span class="bulk-count" id="bulkCount">0 selected</span>
+        <div class="bulk-actions-row">
+            <button type="button" class="bulk-btn paid" onclick="openBulkModal('mark-paid', 'Mark Paid')">
+                <i class="fas fa-check"></i> Mark as Paid
+            </button>
+            <button type="button" class="bulk-btn waive" onclick="openBulkModal('waive', 'Waive Fee')">
+                <i class="fas fa-hand-holding"></i> Waive Fee
+            </button>
+            <button type="button" class="bulk-btn clear" onclick="clearSelection()">
+                <i class="fas fa-times"></i> Clear
+            </button>
+        </div>
+    </div>
+
+    <div class="vq-grid">
+        {% for reg in registrations %}
+        <div class="vq-card">
+            <input type="checkbox" name="selected_ids" value="{{ reg.pk }}" class="vq-card-select row-check" onclick="updateBulkBar()">
+
+            <div class="vq-card-top">
+                <div class="vq-avatar">
+                    {% if reg.photo %}<img src="{{ reg.photo.url }}" alt="">{% else %}{{ reg.name|first|upper }}{% endif %}
+                </div>
+                <div class="vq-info-col">
+                    <div class="vq-name">{{ reg.name|truncatechars:28 }}</div>
+                    <div class="vq-app-id">{{ reg.application_id }}</div>
+                </div>
+            </div>
+
+            <div class="vq-meta">
+                <span><i class="fas fa-envelope"></i>{{ reg.email|truncatechars:28 }}</span>
+                <span><i class="fas fa-phone"></i>{{ reg.phone }}</span>
+                {% if reg.session_settings %}
+                <span><i class="fas fa-calendar"></i>{{ reg.session_settings.academic_session }} · ₦{{ reg.session_settings.registration_fee|floatformat:0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="vq-actions">
+                <a href="{% url 'academics:admin_islamiyya_registration_detail' reg.pk %}" class="vq-btn view">
+                    <i class="fas fa-eye"></i> View
+                </a>
+                <button type="button" class="vq-btn paid"
+                        onclick="singleAction('mark-paid', '{{ reg.pk }}', '{{ reg.name|escapejs }}')">
+                    <i class="fas fa-check"></i> Mark Paid
+                </button>
+                <button type="button" class="vq-btn waive"
+                        onclick="singleAction('waive', '{{ reg.pk }}', '{{ reg.name|escapejs }}')">
+                    <i class="fas fa-hand-holding"></i> Waive
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="vq-empty">
+            <span class="icon">🎉</span>
+            <h3>All caught up!</h3>
+            <p>No pending registrations{% if query or session_filter %} matching your filters{% endif %}. Every student has been verified or waived.</p>
+            <a href="{% url 'academics:admin_islamiyya_registration_list' %}" class="bulk-btn paid" style="padding:0.6rem 1.4rem;font-size:0.85rem;text-decoration:none;display:inline-flex;">
+                <i class="fas fa-list"></i> View All Registrations
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</form>
+
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹ Prev</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">Next ›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal">
+        <div class="modal-icon" id="cmIcon"><i class="fas fa-question"></i></div>
+        <h3 id="cmTitle">Confirm Action</h3>
+        <p id="cmMessage">Are you sure?</p>
+        <div class="info-box">
+            <div class="field"><span class="label">Action</span><span class="value" id="cmAction">—</span></div>
+            <div class="field"><span class="label">Selected</span><span class="value" id="cmCount">0</span></div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+            <button type="button" class="btn btn-success" onclick="submitConfirm()">
+                <i class="fas fa-check"></i> Yes, Confirm
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+const URLS = {
+    'mark-paid': '{% url "academics:admin_islamiyya_bulk_mark_paid" %}',
+    'waive': '{% url "academics:admin_islamiyya_bulk_waive" %}',
+};
+const CFG = {
+    'mark-paid': {
+        title: 'Mark as Paid',
+        message: 'Confirm that payment has been received from these students.',
+        icon: 'success', iconFa: 'fa-check',
+    },
+    'waive': {
+        title: 'Waive Fee',
+        message: 'These students will be admitted without payment. Ensure this is authorized.',
+        icon: 'warning', iconFa: 'fa-hand-holding',
+    },
+};
+let pendingAction = null;
+let pendingIds = null;
+
+function updateBulkBar() {
+    const checked = document.querySelectorAll('.row-check:checked');
+    const bar = document.getElementById('bulkBar');
+    const cnt = document.getElementById('bulkCount');
+    if (checked.length > 0) {
+        bar.classList.add('active');
+        cnt.textContent = checked.length + ' selected';
+    } else {
+        bar.classList.remove('active');
+    }
+}
+function clearSelection() {
+    document.querySelectorAll('.row-check').forEach(cb => cb.checked = false);
+    updateBulkBar();
+}
+function openBulkModal(action, label) {
+    const checked = document.querySelectorAll('.row-check:checked');
+    if (checked.length === 0) return;
+    pendingAction = action;
+    pendingIds = null;
+    const c = CFG[action];
+    document.getElementById('cmTitle').textContent = c.title;
+    document.getElementById('cmMessage').textContent = c.message;
+    document.getElementById('cmAction').textContent = label;
+    document.getElementById('cmCount').textContent = checked.length;
+    document.getElementById('cmIcon').className = 'modal-icon ' + c.icon;
+    document.getElementById('cmIcon').innerHTML = '<i class="fas ' + c.iconFa + '"></i>';
+    document.getElementById('confirmModal').classList.add('active');
+}
+function singleAction(action, pk, name) {
+    pendingAction = action;
+    pendingIds = [pk];
+    const c = CFG[action];
+    document.getElementById('cmTitle').textContent = c.title;
+    document.getElementById('cmMessage').textContent = 'Student: ' + name;
+    document.getElementById('cmAction').textContent = action === 'mark-paid' ? 'Mark Paid' : 'Waive';
+    document.getElementById('cmCount').textContent = '1';
+    document.getElementById('cmIcon').className = 'modal-icon ' + c.icon;
+    document.getElementById('cmIcon').innerHTML = '<i class="fas ' + c.iconFa + '"></i>';
+    document.getElementById('confirmModal').classList.add('active');
+}
+function closeConfirmModal() {
+    document.getElementById('confirmModal').classList.remove('active');
+    pendingAction = null;
+    pendingIds = null;
+}
+function submitConfirm() {
+    if (!pendingAction) return;
+    const form = document.getElementById('bulkForm');
+    form.action = URLS[pendingAction];
+    if (pendingIds && pendingIds.length === 1) {
+        document.querySelectorAll('.row-check').forEach(cb => { cb.checked = false; });
+        const target = document.querySelector('.row-check[value="' + pendingIds[0] + '"]');
+        if (target) target.checked = true;
+    }
+    form.submit();
+}
+document.getElementById('confirmModal').addEventListener('click', function(e) {
+    if (e.target === this) closeConfirmModal();
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeConfirmModal();
+});
+</script>
+
+{% endblock %}

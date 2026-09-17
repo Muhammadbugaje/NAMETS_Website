@@ -1,0 +1,14 @@
+{% if all_assignments|length > 1 %}
+<div class="office-switcher">
+    <span class="label">🔀 Switch Office:</span>
+    <form method="get" action="{% url 'dashboards:switch_office' 0 %}" id="switcherForm">
+        <select name="assignment" onchange="this.form.action=this.form.action.replace('0', this.value); this.form.submit();">
+            {% for a in all_assignments %}
+            <option value="{{ a.id }}" {% if a.id == assignment.id %}selected{% endif %}>
+                {{ a.display_label|default:a.office.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+{% endif %}

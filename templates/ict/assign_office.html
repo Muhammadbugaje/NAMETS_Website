@@ -1,0 +1,76 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Assign Office · {{ target_user.get_full_name }}{% endblock %}
+
+{% block dash_content %}
+<div class="form-container">
+    <div class="form-header">
+        <a href="{% url 'ict:user_detail' target_user.id %}" class="back-link">← Back to User</a>
+        <h2>Assign Office to {{ target_user.get_full_name }}</h2>
+        <p>Select an office and optionally set a display label (e.g., "PRO I (Sister)").</p>
+    </div>
+
+    <form method="post" class="form-card">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="office">Office *</label>
+                <select name="office" id="office" required>
+                    <option value="">— Select an office —</option>
+                    {% for o in offices %}
+                    <option value="{{ o.id }}">{{ o.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="display_label">Display Label (optional)</label>
+                <input type="text" name="display_label" id="display_label" placeholder="e.g., PRO I (Sister)">
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">✅ Assign Office</button>
+            <a href="{% url 'ict:user_detail' target_user.id %}" class="btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-container { max-width: 700px; margin: 0 auto; }
+.form-header { margin-bottom: 1.5rem; }
+.form-header h2 { margin: 0; color: var(--text-primary); }
+.form-header p { color: var(--text-muted); margin: 0.25rem 0 0; }
+.form-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+}
+.form-row { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group label { display: block; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; font-size: 0.9rem; }
+.form-group select, .form-group input {
+    width: 100%; padding: 0.6rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.95rem; background: var(--card-bg);
+}
+.form-group select:focus, .form-group input:focus { border-color: var(--gold); outline: none; }
+.form-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+.btn-primary {
+    background: var(--primary); color: #fff;
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; transition: var(--transition);
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; text-decoration: none; text-align: center;
+    transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+</style>
+{% endblock %}

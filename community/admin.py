@@ -41,6 +41,7 @@ class ExecutiveAdmin(ModelAdmin):
     list_filter = ('year', 'is_active')
     list_editable = ('display_order', 'is_active')
     search_fields = ('name', 'role')
+    ordering = ('-year__year_label', 'display_order')
 
     def image_thumbnail(self, obj):
         return cloudinary_thumbnail(obj.photo)

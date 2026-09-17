@@ -1,0 +1,1134 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ greeting_title|default:"Dashboard" }} · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ----- Hero Section ----- */
+.dash-hero {
+  background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+  border-radius: 24px;
+  padding: 2rem 2.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.dash-hero::before {
+  content: "﷽";
+  font-family: 'Amiri', serif;
+  font-size: 5rem;
+  position: absolute;
+  bottom: -0.8rem;
+  right: 1rem;
+  opacity: 0.08;
+  pointer-events: none;
+  color: #fff;
+}
+.dash-hero-left h1 { font-family: 'Amiri', serif; font-size: 1.8rem; color: #fff; margin: 0 0 0.2rem; }
+.dash-hero-left p { color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; }
+.dash-hero-left .office-badge {
+  display: inline-block;
+  background: rgba(200,169,81,0.2);
+  color: var(--gold-light);
+  padding: 0.15rem 1rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 0.3rem;
+  letter-spacing: 0.5px;
+}
+.dash-clock {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px);
+  border-radius: 20px;
+  padding: 0.6rem 1.2rem;
+  text-align: center;
+  min-width: 130px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.dash-clock .lbl { font-size: 0.6rem; color: #C8A951; letter-spacing: 0.5px; text-transform: uppercase; }
+.dash-clock .val { font-size: 1.3rem; font-weight: 700; color: #fff; line-height: 1.2; margin: 0.1rem 0; }
+.dash-clock .sub { font-size: 0.6rem; color: rgba(255,255,255,0.7); }
+@media (min-width: 640px) {
+  .dash-hero-left h1 { font-size: 2rem; }
+  .dash-clock .val { font-size: 1.5rem; }
+}
+
+/* ----- Office header block ----- */
+.office-header-block {
+  display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
+  margin-bottom: 1rem;
+}
+.office-header-icon { font-size: 2.5rem; }
+.office-header-title { margin: 0; color: var(--text-primary); }
+.office-header-desc { margin: 0; color: var(--text-muted); }
+.office-header-user {
+  margin-left: auto; text-align: right; font-size: 0.9rem; color: var(--text-muted);
+}
+.office-header-user strong { font-weight: 600; color: var(--text-primary); }
+.office-header-user .label-pill {
+  display: inline-block; background: rgba(200,169,81,0.15);
+  padding: 0.1rem 0.8rem; border-radius: 20px; margin-left: 0.5rem;
+}
+
+/* ----- "No office" empty state ----- */
+.no-office-card {
+  background: linear-gradient(135deg, #f8faf9 0%, #f0f4f2 100%);
+  border: 1px dashed rgba(200,169,81,0.4);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.no-office-card .icon { font-size: 2.5rem; margin-bottom: 0.5rem; display: block; }
+.no-office-card h3 { color: var(--text-primary); margin-bottom: 0.4rem; }
+.no-office-card p { color: var(--text-muted); font-size: 0.9rem; max-width: 420px; margin: 0 auto; }
+
+/* ----- KPI Section ----- */
+.kpi-search-wrap { position: relative; margin-bottom: 1rem; }
+.kpi-search-wrap input {
+  width: 100%;
+  padding: 0.65rem 2.5rem 0.65rem 1.1rem;
+  border: 1px solid var(--card-border);
+  border-radius: 50px;
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  font-size: 0.88rem;
+  outline: none;
+  transition: var(--transition);
+}
+.kpi-search-wrap input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,169,81,0.15); }
+.kpi-search-wrap i {
+  position: absolute; right: 1.1rem; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); font-size: 0.85rem; pointer-events: none;
+}
+.kpi-search-wrap.hidden { display: none; }
+
+.kpi-category-block { margin-bottom: 1.25rem; }
+.kpi-category-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.kpi-category-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(0,0,0,0.06);
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.8rem;
+}
+.kpi {
+  background: var(--card-bg);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 0.8rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  text-decoration: none;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+.kpi:hover {
+  transform: translateY(-4px);
+  background: #fff;
+  border-color: var(--gold);
+  box-shadow: var(--shadow-md);
+}
+.kpi.kpi-hidden { display: none; }
+.kpi-ic {
+  width: 44px; height: 44px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; flex-shrink: 0;
+}
+.kpi-ic.green  { background: #e8f2ec; color: #1a3c2e; }
+.kpi-ic.gold   { background: #f5e9c8; color: #8a6a1a; }
+.kpi-ic.blue   { background: #e6f0fb; color: #185fa5; }
+.kpi-ic.red    { background: #fdecea; color: #9b2c2c; }
+.kpi-ic.purple { background: #f0eafb; color: #6b21a8; }
+.kpi-ic.teal   { background: #e0f7f4; color: #0d7a6b; }
+.kpi-ic.orange { background: #fef3e8; color: #a8671a; }
+.kpi-ic.pink   { background: #fce4ec; color: #a31545; }
+.kpi-num { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+.kpi-lbl { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; display: block; }
+.kpi-empty-search {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  display: none;
+}
+
+/* ----- Section label ----- */
+.section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 1.75rem 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: rgba(0,0,0,0.06); }
+
+/* ----- Mini stats row ----- */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.stat-mini {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+.stat-mini:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+.stat-mini .number { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; display: block; }
+.stat-mini .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; display: block; }
+.stat-mini .icon-mini { font-size: 1.2rem; display: block; margin-bottom: 0.2rem; }
+
+/* ----- Widget grid ----- */
+.widget-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 1.5rem; margin-top: 1rem; }
+.widget-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(15px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.widget-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+.widget-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: var(--gold-light); }
+.widget-card .widget-icon { font-size: 2rem; color: var(--gold); margin-bottom: 0.5rem; display: block; }
+.widget-card .widget-count { font-size: 2rem; font-weight: 700; display: block; color: var(--text-primary); line-height: 1.2; }
+.widget-card .widget-label { display: block; font-size: 0.85rem; color: var(--text-muted); font-weight: 500; margin-top: 0.1rem; }
+.widget-card .widget-hint { margin-top: 0.5rem; font-size: 0.9rem; color: var(--gold); opacity: 0; transition: var(--transition); }
+.widget-card:hover .widget-hint { opacity: 1; }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+/* ----- Preview section ----- */
+.preview-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+.preview-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+.preview-card h4 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.preview-card ul { list-style: none; padding: 0; margin: 0; }
+.preview-card ul li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+.preview-card ul li:last-child { border-bottom: none; }
+.preview-card ul li .badge-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.preview-card ul li a { color: var(--text-primary); text-decoration: none; }
+.preview-card ul li a:hover { color: var(--gold); }
+
+@media (max-width: 768px) {
+  .preview-section { grid-template-columns: 1fr; gap: 1rem; }
+}
+
+/* ----- Empty state ----- */
+.empty-state { text-align: center; padding: 3rem 2rem; color: var(--text-muted); }
+.empty-state .empty-icon { font-size: 4rem; margin-bottom: 1rem; display: block; }
+.empty-state h3 { color: var(--text-primary); margin-bottom: 0.5rem; }
+.empty-state p { max-width: 400px; margin: 0 auto; }
+
+/* ----- Manage permissions ----- */
+.manage-permissions-section { margin-top: 2rem; text-align: center; padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.04); }
+.btn-secondary {
+  background: var(--gold); color: var(--text-primary); border: none;
+  padding: 0.6rem 2rem; border-radius: 50px; font-weight: 600;
+  text-decoration: none; display: inline-block; transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+/* ----- Islamic quote ----- */
+.islamic-quote {
+  text-align: center; padding: 0.6rem 1rem;
+  background: linear-gradient(135deg, rgba(200,169,81,0.08), rgba(15,61,46,0.05));
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(200,169,81,0.15);
+  margin-top: 1.5rem;
+}
+.islamic-quote .arabic { font-size: 1.1rem; color: var(--gold); font-weight: 600; display: block; font-family: 'Amiri', serif; }
+.islamic-quote .translation { font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
+
+/* ============================================================
+   OFFICE TASKS SECTION
+   ============================================================ */
+.office-tasks-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.4rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+}
+
+.office-task-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.55rem;
+  margin-bottom: 1.1rem;
+}
+@media (max-width: 520px) {
+  .office-task-stats { grid-template-columns: repeat(2, 1fr); }
+}
+.ots-pill {
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid transparent;
+}
+.ots-pill .num {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.ots-pill .lbl {
+  display: block;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  margin-top: 0.15rem;
+}
+.ots-pill.open    { background: #e6f0fb; color: #185fa5; border-color: rgba(24,95,165,0.15); }
+.ots-pill.overdue { background: #fdecea; color: #9b2c2c; border-color: rgba(155,44,44,0.15); }
+.ots-pill.done    { background: #e8f2ec; color: #1a6b3c; border-color: rgba(26,107,60,0.15); }
+.ots-pill.total   { background: #f0f4f2; color: #4a5568; border-color: rgba(74,85,104,0.12); }
+
+.office-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.office-task-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  background: #fafcfb;
+  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: 11px;
+  text-decoration: none;
+  color: inherit;
+  transition: var(--transition);
+}
+.office-task-row:hover {
+  background: #fff;
+  border-color: rgba(200,169,81,0.4);
+  transform: translateX(3px);
+  box-shadow: 0 4px 14px rgba(15,61,46,0.06);
+}
+
+.otr-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.otr-dot.pending     { background: #C8A951; }
+.otr-dot.in_progress { background: #185fa5; }
+.otr-dot.completed   { background: #38a169; }
+.otr-dot.cancelled   { background: #c0c8c5; }
+.otr-dot.overdue     { background: #c0392b; box-shadow: 0 0 0 4px rgba(192,57,43,0.15); }
+
+.otr-info { min-width: 0; }
+.otr-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.15rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.otr-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.otr-meta .assignee {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+}
+.otr-meta i { font-size: 0.65rem; opacity: 0.7; }
+
+.otr-priority {
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.otr-priority.urgent { background: #fdecea; color: #9b2c2c; }
+.otr-priority.high   { background: #fef3e8; color: #a8671a; }
+.otr-priority.medium { background: #f5e9c8; color: #8a6a1a; }
+.otr-priority.low    { background: #e8f2ec; color: #1a6b3c; }
+
+.office-task-footer {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0,0,0,0.05);
+  text-align: right;
+}
+.office-task-footer a {
+  font-size: 0.78rem;
+  color: var(--gold);
+  text-decoration: none;
+  font-weight: 700;
+}
+.office-task-footer a:hover { text-decoration: underline; }
+
+.office-tasks-empty {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  background: #f8faf9;
+  border-radius: 10px;
+}
+.office-tasks-empty i { font-size: 1.5rem; display: block; margin-bottom: 0.4rem; opacity: 0.4; }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- ====== HERO ====== -->
+<div class="dash-hero">
+  <div class="dash-hero-left">
+    <h1>Assalamu Alaikum, {{ request.user.first_name|default:request.user.username }} 👋</h1>
+    <p>Here's what's happening across NAMETS today.</p>
+    {% if assignment and assignment.office.name %}
+    <span class="office-badge">{{ assignment.display_label|default:assignment.office.name }}</span>
+    {% endif %}
+  </div>
+  <div class="dash-clock">
+    <div class="lbl">🕐 Current Time</div>
+    <div class="val" id="heroClock">--:--:--</div>
+    <div class="sub" id="heroDate">Loading…</div>
+  </div>
+</div>
+
+{% if office %}
+  <!-- Office switcher -->
+  {% include "dashboards/includes/switcher.html" %}
+
+  <!-- Office header -->
+  <div class="office-header-block">
+    <div style="display:flex; align-items:center; gap:0.75rem;">
+      {% if office.icon %}
+      <span class="office-header-icon">{{ office.icon }}</span>
+      {% endif %}
+      <div>
+        <h2 class="office-header-title">{{ greeting_title|default:"Dashboard" }}</h2>
+        {% if office.description %}
+        <p class="office-header-desc">{{ office.description }}</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="office-header-user">
+      <strong>{{ request.user.get_full_name }}</strong>
+      {% if assignment.display_label %}
+      <span class="label-pill">{{ assignment.display_label }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Duties -->
+  {% with duty_lines=office.duties.splitlines %}
+    {% if duty_lines %}
+    <div class="duties-section">
+        <h4><i class="fas fa-clipboard-list"></i> Your Duties</h4>
+        <ul>
+            {% for duty in duty_lines %}
+                {% if duty.strip %}
+                    <li>{{ duty }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- ====== OFFICE TASKS ====== -->
+  <div class="section-label">
+    <i class="fas fa-list-check" style="color:var(--gold);"></i> Office Tasks
+  </div>
+
+  <div class="office-tasks-card">
+
+    <!-- Stat pills -->
+    <div class="office-task-stats">
+      <div class="ots-pill open">
+        <span class="num">{{ office_task_stats.open|default:0 }}</span>
+        <span class="lbl">Open</span>
+      </div>
+      <div class="ots-pill overdue">
+        <span class="num">{{ office_task_stats.overdue|default:0 }}</span>
+        <span class="lbl">Overdue</span>
+      </div>
+      <div class="ots-pill done">
+        <span class="num">{{ office_task_stats.completed|default:0 }}</span>
+        <span class="lbl">Completed</span>
+      </div>
+      <div class="ots-pill total">
+        <span class="num">{{ office_task_stats.total|default:0 }}</span>
+        <span class="lbl">Total</span>
+      </div>
+    </div>
+
+    {% if office_tasks %}
+    <div class="office-task-list">
+      {% for task in office_tasks %}
+      <a href="{% url 'governance:task_detail' task.pk %}" class="office-task-row">
+
+        <span class="otr-dot {% if task.is_overdue %}overdue{% else %}{{ task.status }}{% endif %}"></span>
+
+        <div class="otr-info">
+          <div class="otr-title">{{ task.title }}</div>
+          <div class="otr-meta">
+            <span class="assignee">
+              <i class="fas fa-user"></i>
+              {% if task.assigned_to %}
+                {{ task.assigned_to.get_full_name|default:task.assigned_to.email }}
+              {% elif task.assigned_office %}
+                {{ task.assigned_office.name }} <em style="opacity:0.7;">(office)</em>
+              {% else %}—{% endif %}
+            </span>
+            {% if task.deadline %}
+            <span>
+              <i class="fas fa-clock"></i>
+              {{ task.deadline|date:"M j, Y" }}
+              {% if task.is_overdue %}· overdue{% endif %}
+            </span>
+            {% endif %}
+            <span>
+              <i class="fas fa-circle" style="font-size:0.4rem;"></i>
+              {{ task.get_status_display }}
+            </span>
+          </div>
+        </div>
+
+        <span class="otr-priority {{ task.priority }}">{{ task.get_priority_display }}</span>
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="office-task-footer">
+      <a href="{% url 'governance:task_list' %}">
+        View all office tasks <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+
+    {% else %}
+    <div class="office-tasks-empty">
+      <i class="fas fa-clipboard"></i>
+      No tasks are currently assigned to this office or its members.
+    </div>
+    {% endif %}
+  </div>
+
+{% else %}
+  <!-- No office -->
+  <div class="no-office-card">
+    <span class="icon">🏷️</span>
+    <h3>No Office Assigned Yet</h3>
+    <p>You haven't been assigned to an office yet. Once an EXCO office assigns you a role, your duties, tools, and stats will appear here.</p>
+  </div>
+{% endif %}
+
+<!-- Quick Actions -->
+{% if perms.communications.add_announcement or perms.events.add_event or perms.academics.add_userresourcesubmission or perms.core.add_import or perms.business.add_inventoryitem or request.user.is_superuser or request.user.is_staff %}
+<div class="quick-actions-row">
+    {% if perms.communications.add_announcement %}
+        <a href="{% url 'admin:communications_announcement_add' %}" class="quick-btn"><i class="fas fa-plus-circle"></i> New Announcement</a>
+    {% endif %}
+    {% if perms.events.add_event %}
+        <a href="{% url 'admin:events_event_add' %}" class="quick-btn"><i class="fas fa-plus-circle"></i> New Event</a>
+    {% endif %}
+    {% if perms.academics.add_userresourcesubmission %}
+        <a href="{% url 'admin:academics_userresourcesubmission_add' %}" class="quick-btn"><i class="fas fa-plus-circle"></i> Submit Resource</a>
+    {% endif %}
+    {% if perms.core.add_import %}
+        <a href="{% url 'importers:upload' 'exco' %}" class="quick-btn"><i class="fas fa-file-upload"></i> Import EXCO</a>
+    {% endif %}
+    {% if perms.business.add_equipmentitem %}
+        <a href="{% url 'business:admin_equipment_create' %}" class="quick-btn"><i class="fas fa-box"></i> Add Equipment</a>
+    {% endif %}
+    {% if perms.business.add_shopitem %}
+        <a href="{% url 'business:admin_shop_create' %}" class="quick-btn"><i class="fas fa-shopping-bag"></i> Add Shop Item</a>
+    {% endif %}
+
+    {% if perms.governance.add_task %}
+        <a href="{% url 'governance:task_create' %}" class="quick-btn"><i class="fas fa-plus-circle"></i> New Task</a>
+    {% endif %}
+    {% if perms.governance.add_proposal %}
+        <a href="{% url 'governance:proposal_create' %}" class="quick-btn"><i class="fas fa-gavel"></i> New Proposal</a>
+    {% endif %}
+
+    {% if perms.core.change_sitesettings or request.user.is_superuser %}
+        <a href="{% url 'core:site_settings' %}" class="quick-btn"><i class="fas fa-cog"></i> Site Settings</a>
+    {% endif %}
+    {% if request.user.is_superuser or request.user.is_staff %}
+        <a href="{% url 'namets_notifications:dashboard' %}" class="quick-btn" style="background:#0F3D2E; color:#fff;"><i class="fas fa-tachometer-alt"></i> System Oversight</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- ====== KPI STATS (grouped) ====== -->
+<div class="kpi-search-wrap" id="kpiSearchWrap">
+  <input type="text" id="kpiSearchInput" placeholder="Search dashboard stats…" autocomplete="off">
+  <i class="fas fa-search"></i>
+</div>
+
+<div id="kpiContainer">
+
+  <div class="kpi-category-block" data-kpi-category="overview">
+    <div class="kpi-grid">
+      <a href="{% url 'dashboards:inbox' %}" class="kpi" data-kpi-label="unread notifications">
+        <div class="kpi-ic gold">🔔</div>
+        <div><div class="kpi-num">{{ kpi_stats.unread_notifications|default:0 }}</div><div class="kpi-lbl">Unread Notifications</div></div>
+      </a>
+    </div>
+  </div>
+
+  {% if perms.communications.view_announcement or perms.events.view_event or perms.gallery.view_gallery or perms.communications.view_magazineissue or perms.communications.view_article %}
+  <div class="kpi-category-block" data-kpi-category="content">
+    <div class="kpi-category-label">Content</div>
+    <div class="kpi-grid">
+      {% if perms.communications.view_announcement %}
+      <a href="{% url 'communications:announcement_admin_list' %}" class="kpi" data-kpi-label="announcements">
+        <div class="kpi-ic green">📢</div>
+        <div><div class="kpi-num">{{ kpi_stats.announcements_count|default:0 }}</div><div class="kpi-lbl">Announcements</div></div>
+      </a>
+      {% endif %}
+      {% if perms.events.view_event %}
+      <a href="{% url 'events:event_admin_list' %}" class="kpi" data-kpi-label="events">
+        <div class="kpi-ic blue">📅</div>
+        <div><div class="kpi-num">{{ kpi_stats.events_count|default:0 }}</div><div class="kpi-lbl">Events</div></div>
+      </a>
+      {% endif %}
+      {% if perms.gallery.view_gallery %}
+      <a href="{% url 'gallery:admin_gallery_list' %}" class="kpi" data-kpi-label="galleries">
+        <div class="kpi-ic teal">🖼</div>
+        <div><div class="kpi-num">{{ kpi_stats.gallery_count|default:0 }}</div><div class="kpi-lbl">Galleries</div></div>
+      </a>
+      {% endif %}
+      {% if perms.communications.view_magazineissue %}
+      <a href="{% url 'communications:admin_magazine_list' %}" class="kpi" data-kpi-label="magazine issues">
+        <div class="kpi-ic teal">📚</div>
+        <div><div class="kpi-num">{{ kpi_stats.magazines_count|default:0 }}</div><div class="kpi-lbl">Magazine Issues</div></div>
+      </a>
+      {% endif %}
+      {% if perms.communications.view_article %}
+      <a href="{% url 'communications:admin_article_list' %}" class="kpi" data-kpi-label="articles">
+        <div class="kpi-ic purple">📝</div>
+        <div><div class="kpi-num">{{ kpi_stats.articles_count|default:0 }}</div><div class="kpi-lbl">Articles</div></div>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if perms.community.view_patron or perms.community.view_executive or perms.community.view_developer or perms.community.view_question or perms.community.view_tutorapplication or perms.community.view_membershipapplication %}
+  <div class="kpi-category-block" data-kpi-category="community">
+    <div class="kpi-category-label">Community</div>
+    <div class="kpi-grid">
+      {% if perms.community.view_patron %}
+      <a href="{% url 'community:admin_patron_list' %}" class="kpi" data-kpi-label="patrons">
+        <div class="kpi-ic purple">👤</div>
+        <div><div class="kpi-num">{{ kpi_stats.patrons_count|default:0 }}</div><div class="kpi-lbl">Patrons</div></div>
+      </a>
+      {% endif %}
+      {% if perms.community.view_executive %}
+      <a href="{% url 'community:admin_executive_list' %}" class="kpi" data-kpi-label="executives">
+        <div class="kpi-ic orange">🏛️</div>
+        <div><div class="kpi-num">{{ kpi_stats.executives_count|default:0 }}</div><div class="kpi-lbl">Executives</div></div>
+      </a>
+      {% endif %}
+      {% if perms.community.view_developer %}
+      <a href="{% url 'community:admin_developer_list' %}" class="kpi" data-kpi-label="developers">
+        <div class="kpi-ic pink">💻</div>
+        <div><div class="kpi-num">{{ kpi_stats.developers_count|default:0 }}</div><div class="kpi-lbl">Developers</div></div>
+      </a>
+      {% endif %}
+      {% if perms.community.view_question %}
+      <a href="{% url 'community:admin_question_list' %}?status=pending" class="kpi" data-kpi-label="pending questions">
+        <div class="kpi-ic orange">❓</div>
+        <div><div class="kpi-num">{{ kpi_stats.questions_pending|default:0 }}</div><div class="kpi-lbl">Questions (Pending)</div></div>
+      </a>
+      {% endif %}
+      {% if perms.community.view_tutorapplication %}
+      <a href="{% url 'community:admin_tutor_application_list' %}?status=pending" class="kpi" data-kpi-label="pending tutor applications">
+        <div class="kpi-ic purple">👨‍🏫</div>
+        <div><div class="kpi-num">{{ kpi_stats.tutor_applications_pending|default:0 }}</div><div class="kpi-lbl">Tutor Apps (Pending)</div></div>
+      </a>
+      {% endif %}
+      {% if perms.community.view_membershipapplication %}
+      <a href="{% url 'community:admin_membership_application_list' %}?status=pending" class="kpi" data-kpi-label="pending membership applications">
+        <div class="kpi-ic pink">🙋</div>
+        <div><div class="kpi-num">{{ kpi_stats.membership_applications_pending|default:0 }}</div><div class="kpi-lbl">Membership Apps (Pending)</div></div>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if perms.communications.view_subscriber or perms.communications.view_prayerschedule or perms.communications.view_donationcampaign %}
+  <div class="kpi-category-block" data-kpi-category="communications">
+    <div class="kpi-category-label">Communications</div>
+    <div class="kpi-grid">
+      {% if perms.communications.view_subscriber %}
+      <a href="{% url 'communications:admin_subscriber_list' %}" class="kpi" data-kpi-label="subscribers">
+        <div class="kpi-ic green">📧</div>
+        <div><div class="kpi-num">{{ kpi_stats.subscribers_count|default:0 }}</div><div class="kpi-lbl">Subscribers</div></div>
+      </a>
+      {% endif %}
+      {% if perms.communications.view_prayerschedule %}
+      <a href="{% url 'communications:admin_prayer_list' %}" class="kpi" data-kpi-label="prayer schedules">
+        <div class="kpi-ic blue">🕌</div>
+        <div><div class="kpi-num">{{ kpi_stats.prayer_schedules_count|default:0 }}</div><div class="kpi-lbl">Prayer Schedules</div></div>
+      </a>
+      {% endif %}
+      {% if perms.communications.view_donationcampaign %}
+      <a href="{% url 'communications:admin_donation_list' %}" class="kpi" data-kpi-label="donation campaigns">
+        <div class="kpi-ic gold">🤲</div>
+        <div><div class="kpi-num">{{ kpi_stats.donation_campaigns_count|default:0 }}</div><div class="kpi-lbl">Donation Campaigns</div></div>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if perms.community.view_socialmedialink or perms.community.view_nametsdocument or perms.accounts.view_user or perms.ict.view_user %}
+  <div class="kpi-category-block" data-kpi-category="management">
+    <div class="kpi-category-label">Management</div>
+    <div class="kpi-grid">
+      {% if perms.community.view_socialmedialink %}
+      <a href="{% url 'community:admin_social_link_list' %}" class="kpi" data-kpi-label="social links">
+        <div class="kpi-ic blue">🌐</div>
+        <div><div class="kpi-num">{{ kpi_stats.social_links_count|default:0 }}</div><div class="kpi-lbl">Social Links</div></div>
+      </a>
+      {% endif %}
+      {% if perms.community.view_nametsdocument %}
+      <a href="{% url 'community:admin_document_list' %}" class="kpi" data-kpi-label="documents">
+        <div class="kpi-ic red">📄</div>
+        <div><div class="kpi-num">{{ kpi_stats.documents_count|default:0 }}</div><div class="kpi-lbl">Documents</div></div>
+      </a>
+      {% endif %}
+      {% if perms.accounts.view_user or perms.ict.view_user %}
+      <a href="{% url 'ict:user_list' %}" class="kpi" data-kpi-label="users">
+        <div class="kpi-ic purple">👥</div>
+        <div><div class="kpi-num">{{ kpi_stats.users_count|default:0 }}</div><div class="kpi-lbl">Users</div></div>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if perms.business.view_transaction or perms.business.view_shoporder or perms.business.view_equipmentborrow or perms.business.view_booking or perms.business.view_freeclaim %}
+  <div class="kpi-category-block" data-kpi-category="business">
+    <div class="kpi-category-label">Business</div>
+    <div class="kpi-grid">
+      {% if perms.business.view_transaction %}
+      <a href="{% url 'business:admin_transaction_list' %}" class="kpi" data-kpi-label="transactions">
+        <div class="kpi-ic green">💰</div>
+        <div><div class="kpi-num">{{ kpi_stats.transactions_count|default:0 }}</div><div class="kpi-lbl">Transactions</div></div>
+      </a>
+      {% endif %}
+      {% if perms.business.view_shoporder %}
+      <a href="{% url 'business:admin_shop_order_list' %}?status=pending" class="kpi" data-kpi-label="pending shop orders">
+        <div class="kpi-ic orange">🛒</div>
+        <div><div class="kpi-num">{{ kpi_stats.pending_shop_orders|default:0 }}</div><div class="kpi-lbl">Pending Orders</div></div>
+      </a>
+      {% endif %}
+      {% if perms.business.view_equipmentborrow %}
+      <a href="{% url 'business:admin_equipment_borrow_list' %}?status=overdue" class="kpi" data-kpi-label="overdue equipment">
+        <div class="kpi-ic red">⏰</div>
+        <div><div class="kpi-num">{{ kpi_stats.overdue_borrows|default:0 }}</div><div class="kpi-lbl">Overdue Equipment</div></div>
+      </a>
+      {% endif %}
+      {% if perms.business.view_booking %}
+      <a href="{% url 'business:admin_booking_list' %}?status=pending" class="kpi" data-kpi-label="pending bookings">
+        <div class="kpi-ic purple">🎟️</div>
+        <div><div class="kpi-num">{{ kpi_stats.pending_bookings|default:0 }}</div><div class="kpi-lbl">Pending Bookings</div></div>
+      </a>
+      {% endif %}
+      {% if perms.business.view_freeclaim %}
+      <a href="{% url 'business:admin_free_claim_list' %}?status=pending" class="kpi" data-kpi-label="pending free claims">
+        <div class="kpi-ic teal">🎁</div>
+        <div><div class="kpi-num">{{ kpi_stats.pending_free_claims|default:0 }}</div><div class="kpi-lbl">Pending Claims</div></div>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# ===== ACADEMICS (now includes CBT) ===== #}
+  {% if perms.academics.view_course or perms.academics.view_islamiyyaregistration or perms.academics.view_userresourcesubmission or perms.academics.view_cbtcourse or perms.academics.view_questionbank %}
+  <div class="kpi-category-block" data-kpi-category="academics">
+    <div class="kpi-category-label">Academics</div>
+    <div class="kpi-grid">
+      {% if perms.academics.view_course %}
+      <a href="{% url 'academics:admin_course_list' %}" class="kpi" data-kpi-label="courses">
+        <div class="kpi-ic green">📖</div>
+        <div><div class="kpi-num">{{ kpi_stats.courses_count|default:0 }}</div><div class="kpi-lbl">Courses</div></div>
+      </a>
+      {% endif %}
+      {% if perms.academics.view_tutor %}
+      <a href="{% url 'academics:admin_tutor_list' %}" class="kpi" data-kpi-label="tutors">
+        <div class="kpi-ic purple">👨‍🏫</div>
+        <div><div class="kpi-num">{{ kpi_stats.tutors_count|default:0 }}</div><div class="kpi-lbl">Tutors</div></div>
+      </a>
+      {% endif %}
+      {% if perms.academics.view_session %}
+      <a href="{% url 'academics:admin_session_list' %}" class="kpi" data-kpi-label="upcoming sessions">
+        <div class="kpi-ic blue">📅</div>
+        <div><div class="kpi-num">{{ kpi_stats.upcoming_sessions_count|default:0 }}</div><div class="kpi-lbl">Upcoming Sessions</div></div>
+      </a>
+      {% endif %}
+      {% if perms.academics.view_islamiyyaregistration %}
+      <a href="{% url 'academics:admin_islamiyya_verification_queue' %}" class="kpi" data-kpi-label="islamiyya pending">
+        <div class="kpi-ic orange">⏳</div>
+        <div><div class="kpi-num">{{ kpi_stats.islamiyya_pending|default:0 }}</div><div class="kpi-lbl">Islamiyya Pending</div></div>
+      </a>
+      <a href="{% url 'academics:admin_islamiyya_registration_list' %}?status=paid" class="kpi" data-kpi-label="islamiyya paid">
+        <div class="kpi-ic teal">🕌</div>
+        <div><div class="kpi-num">{{ kpi_stats.islamiyya_paid|default:0 }}</div><div class="kpi-lbl">Islamiyya Paid</div></div>
+      </a>
+      {% endif %}
+      {% if perms.academics.view_userresourcesubmission %}
+      <a href="{% url 'academics:admin_resource_list' %}?status=pending" class="kpi" data-kpi-label="pending resources">
+        <div class="kpi-ic red">📥</div>
+        <div><div class="kpi-num">{{ kpi_stats.pending_resources_count|default:0 }}</div><div class="kpi-lbl">Pending Resources</div></div>
+      </a>
+      {% endif %}
+      {% if perms.academics.view_tutorevaluation %}
+      <a href="{% url 'academics:admin_tutor_evaluation_list' %}" class="kpi" data-kpi-label="tutor evaluations">
+        <div class="kpi-ic gold">⭐</div>
+        <div><div class="kpi-num">{{ kpi_stats.tutor_evaluations_count|default:0 }}</div><div class="kpi-lbl">Tutor Evaluations</div></div>
+      </a>
+      {% endif %}
+      {% if perms.academics.view_competitionresult %}
+      <a href="{% url 'academics:admin_competition_list' %}" class="kpi" data-kpi-label="competition results">
+        <div class="kpi-ic pink">🏆</div>
+        <div><div class="kpi-num">{{ kpi_stats.competition_results_count|default:0 }}</div><div class="kpi-lbl">Competition Results</div></div>
+      </a>
+      {% endif %}
+
+      {# ===== CBT KPIs ===== #}
+      {% if perms.academics.view_cbtcourse %}
+      <a href="{% url 'academics:admin_cbt_course_list' %}" class="kpi" data-kpi-label="cbt courses">
+        <div class="kpi-ic teal">📘</div>
+        <div><div class="kpi-num">{{ kpi_stats.cbt_courses_count|default:0 }}</div><div class="kpi-lbl">CBT Courses</div></div>
+      </a>
+      {% endif %}
+      {% if perms.academics.view_questionbank %}
+      <a href="{% url 'academics:admin_question_list' %}" class="kpi" data-kpi-label="cbt questions">
+        <div class="kpi-ic blue">❓</div>
+        <div><div class="kpi-num">{{ kpi_stats.cbt_questions_count|default:0 }}</div><div class="kpi-lbl">CBT Questions</div></div>
+      </a>
+      <a href="{% url 'academics:admin_question_list' %}?quality=low" class="kpi" data-kpi-label="cbt questions needing review">
+        <div class="kpi-ic red">🔍</div>
+        <div><div class="kpi-num">{{ kpi_stats.cbt_questions_low_quality|default:0 }}</div><div class="kpi-lbl">CBT Qs — Needs Review</div></div>
+      </a>
+      <a href="{% url 'academics:admin_cbt_dashboard' %}" class="kpi" data-kpi-label="cbt dashboard">
+        <div class="kpi-ic purple">🧠</div>
+        <div><div class="kpi-num">{{ kpi_stats.cbt_attempts_total|default:0 }}</div><div class="kpi-lbl">CBT Total Attempts</div></div>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# ===== GOVERNANCE ===== #}
+  {% if perms.governance.view_task or perms.governance.view_proposal or perms.governance.view_nominationintake %}
+  <div class="kpi-category-block" data-kpi-category="governance">
+    <div class="kpi-category-label">Governance</div>
+    <div class="kpi-grid">
+      {% if perms.governance.view_task %}
+      <a href="{% url 'governance:task_list' %}?assignee=me" class="kpi" data-kpi-label="my open tasks">
+        <div class="kpi-ic blue">✅</div>
+        <div><div class="kpi-num">{{ kpi_stats.governance_my_open_tasks|default:0 }}</div><div class="kpi-lbl">My Open Tasks</div></div>
+      </a>
+      <a href="{% url 'governance:task_list' %}?overdue=1" class="kpi" data-kpi-label="my overdue tasks">
+        <div class="kpi-ic red">⏰</div>
+        <div><div class="kpi-num">{{ kpi_stats.governance_my_overdue_tasks|default:0 }}</div><div class="kpi-lbl">My Overdue Tasks</div></div>
+      </a>
+      {% endif %}
+
+      {% if perms.governance.view_proposal %}
+      <a href="{% url 'governance:proposal_list' %}?status=voting" class="kpi" data-kpi-label="active proposals">
+        <div class="kpi-ic green">🗳️</div>
+        <div><div class="kpi-num">{{ kpi_stats.governance_active_proposals|default:0 }}</div><div class="kpi-lbl">Active Proposals</div></div>
+      </a>
+      <a href="{% url 'governance:proposal_list' %}?pending_vote=1" class="kpi" data-kpi-label="awaiting my vote">
+        <div class="kpi-ic gold">⏳</div>
+        <div><div class="kpi-num">{{ kpi_stats.governance_pending_votes|default:0 }}</div><div class="kpi-lbl">Awaiting My Vote</div></div>
+      </a>
+      {% endif %}
+
+      {% if perms.governance.view_nominationintake %}
+      <a href="{% url 'governance:nomination_list' %}?status=pending" class="kpi" data-kpi-label="pending nominations">
+        <div class="kpi-ic orange">🙋</div>
+        <div><div class="kpi-num">{{ kpi_stats.governance_pending_nominations|default:0 }}</div><div class="kpi-lbl">Pending Nominations</div></div>
+      </a>
+      {% endif %}
+
+      <a href="{% url 'governance:dashboard' %}" class="kpi" data-kpi-label="governance overview">
+        <div class="kpi-ic purple">🏛️</div>
+        <div><div class="kpi-num">→</div><div class="kpi-lbl">Governance Hub</div></div>
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="kpi-empty-search" id="kpiEmptySearch">No stats match your search.</div>
+</div>
+
+<!-- ====== QUICK STATS (mini row) ====== -->
+{% if stats %}
+<div class="section-label">Quick Stats</div>
+<div class="stats-row">
+    {% for stat in stats %}
+    <div class="stat-mini">
+        <span class="icon-mini">{{ stat.icon }}</span>
+        <span class="number">{{ stat.count }}</span>
+        <span class="label">{{ stat.label }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ====== PREVIEW SECTION ====== -->
+<div class="preview-section">
+  <div class="preview-card">
+    <h4><i class="fas fa-calendar-alt" style="color:var(--gold);"></i> Upcoming Events</h4>
+    <ul>
+      {% for event in upcoming_events|slice:":3" %}
+      <li>
+        <span class="badge-dot blue"></span>
+        <a href="{% url 'events:detail' event.slug %}">{{ event.title }}</a>
+        <span style="font-size:0.7rem; color:var(--text-muted); margin-left:auto;">{{ event.start_datetime|date:"M d" }}</span>
+      </li>
+      {% empty %}
+      <li style="color:var(--text-muted); font-size:0.85rem;">No upcoming events.</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="preview-card">
+    <h4><i class="fas fa-bullhorn" style="color:var(--gold);"></i> Recent Announcements</h4>
+    <ul>
+      {% for ann in recent_announcements|slice:":3" %}
+      <li>
+        <span class="badge-dot green"></span>
+        <a href="{% url 'communications:announcement_detail' ann.slug %}">{{ ann.title }}</a>
+        <span style="font-size:0.7rem; color:var(--text-muted); margin-left:auto;">{{ ann.publish_at|date:"M d" }}</span>
+      </li>
+      {% empty %}
+      <li style="color:var(--text-muted); font-size:0.85rem;">No recent announcements.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<!-- Widget Grid -->
+{% if widgets %}
+<div class="section-label">Your Tools</div>
+<div class="widget-grid">
+    {% for w in widgets %}
+    <a href="{% url w.widget.url_name %}" class="widget-card">
+        <div class="widget-icon"><i class="fas {{ w.widget.icon }}"></i></div>
+        <span class="widget-count">{{ w.count }}</span>
+        <span class="widget-label">{{ w.widget.label }}</span>
+        <span class="widget-hint">→</span>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">📭</div>
+    <h3>Nothing to show yet</h3>
+    <p>You haven't been given access to any modules here. Contact your office head or the ICT Head.</p>
+</div>
+{% endif %}
+
+<!-- Manage Permissions -->
+{% if can_manage_permissions %}
+<div class="manage-permissions-section">
+    <a href="{% url 'dashboards:manage_permissions' %}" class="btn-secondary">
+        <i class="fas fa-users-cog"></i> Manage My Team's Permissions
+    </a>
+</div>
+{% endif %}
+
+<!-- Recent Activity -->
+<div class="recent-activity-section">
+    <div class="recent-activity-header">
+        <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+        <a href="{% url 'dashboards:activity_log' %}" class="view-all-link">
+            View all <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+    {% if recent_activity %}
+    <ul class="activity-list">
+        {% for activity in recent_activity|slice:":6" %}
+        <li>
+            <span>
+                <span class="badge-dot
+                    {% if activity.action == 'create' %}green
+                    {% elif activity.action == 'update' %}gold
+                    {% elif activity.action == 'delete' %}red
+                    {% else %}blue{% endif %}">
+                </span>
+                <strong>
+                    {% if activity.user %}
+                        {{ activity.user.get_full_name|default:activity.user.username }}
+                    {% else %}
+                        System
+                    {% endif %}
+                </strong>
+                {{ activity.get_action_display|default:activity.action }}
+                <span class="object-name">
+                    {% if activity.admin_link %}
+                        <a href="{{ activity.admin_link }}">{{ activity.object_repr|truncatechars:30 }}</a>
+                    {% else %}
+                        {{ activity.object_repr|truncatechars:30 }}
+                    {% endif %}
+                </span>
+            </span>
+            <span class="time">{{ activity.timestamp|timesince }} ago</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color: var(--text-muted); font-size: 0.9rem;">No recent activity to show.</p>
+    {% endif %}
+</div>
+
+<!-- Islamic Quote -->
+<div class="islamic-quote">
+    <span class="arabic">وَقُل رَّبِّ زِدْنِي عِلْمًا</span>
+    <span class="translation">"My Lord, increase me in knowledge." — Quran 20:114</span>
+</div>
+
+<script>
+  // Hero clock
+  (function() {
+    function updateHeroClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString();
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+      const heroClock = document.getElementById('heroClock');
+      const heroDate = document.getElementById('heroDate');
+      if (heroClock) heroClock.textContent = timeStr;
+      if (heroDate) heroDate.textContent = dateStr;
+    }
+    updateHeroClock();
+    setInterval(updateHeroClock, 1000);
+  })();
+
+  // KPI search
+  (function() {
+    const kpiInput = document.getElementById('kpiSearchInput');
+    const kpiCards = document.querySelectorAll('.kpi[data-kpi-label]');
+    const kpiBlocks = document.querySelectorAll('.kpi-category-block');
+    const kpiEmpty = document.getElementById('kpiEmptySearch');
+
+    if (kpiCards.length <= 6) {
+      const wrap = document.getElementById('kpiSearchWrap');
+      if (wrap) wrap.classList.add('hidden');
+    }
+
+    if (kpiInput) {
+      kpiInput.addEventListener('input', function() {
+        const q = kpiInput.value.trim().toLowerCase();
+        let anyVisible = false;
+
+        kpiBlocks.forEach(function(block) {
+          let blockHasVisible = false;
+          block.querySelectorAll('.kpi[data-kpi-label]').forEach(function(card) {
+            const match = !q || card.dataset.kpiLabel.includes(q);
+            card.classList.toggle('kpi-hidden', !match);
+            if (match) { blockHasVisible = true; anyVisible = true; }
+          });
+          block.style.display = blockHasVisible ? '' : 'none';
+        });
+
+        if (kpiEmpty) kpiEmpty.style.display = anyVisible ? 'none' : 'block';
+      });
+    }
+  })();
+</script>
+
+{% endblock %}

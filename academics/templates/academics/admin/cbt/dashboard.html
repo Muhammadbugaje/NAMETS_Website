@@ -1,0 +1,618 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static cbt_extras %}
+
+{% block title %}CBT Dashboard · Academics{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============ HERO ============ */
+.cbt-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px; padding: 2rem 2.25rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(15,61,46,0.25);
+}
+.cbt-hero::before {
+    content: "🧠"; font-size: 8rem;
+    position: absolute; bottom: -2rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.cbt-hero::after {
+    content: ""; position: absolute; top: -40%; right: -5%;
+    width: 360px; height: 360px;
+    background: radial-gradient(circle, rgba(200,169,81,0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+.cbt-hero-inner {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1.25rem; color: #fff;
+}
+.cbt-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: #C8A951;
+    background: rgba(200,169,81,0.18); padding: 0.3rem 0.9rem;
+    border-radius: 20px; margin-bottom: 0.6rem;
+}
+.cbt-hero h1 {
+    font-size: 1.75rem; font-weight: 800; color: #fff;
+    margin: 0 0 0.35rem; line-height: 1.15;
+}
+.cbt-hero p {
+    color: rgba(255,255,255,0.85); font-size: 0.9rem;
+    margin: 0; max-width: 520px; line-height: 1.55;
+}
+.cbt-hero-actions {
+    display: flex; gap: 0.6rem; flex-wrap: wrap;
+    position: relative; z-index: 1;
+}
+.hero-btn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.7rem 1.4rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem; text-decoration: none;
+    transition: all 0.25s ease; border: 1px solid transparent;
+}
+.hero-btn-gold {
+    background: #C8A951; color: #0F3D2E;
+    box-shadow: 0 6px 20px rgba(200,169,81,0.35);
+}
+.hero-btn-gold:hover {
+    background: #E0C96E; color: #0F3D2E;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(200,169,81,0.5);
+}
+.hero-btn-outline {
+    background: rgba(255,255,255,0.1); color: #fff;
+    border-color: rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.hero-btn-outline:hover {
+    background: rgba(255,255,255,0.22); color: #fff;
+    transform: translateY(-3px);
+}
+
+/* Status pill */
+.cbt-status-pill {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 1.1rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem;
+    border: 1.5px solid;
+    position: relative; z-index: 1;
+}
+.cbt-status-pill.on {
+    background: rgba(56,161,105,0.15); color: #b7f0c8;
+    border-color: rgba(56,161,105,0.5);
+}
+.cbt-status-pill.off {
+    background: rgba(192,57,43,0.15); color: #fbb;
+    border-color: rgba(192,57,43,0.5);
+}
+.cbt-status-pill::before {
+    content: ''; width: 8px; height: 8px;
+    border-radius: 50%; background: currentColor;
+    animation: cbtPulse 1.8s infinite;
+}
+.cbt-status-pill.off::before { animation: none; }
+@keyframes cbtPulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.15); }
+}
+
+/* ============ KPI GRID ============ */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem; margin-bottom: 1.5rem;
+}
+.kpi-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md); padding: 1.15rem 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    animation: kpiSlideIn 0.5s ease-out backwards;
+}
+.kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.kpi-card:nth-child(2) { animation-delay: 0.10s; }
+.kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.kpi-card:nth-child(4) { animation-delay: 0.20s; }
+.kpi-card:nth-child(5) { animation-delay: 0.25s; }
+@keyframes kpiSlideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(200,169,81,0.35);
+}
+.kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 4px;
+}
+.kpi-card.green::before { background: linear-gradient(90deg,#0F3D2E,#38a169); }
+.kpi-card.gold::before  { background: linear-gradient(90deg,#8a6a1a,#E0C96E); }
+.kpi-card.blue::before  { background: linear-gradient(90deg,#185fa5,#4299e1); }
+.kpi-card.purple::before { background: linear-gradient(90deg,#6b21a8,#a78bfa); }
+.kpi-card.red::before   { background: linear-gradient(90deg,#9b2c2c,#f87171); }
+
+.kpi-ic {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; margin-bottom: 0.75rem;
+}
+.kpi-card.green .kpi-ic { background: #e8f2ec; color: #1a6b3c; }
+.kpi-card.gold .kpi-ic  { background: #f5e9c8; color: #8a6a1a; }
+.kpi-card.blue .kpi-ic  { background: #e6f0fb; color: #185fa5; }
+.kpi-card.purple .kpi-ic { background: #f0eafb; color: #6b21a8; }
+.kpi-card.red .kpi-ic   { background: #fdecea; color: #9b2c2c; }
+
+.kpi-num {
+    font-size: 1.85rem; font-weight: 800;
+    color: var(--text-primary); line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+.kpi-lbl {
+    font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a9b95; margin-top: 0.3rem;
+}
+.kpi-sub {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.35rem; display: flex; align-items: center; gap: 0.3rem;
+}
+.kpi-sub .arrow-up   { color: #38a169; }
+.kpi-sub .arrow-down { color: #c0392b; }
+
+/* ============ CHART ROW ============ */
+.charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem; margin-bottom: 1.5rem;
+}
+@media (max-width: 900px) {
+    .charts-row { grid-template-columns: 1fr; }
+}
+.chart-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.35rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+}
+.chart-card h3 {
+    font-size: 0.85rem; font-weight: 700;
+    color: var(--text-primary); margin: 0 0 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.chart-card h3 i { color: var(--gold); }
+.chart-card .chart-wrap {
+    position: relative; height: 240px;
+}
+.chart-card .chart-sub {
+    font-size: 0.72rem; color: #8a9b95; margin-top: 0.6rem;
+    text-align: center;
+}
+
+/* ============ PANEL GRID ============ */
+.panel-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 1rem; margin-bottom: 1.5rem;
+}
+@media (max-width: 900px) {
+    .panel-row { grid-template-columns: 1fr; }
+}
+.panel {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.35rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+.panel-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 0.85rem;
+}
+.panel-head h3 {
+    font-size: 0.9rem; font-weight: 700;
+    color: var(--text-primary); margin: 0;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.panel-head h3 i { color: var(--gold); }
+.panel-head a {
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.75rem;
+    display: inline-flex; align-items: center; gap: 0.25rem;
+}
+.panel-head a:hover { text-decoration: underline; }
+
+/* ============ LIST ITEMS ============ */
+.cbt-list { list-style: none; padding: 0; margin: 0; }
+.cbt-list li {
+    padding: 0.7rem 0; border-bottom: 1px solid rgba(0,0,0,0.04);
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 0.75rem; flex-wrap: wrap;
+    transition: all 0.2s;
+}
+.cbt-list li:hover {
+    background: rgba(200,169,81,0.04);
+    padding-left: 0.5rem; padding-right: 0.5rem;
+    border-radius: 8px;
+}
+.cbt-list li:last-child { border-bottom: none; }
+.cbt-list .list-main { flex: 1; min-width: 0; }
+.cbt-list .list-title {
+    font-weight: 600; color: var(--text-primary);
+    font-size: 0.85rem; margin-bottom: 0.15rem;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; max-width: 320px;
+}
+.cbt-list .list-meta {
+    font-size: 0.7rem; color: #8a9b95;
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+}
+.cbt-list .list-meta span { display: inline-flex; align-items: center; gap: 0.25rem; }
+.cbt-list .list-badge {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    padding: 0.15rem 0.55rem; border-radius: 12px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+.badge-easy   { background: #e8f2ec; color: #1a6b3c; }
+.badge-medium { background: #f5e9c8; color: #8a6a1a; }
+.badge-hard   { background: #fdecea; color: #9b2c2c; }
+.badge-warn   { background: #fef3e8; color: #a8671a; }
+.badge-good   { background: #e8f2ec; color: #1a6b3c; }
+.badge-danger { background: #fdecea; color: #9b2c2c; }
+
+/* ============ GUIDE ============ */
+.guide-section {
+    background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 100%);
+    border-left: 4px solid var(--gold);
+    border-radius: 14px; padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.guide-section h3 {
+    font-size: 0.95rem; font-weight: 700; color: #8a6a1a;
+    margin: 0 0 0.75rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.guide-section ol {
+    margin: 0; padding-left: 1.3rem; color: #4a3a10;
+    font-size: 0.85rem; line-height: 1.85;
+}
+.guide-section ol li::marker { color: #8a6a1a; font-weight: 700; }
+.guide-section code {
+    background: rgba(15,61,46,0.08); color: #0F3D2E;
+    padding: 0.1rem 0.45rem; border-radius: 4px;
+    font-size: 0.8rem; font-weight: 600;
+}
+
+/* ============ EMPTY ============ */
+.cbt-empty {
+    text-align: center; padding: 2rem 1rem;
+    color: #8a9b95; font-size: 0.85rem;
+}
+.cbt-empty .ic { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; opacity: 0.5; }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .cbt-hero { padding: 1.5rem 1.25rem; }
+    .cbt-hero h1 { font-size: 1.3rem; }
+    .cbt-hero::before { font-size: 5rem; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+    .kpi-card { padding: 0.9rem 1rem; }
+    .kpi-num { font-size: 1.4rem; }
+    .kpi-ic { width: 36px; height: 36px; font-size: 1rem; margin-bottom: 0.5rem; }
+    .chart-card, .panel { padding: 1rem 1.1rem; }
+    .cbt-list .list-title { max-width: 180px; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- HERO -->
+<div class="cbt-hero">
+    <div class="cbt-hero-inner">
+        <div>
+            <span class="cbt-eyebrow">🧠 CBT Module</span>
+            <h1>CBT Dashboard</h1>
+            <p>Manage quiz banks, track performance, and monitor student activity across all CBT courses.</p>
+            <div style="margin-top:0.9rem;">
+                {% if cbt_enabled %}
+                <span class="cbt-status-pill on">Module is LIVE for students</span>
+                {% else %}
+                <span class="cbt-status-pill off">Module is OFF — students see "disabled"</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="cbt-hero-actions">
+            <a href="{% url 'academics:admin_cbt_course_list' %}" class="hero-btn hero-btn-outline">
+                <i class="fas fa-book-open"></i> Courses
+            </a>
+            <a href="{% url 'academics:admin_question_list' %}" class="hero-btn hero-btn-outline">
+                <i class="fas fa-list"></i> Questions
+            </a>
+            <a href="{% url 'academics:admin_question_import' %}" class="hero-btn hero-btn-gold">
+                <i class="fas fa-file-import"></i> Import
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- KPI CARDS -->
+<div class="kpi-grid">
+    <div class="kpi-card green">
+        <div class="kpi-ic"><i class="fas fa-book"></i></div>
+        <div class="kpi-num">{{ active_courses }}</div>
+        <div class="kpi-lbl">Active Courses</div>
+        <div class="kpi-sub">
+            <span class="arrow-up"><i class="fas fa-circle" style="font-size:0.4rem;"></i></span>
+            {{ total_courses }} total
+        </div>
+    </div>
+    <div class="kpi-card gold">
+        <div class="kpi-ic"><i class="fas fa-question-circle"></i></div>
+        <div class="kpi-num">{{ active_questions }}</div>
+        <div class="kpi-lbl">Active Questions</div>
+        <div class="kpi-sub">
+            {{ total_questions }} total in bank
+        </div>
+    </div>
+    <div class="kpi-card blue">
+        <div class="kpi-ic"><i class="fas fa-percentage"></i></div>
+        <div class="kpi-num">{{ overall_correct_rate|default:"—" }}{% if overall_correct_rate %}%{% endif %}</div>
+        <div class="kpi-lbl">Avg. Correct Rate</div>
+        <div class="kpi-sub">
+            across all answered questions
+        </div>
+    </div>
+    <div class="kpi-card purple">
+        <div class="kpi-ic"><i class="fas fa-chart-line"></i></div>
+        <div class="kpi-num">{{ total_attempts|default:0 }}</div>
+        <div class="kpi-lbl">Total Attempts</div>
+        <div class="kpi-sub">
+            questions answered
+        </div>
+    </div>
+    <div class="kpi-card red">
+        <div class="kpi-ic"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="kpi-num">{{ low_performers|length }}</div>
+        <div class="kpi-lbl">Needs Review</div>
+        <div class="kpi-sub">
+            questions with &lt;40% correct
+        </div>
+    </div>
+</div>
+
+<!-- CHARTS -->
+<div class="charts-row">
+    <div class="chart-card">
+        <h3><i class="fas fa-chart-pie"></i> Difficulty Distribution</h3>
+        <div class="chart-wrap">
+            <canvas id="difficultyChart"></canvas>
+        </div>
+        <div class="chart-sub">How your question bank is balanced across difficulties</div>
+    </div>
+    <div class="chart-card">
+        <h3><i class="fas fa-chart-bar"></i> Questions per Course</h3>
+        <div class="chart-wrap">
+            <canvas id="courseChart"></canvas>
+        </div>
+        <div class="chart-sub">Total active questions per CBT course</div>
+    </div>
+</div>
+
+<!-- PANELS -->
+<div class="panel-row">
+
+    <!-- Recent Questions -->
+    <div class="panel">
+        <div class="panel-head">
+            <h3><i class="fas fa-clock"></i> Recently Added Questions</h3>
+            <a href="{% url 'academics:admin_question_list' %}">View all <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <ul class="cbt-list">
+            {% for q in recent %}
+            <li>
+                <div class="list-main">
+                    <div class="list-title">{{ q.question_text|truncatechars:70 }}</div>
+                    <div class="list-meta">
+                        <span><i class="fas fa-book"></i> {{ q.course.name }}</span>
+                        {% if q.topic %}<span><i class="fas fa-tag"></i> {{ q.topic }}</span>{% endif %}
+                        <span class="list-badge badge-{{ q.difficulty }}">{{ q.get_difficulty_display }}</span>
+                    </div>
+                </div>
+                <a href="{% url 'academics:admin_question_edit' q.pk %}" class="list-badge badge-good" style="text-decoration:none;">
+                    <i class="fas fa-pen"></i> Edit
+                </a>
+            </li>
+            {% empty %}
+            <div class="cbt-empty">
+                <span class="ic">📭</span>
+                <p>No questions yet. Add your first one to get started.</p>
+                <a href="{% url 'academics:admin_question_create' %}" class="hero-btn hero-btn-gold" style="margin-top:0.6rem;display:inline-flex;">
+                    <i class="fas fa-plus"></i> Add Question
+                </a>
+            </div>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Low Performers -->
+    <div class="panel">
+        <div class="panel-head">
+            <h3><i class="fas fa-exclamation-triangle" style="color:#c0392b;"></i> Questions Needing Review</h3>
+        </div>
+        <ul class="cbt-list">
+            {% for q in low_performers %}
+            <li>
+                <div class="list-main">
+                    <div class="list-title">{{ q.question_text|truncatechars:55 }}</div>
+                    <div class="list-meta">
+                        <span><i class="fas fa-book"></i> {{ q.course.name }}</span>
+                        <span class="list-badge badge-danger">
+                            {{ q.correct_rate }}% correct
+                        </span>
+                        <span>{{ q.times_answered }} attempts</span>
+                    </div>
+                </div>
+                <a href="{% url 'academics:admin_question_edit' q.pk %}" class="list-badge badge-warn" style="text-decoration:none;">
+                    Review
+                </a>
+            </li>
+            {% empty %}
+            <div class="cbt-empty">
+                <span class="ic">✨</span>
+                <p>No problematic questions. All good!</p>
+            </div>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- SHORT COURSES WARNING -->
+{% if short_courses %}
+<div class="panel" style="margin-bottom:1.5rem; border-left:4px solid #d69e2e;">
+    <div class="panel-head">
+        <h3><i class="fas fa-exclamation-circle" style="color:#d69e2e;"></i> Courses Low on Questions</h3>
+        <span style="font-size:0.75rem;color:#8a9b95;">Aim for at least 20 per course</span>
+    </div>
+    <ul class="cbt-list">
+        {% for c in short_courses %}
+        <li>
+            <div class="list-main">
+                <div class="list-title">{{ c.icon }} {{ c.name }}</div>
+                <div class="list-meta">
+                    <span class="list-badge badge-warn">{{ c.q_count }} question{{ c.q_count|pluralize }}</span>
+                    <span>Add at least {{ 20|add:"-"|add:c.q_count|default:20 }} more for variety</span>
+                </div>
+            </div>
+            <a href="{% url 'academics:admin_question_create' %}?course={{ c.pk }}" class="list-badge badge-good" style="text-decoration:none;">
+                <i class="fas fa-plus"></i> Add
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- GUIDE -->
+<div class="guide-section">
+    <h3><i class="fas fa-compass"></i> How CBT Works — Quick Guide</h3>
+    <ol>
+        <li>Create a <code>CBT Course</code> — this is separate from regular courses.</li>
+        <li>Add questions manually via the <strong>Question Bank</strong>, or bulk-import them from Excel.</li>
+        <li>Aim for <strong>≥ 20 questions per course</strong> so two students rarely get identical tests.</li>
+        <li>Toggle the module <strong>ON</strong> in <code>SiteSettings</code> to make it visible to students.</li>
+        <li>Students take tests via <code>/academics/cbt/</code> — no login needed.</li>
+        <li>Results include a fun AI-generated report (toggle in settings) and a retake option.</li>
+    </ol>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    const gold = '#C8A951';
+    const green = '#0F3D2E';
+    const chartFont = { family: "'Inter', 'DM Sans', sans-serif", size: 11 };
+
+    // -------- Difficulty doughnut --------
+    const diffCtx = document.getElementById('difficultyChart');
+    if (diffCtx) {
+        new Chart(diffCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Easy', 'Medium', 'Hard'],
+                datasets: [{
+                    data: [{{ easy_count|default:0 }}, {{ medium_count|default:0 }}, {{ hard_count|default:0 }}],
+                    backgroundColor: ['#38a169', '#E0C96E', '#c0392b'],
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverOffset: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: chartFont,
+                            padding: 12,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: green,
+                        padding: 10,
+                        cornerRadius: 8,
+                        titleFont: { weight: 'bold' },
+                        callbacks: {
+                            label: function(ctx) {
+                                const total = ctx.dataset.data.reduce((a,b) => a+b, 0);
+                                const pct = total ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                                return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // -------- Per-course bar --------
+    const courseCtx = document.getElementById('courseChart');
+    if (courseCtx) {
+        new Chart(courseCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for c in all_courses_json %}"{{ c.name|escapejs }}",{% endfor %}],
+                datasets: [{
+                    label: 'Questions',
+                    data: [{% for c in all_courses_json %}{{ c.count }},{% endfor %}],
+                    backgroundColor: 'rgba(200,169,81,0.7)',
+                    hoverBackgroundColor: gold,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: green,
+                        padding: 10,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: ctx => ` ${ctx.parsed.y} questions`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 5, precision: 0, font: chartFont },
+                        grid: { color: 'rgba(0,0,0,0.04)' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: chartFont, maxRotation: 0, autoSkip: true }
+                    }
+                }
+            }
+        });
+    }
+})();
+</script>
+
+{% endblock %}

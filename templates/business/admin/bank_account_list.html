@@ -1,0 +1,144 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Bank Accounts · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.ba-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.ba-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #fff;
+}
+.ba-eyebrow {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.3rem;
+}
+.ba-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.ba-header p { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+.ba-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-decoration: none;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.25s;
+}
+.ba-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); color:#fff; }
+
+.ba-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+}
+.ba-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+.ba-card:hover { transform: translateY(-4px); border-color: var(--gold); box-shadow: var(--shadow-md); }
+.ba-card .name { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+.ba-card .type { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+.ba-card .balance {
+    font-size: 1.4rem; font-weight: 700; color: var(--primary);
+    margin: 0.3rem 0 0.5rem;
+}
+.ba-card .meta { font-size: 0.75rem; color: var(--text-muted); }
+.ba-card .actions { display: flex; gap: 0.3rem; margin-top: 0.5rem; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 0.5rem; }
+.ba-card .actions .btn-sm {
+    padding: 0.15rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.badge-public { background: #e8f2ec; color: #1a3c2e; font-size: 0.55rem; padding: 0.05rem 0.4rem; border-radius: 10px; font-weight: 600; }
+.empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem; }
+
+@media (max-width: 768px) {
+    .ba-header { padding: 1rem 1.25rem; }
+    .ba-header-content { flex-direction: column; align-items: stretch; }
+    .ba-btn { width: 100%; justify-content: center; }
+    .ba-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="ba-header">
+    <div class="ba-header-content">
+        <div>
+            <span class="ba-eyebrow">Financial Secretary</span>
+            <h1>🏦 Bank Accounts</h1>
+            <p>Manage NAMETS bank accounts and view current balances.</p>
+        </div>
+        <div class="ba-header-actions">
+            {% if perms.business.add_bankaccount %}
+            <a href="{% url 'business:admin_bank_account_create' %}" class="ba-btn">
+                <i class="fas fa-plus-circle"></i> Add Account
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="ba-grid">
+    {% for account in accounts %}
+    <div class="ba-card">
+        <div class="name">{{ account.name }}</div>
+        <div class="type">{{ account.get_account_type_display }}</div>
+        <div class="balance">₦{{ account.current_balance|floatformat:2 }}</div>
+        <div class="meta">
+            {% if account.account_number %}{{ account.account_number }} · {{ account.bank_name }}{% endif %}
+            {% if account.is_public %}<span class="badge-public">Public</span>{% endif %}
+        </div>
+        <div class="actions">
+            <a href="{% url 'business:admin_bank_account_edit' account.pk %}" class="btn-sm btn-sm-gold"><i class="fas fa-edit"></i> Edit</a>
+            <a href="{% url 'business:admin_bank_account_delete' account.pk %}" class="btn-sm btn-sm-danger"><i class="fas fa-trash"></i></a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+        <span style="font-size:2.5rem; display:block;">🏦</span>
+        No bank accounts set up yet.
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

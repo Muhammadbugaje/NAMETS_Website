@@ -5,6 +5,447 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css\communications.css' %}">
+    <style>
+        /* ===== FILTER BAR ===== */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .filter-bar .search-input {
+            flex: 1;
+            min-width: 160px;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 1px solid #d0d9d6;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.8);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: 0.8rem center;
+            transition: all 0.3s ease;
+        }
+        .filter-bar .search-input:focus {
+            border-color: #C8A951;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(200, 169, 81, 0.15);
+        }
+        .filter-bar select {
+            padding: 0.6rem 1rem;
+            border: 1px solid #d0d9d6;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.8);
+            min-width: 120px;
+            transition: all 0.3s ease;
+        }
+        .filter-bar select:focus {
+            border-color: #C8A951;
+            outline: none;
+        }
+        .filter-bar .btn-filter {
+            padding: 0.6rem 1.5rem;
+            background: #0F3D2E;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .filter-bar .btn-filter:hover {
+            background: #1a5a44;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(15, 61, 46, 0.3);
+        }
+        .filter-bar .btn-clear {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid #d0d9d6;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .filter-bar .btn-clear:hover {
+            background: #f5f5f5;
+            color: var(--text-primary);
+        }
+        .filter-bar .result-count {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        /* ===== GRID: 3 COLUMNS → SHRINK DYNAMICALLY ===== */
+        .announcement-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+        }
+
+        /* ===== CARD ===== */
+        .announcement-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .announcement-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+            border-color: rgba(200, 169, 81, 0.3);
+        }
+        .announcement-card.pinned-card {
+            border-top: 4px solid #C8A951;
+        }
+
+        /* ===== CARD IMAGE (only if exists) ===== */
+        .card-image {
+            position: relative;
+            overflow: hidden;
+            background: #f0f4f2;
+            flex-shrink: 0;
+            max-height: 200px;
+        }
+        .card-image img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+            display: block;
+        }
+        .announcement-card:hover .card-image img {
+            transform: scale(1.05);
+        }
+        .card-image .pinned-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #C8A951;
+            color: #0F3D2E;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 2;
+        }
+
+        /* ===== CARD CONTENT ===== */
+        .card-content {
+            padding: 1.25rem 1.25rem 1.25rem 1.25rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 0.4rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+        .badge-general { background: #e8f0fe; color: #1a5a94; }
+        .badge-event { background: #fef3e8; color: #a8671a; }
+        .badge-important { background: #fdecea; color: #9b2c2c; }
+        .badge-update { background: #e8f2ec; color: #1a5a44; }
+        .badge-community { background: #f0e8fe; color: #5a1a94; }
+        .badge-education { background: #e8f0fe; color: #1a5a94; }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0 0 0.3rem 0;
+            line-height: 1.3;
+        }
+        .card-title a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .card-title a:hover {
+            color: #C8A951;
+        }
+        .card-desc {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0 0 0.6rem 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        /* ===== CARD FOOTER ===== */
+        .card-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-top: 0.25rem;
+            padding-top: 0.6rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        .card-footer .date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .card-footer .date i {
+            font-size: 0.7rem;
+        }
+        .card-footer .actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* ===== QUICK LINK BUTTON ===== */
+        .quick-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 1rem;
+            background: #C8A951;
+            color: #0F3D2E;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(200, 169, 81, 0.2);
+        }
+        .quick-link-btn:hover {
+            background: #E0C96E;
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 6px 20px rgba(200, 169, 81, 0.35);
+            color: #0F3D2E;
+        }
+        .quick-link-btn i {
+            font-size: 0.7rem;
+        }
+
+        /* ===== READ MORE BUTTON (BIGGER) ===== */
+        .btn-read-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1.3rem;
+            background: #0F3D2E;
+            color: #fff;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(15, 61, 46, 0.15);
+        }
+        .btn-read-more:hover {
+            background: #1a5a44;
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 6px 20px rgba(15, 61, 46, 0.3);
+            color: #fff;
+        }
+        .btn-read-more i {
+            font-size: 0.7rem;
+            transition: transform 0.3s ease;
+        }
+        .btn-read-more:hover i {
+            transform: translateX(4px);
+        }
+
+        /* ===== LINK COUNT BADGE ===== */
+        .link-count {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        .link-count i {
+            font-size: 0.6rem;
+        }
+
+        /* ===== PAGINATION ===== */
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2.5rem;
+            flex-wrap: wrap;
+        }
+        .pagination-wrapper .step-links {
+            display: flex;
+            gap: 0.3rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .pagination-wrapper .step-links a,
+        .pagination-wrapper .step-links .current {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 38px;
+            height: 38px;
+            padding: 0 0.8rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .pagination-wrapper .step-links a {
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--text-primary);
+            border: 1px solid #e8edec;
+        }
+        .pagination-wrapper .step-links a:hover {
+            background: #0F3D2E;
+            color: #fff;
+            border-color: #0F3D2E;
+            transform: translateY(-2px);
+        }
+        .pagination-wrapper .step-links .current {
+            background: #C8A951;
+            color: #0F3D2E;
+            font-weight: 700;
+            border: 1px solid #C8A951;
+        }
+        .pagination-wrapper .step-links .disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            grid-column: 1 / -1;
+        }
+        .empty-state-icon {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+        .empty-state h3 {
+            color: var(--text-primary);
+            margin: 0 0 0.5rem 0;
+        }
+        .empty-state p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+
+        /* Tablet: 2 columns */
+        @media (max-width: 992px) {
+            .announcement-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+        }
+
+        /* Mobile: 1 column (stack) */
+        @media (max-width: 640px) {
+            .announcement-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 1rem;
+            }
+            .filter-bar .search-input {
+                min-width: auto;
+            }
+            .filter-bar .result-count {
+                margin-left: 0;
+                text-align: center;
+            }
+            .card-title {
+                font-size: 0.95rem;
+            }
+            .card-image img {
+                height: 160px;
+            }
+            .card-footer .actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .quick-link-btn,
+            .btn-read-more {
+                justify-content: center;
+                width: 100%;
+            }
+            .pagination-wrapper .step-links a,
+            .pagination-wrapper .step-links .current {
+                min-width: 34px;
+                height: 34px;
+                font-size: 0.75rem;
+                padding: 0 0.6rem;
+            }
+        }
+
+        /* Tiny screens */
+        @media (max-width: 400px) {
+            .card-content {
+                padding: 0.9rem 1rem 1rem 1rem;
+            }
+            .card-image img {
+                height: 130px;
+            }
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -18,45 +459,133 @@
     <div class="page-her-divider"></div>
 </section>
 
-<!-- Announcements Grid -->
-<div class="section-heading reveal mt-lg">
-    <h2>All Announcements</h2>
-    <div class="section-heading-line"></div>
+<!-- ===== FILTER BAR ===== -->
+<div class="filter-bar">
+    <form method="get" action="" style="display: contents;">
+        <input type="text" name="q" class="search-input" placeholder="Search announcements..." value="{{ query }}">
+        <select name="category">
+            <option value="">All Categories</option>
+            {% for value, label in categories %}
+            <option value="{{ value }}" {% if category_filter == value %}selected{% endif %}>
+                {{ label }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-filter">
+            <i class="fas fa-search"></i> Filter
+        </button>
+        {% if query or category_filter %}
+        <a href="{% url 'communications:announcement_list' %}" class="btn-clear">
+            <i class="fas fa-times"></i> Clear
+        </a>
+        {% endif %}
+        <span class="result-count">
+            {% if page_obj %}
+                {{ page_obj.paginator.count }} announcement{{ page_obj.paginator.count|pluralize }}
+            {% else %}
+                {{ announcements|length }} announcement{{ announcements|length|pluralize }}
+            {% endif %}
+        </span>
+    </form>
 </div>
 
-{% if announcements %}
-<div class="card-grid-1">
-    {% for announcement in announcements %}
-    <div class="glass-card hover-lift tap-feedback announcement-card card-reveal">
-        {% if announcement.image %}
-        <div class="card-image">
-            <img src="{{ announcement.image.url }}" alt="{{ announcement.title }}">
-        </div>
-        {% endif %}
-        <div class="card-content">
-            <div class="card-header">
-                <span class="badge badge-{{ announcement.category }}">{{ announcement.get_category_display }}</span>
+<!-- ===== ANNOUNCEMENT GRID (3 columns → shrink → stack) ===== -->
+<div class="announcement-grid">
+    {% if announcements %}
+        {% for announcement in announcements %}
+        <div class="announcement-card card-reveal {% if announcement.is_pinned %}pinned-card{% endif %}">
+            <!-- Image (only if it exists — no placeholder) -->
+            {% if announcement.image %}
+            <div class="card-image">
+                <img src="{{ announcement.image.url }}" alt="{{ announcement.title }}" loading="lazy">
                 {% if announcement.is_pinned %}
-                <span class="pinned-indicator">📌 Pinned</span>
+                <span class="pinned-badge">📌 Pinned</span>
                 {% endif %}
             </div>
-            <h3 class="card-title">
-                <a href="{% url 'communications:announcement_detail' announcement.slug %}">{{ announcement.title }}</a>
-            </h3>
-            <p class="card-desc">{{ announcement.content|striptags|truncatewords:25 }}</p>
-            <div class="card-footer">
-                <span class="date">{{ announcement.publish_at|date:"M j, Y" }}</span>
-                <a href="{% url 'communications:announcement_detail' announcement.slug %}" class="btn btn-primary btn-sm">Read More</a>
+            {% endif %}
+
+            <!-- Content -->
+            <div class="card-content">
+                <div>
+                    <div class="card-header">
+                        <span class="badge badge-{{ announcement.category }}">
+                            {{ announcement.get_category_display }}
+                        </span>
+                        {% if announcement.links.exists %}
+                        <span class="link-count">
+                            <i class="fas fa-link"></i> {{ announcement.links.count }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <h3 class="card-title">
+                        <a href="{% url 'communications:announcement_detail' announcement.slug %}">{{ announcement.title }}</a>
+                    </h3>
+                    <p class="card-desc">{{ announcement.content|striptags|truncatewords:30 }}</p>
+                </div>
+
+                <div class="card-footer">
+                    <span class="date">
+                        <i class="far fa-calendar-alt"></i>
+                        {{ announcement.publish_at|date:"M j, Y" }}
+                    </span>
+                    <div class="actions">
+                        {% with links=announcement.links.all %}
+                            {% if links %}
+                                {% with primary=links|dictsort:"is_primary"|last %}
+                                    <a href="{{ primary.url }}" target="_blank" rel="noopener noreferrer" class="quick-link-btn" title="Open primary link: {{ primary.get_link_type_display }}">
+                                        <i class="fas {{ primary.get_icon }}"></i>
+                                        {{ primary.get_link_type_display }}
+                                    </a>
+                                {% endwith %}
+                            {% endif %}
+                        {% endwith %}
+                        <a href="{% url 'communications:announcement_detail' announcement.slug %}" class="btn-read-more">
+                            Read More <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    {% endfor %}
+        {% endfor %}
+    {% else %}
+        <div class="empty-state card-reveal">
+            <span class="empty-state-icon">📢</span>
+            <h3>No announcements found</h3>
+            <p>
+                {% if query or category_filter %}
+                    Try adjusting your search or filters.
+                {% else %}
+                    Announcements will appear here once they are published. Check back soon!
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
 </div>
-{% else %}
-<div class="empty-state glass card-reveal">
-    <span class="empty-state-icon">📢</span>
-    <h3>No announcements yet</h3>
-    <p>Announcements will appear here once they are published. Check back soon!</p>
+
+<!-- ===== PAGINATION ===== -->
+{% if is_paginated %}
+<div class="pagination-wrapper">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1{% if query %}&q={{ query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">&laquo; First</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">‹ Prev</a>
+        {% else %}
+            <span class="disabled">&laquo; First</span>
+            <span class="disabled">‹ Prev</span>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">Next ›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">Last &raquo;</a>
+        {% else %}
+            <span class="disabled">Next ›</span>
+            <span class="disabled">Last &raquo;</span>
+        {% endif %}
+    </span>
 </div>
 {% endif %}
 {% endblock %}

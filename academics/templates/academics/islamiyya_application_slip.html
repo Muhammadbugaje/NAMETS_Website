@@ -24,7 +24,15 @@
                 <div class="id-value">{{ registration.application_id }}</div>
             </div>
             <div class="status-badge">
-                {% if registration.is_verified %}✓ Marhaba! Verified{% else %}● Pending Verification{% endif %}
+                {% if registration.payment_status == 'paid' %}
+                    ✓ Marhaba! Verified
+                {% elif registration.payment_status == 'waived' %}
+                    ⊘ Fee Waived
+                {% elif registration.payment_status == 'refunded' %}
+                    ↺ Refunded
+                {% else %}
+                    ● Pending Payment
+                {% endif %}
             </div>
         </div>
 

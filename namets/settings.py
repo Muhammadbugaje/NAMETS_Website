@@ -13,16 +13,15 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from datetime import datetime
 from logging import config
-from logging import config
 from pathlib import Path
 
 import ssl
 
 import os
-from dotenv import load_dotenv
-from urllib.parse import urlparse, parse_qsl
 
-load_dotenv()   # loads variables from .env file into environment
+from urllib.parse import urlparse, parse_qsl
+from dotenv import load_dotenv
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
@@ -34,8 +33,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-dev-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 #DEBUG = True
+SITE_BASE_URL = 'http://127.0.0.1:8000'  # Change to https://yourdomain.com in production
+
+# SITE_BASE_URL = os.environ.get('SITE_BASE_URL', 'https://namets.org.ng')
+
+# Logo URL for emails — stored on Cloudinary so it doesn't depend on the website domain
+LOGO_URL = os.environ.get('LOGO_URL', 'https://res.cloudinary.com/dgkin4erd/image/upload/v1788637376/Namets_oaapzr.jpg')
+
+
+# Gemini API for AI features
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+
 
 # Application definition
 
@@ -53,15 +63,18 @@ INSTALLED_APPS = [
     # my local apps
     'django.contrib.staticfiles',
     'core',
-    'communications',
+    'communications.apps.CommunicationsConfig',
     'events',
     'academics',
+    'accounts',
     'lostfound',
     'community',
     'gallery',
     'namets_notifications',
+    'dashboards',
+    'business',
+    'governance',
     'rest_framework',
-    'api',
     'storages', # for django-storages for image cloud buket storage
     'cloudinary_storage',  # cloudinary storage backend for media files
     'cloudinary',     
@@ -103,14 +116,14 @@ WSGI_APPLICATION = 'namets.wsgi.application'
 
 # Database local sqlite3 for development, inbuilt with django
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-"""
+""""""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-"""
+
 """
 # uncomment this section and comment the section above to use the neon postgres database in production.
 # Replace the DATABASES section of your settings.py with this
@@ -147,14 +160,31 @@ DATABASES = {
 }
 """
 # Aiven simplified url
-""""""
+"""
 import dj_database_url
 DATABASES = {
     'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
 }
-
+"""
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+
+
+"""
+# for hosting on render and allowing render to send requests to our webhook endpoint, we need to allow render's domain in the allowed hosts and csrf trusted origins.
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+"""
+# for local server and testing do this 
+ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.ngrok-free.dev',
+    'https://*.onrender.com',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+]
+
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -197,10 +227,43 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # MEDIA_URL = '/media/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+AUTH_USER_MODEL = 'accounts.User'
 
 # timezone
 TIME_ZONE = 'Africa/Lagos'
 USE_TZ = True
+
+# ============================================================
+# PAYSTACK CONFIGURATION
+# ============================================================
+
+import os
+from decouple import config
+
+PAYSTACK_PUBLIC_KEY = os.environ.get(
+    'PAYSTACK_PUBLIC_KEY',
+    'pk_test_6cbf5a9e2709549e98ff0c07b56a41d628104812'  # your test public key
+)
+
+PAYSTACK_SECRET_KEY = os.environ.get(
+    'PAYSTACK_SECRET_KEY',
+    'sk_test_a6bb2f8c06dc7549147b593a68084651a1070b03'   # ← paste your real test secret here
+)
+
+# Paystack callback base (used to build callback_url in views)
+PAYSTACK_CALLBACK_URL = os.environ.get(
+    'PAYSTACK_CALLBACK_URL',
+    'http://127.0.0.1:8000/business/payment/callback/'
+)
+"""
+# 0r 
+from decouple import config
+
+PAYSTACK_PUBLIC_KEY = config('PAYSTACK_PUBLIC_KEY', default='')
+PAYSTACK_SECRET_KEY = config('PAYSTACK_SECRET_KEY', default='')
+PAYSTACK_CALLBACK_URL = config('PAYSTACK_CALLBACK_URL', default='http://127.0.0.1:8000/business/payment/callback/')
+"""
+
 
 
 # utils/auth.py
@@ -222,19 +285,12 @@ N8N_API_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlZDhmZTI0Ny1mYj
 N8N_WEBHOOK_URL='https://namets-n8n-gn03.onrender.com/webhook/namets-events'
 WEBHOOK_SECRET = 'qnonxhxlwftbyyqm'
 
-# for hosting on render and allowing render to send requests to our webhook endpoint, we need to allow render's domain in the allowed hosts and csrf trusted origins.
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
-"""
-# for local server and testing do this 
-ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = [
-    'https://*.ngrok-free.dev',
-    'https://*.onrender.com',
-    'http://127.0.0.1:8000',
-    'http://localhost:8000',
-]
-"""
+
+# Brevo — direct email sending (replaces n8n)
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', '<namets.notifications@gmail.com>')
+
+LOGIN_URL = '/accounts/namets-exco/'
 
 # Clodinary configuration for media file storage
 import cloudinary
@@ -490,7 +546,7 @@ UNFOLD = {
                     {
                         "title": _("Users"),
                         "icon": "manage_accounts",
-                        "link": reverse_lazy("admin:auth_user_changelist"),
+                        "link": reverse_lazy("admin:accounts_user_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {

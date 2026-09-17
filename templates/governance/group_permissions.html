@@ -1,0 +1,358 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Permissions · {{ group.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.perm-wrap { max-width: 1100px; margin: 0 auto; }
+.perm-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.perm-back:hover { text-decoration: underline; }
+.perm-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.85rem 2rem;
+    margin-bottom: 1.25rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22);
+}
+.perm-head::before { content: "🔐"; font-size: 6rem; position: absolute; bottom: -1.2rem; right: 1.5rem; opacity: 0.08; }
+.perm-head-inner { position: relative; z-index: 1; }
+.perm-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px; margin-bottom: 0.55rem;
+}
+.perm-head h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.4rem; }
+.perm-head p { color: rgba(255,255,255,0.82); font-size: 0.88rem; margin: 0; max-width: 620px; line-height: 1.6; }
+
+.perm-info-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem; margin-bottom: 1.25rem;
+}
+.info-mini {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 0.9rem 1.1rem; box-shadow: var(--shadow-sm);
+    position: relative; overflow: hidden;
+}
+.info-mini::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.info-mini.green::before { background: linear-gradient(90deg,#0F3D2E,#38a169); }
+.info-mini.gold::before { background: linear-gradient(90deg,#8a6a1a,#E0C96E); }
+.info-mini .num { font-size: 1.35rem; font-weight: 800; color: #0F3D2E; line-height: 1; }
+.info-mini .lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #8a9b95; margin-top: 0.3rem; }
+
+.perm-toolbar {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 0.85rem 1.2rem;
+    display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;
+    margin-bottom: 1.25rem;
+}
+.perm-toolbar .tb {
+    padding: 0.45rem 1rem; border-radius: 50px;
+    font-size: 0.78rem; font-weight: 700;
+    background: #f0f4f2; color: #4a5568;
+    border: none; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.perm-toolbar .tb:hover { background: #e0e8e5; color: #0F3D2E; }
+.perm-toolbar .search-input {
+    flex: 1; min-width: 200px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 50px;
+    font-size: 0.85rem; font-family: inherit;
+}
+.perm-toolbar .search-input:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.perm-toolbar .counter {
+    margin-left: auto; font-size: 0.78rem; color: #8a9b95; font-weight: 700;
+    white-space: nowrap;
+}
+.perm-toolbar .counter strong { color: #0F3D2E; font-weight: 800; }
+
+.perm-group {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border); border-radius: 16px;
+    overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 1rem;
+    transition: all 0.25s;
+}
+.perm-group:hover { box-shadow: var(--shadow-md); }
+.pg-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1rem 1.35rem; background: #f8faf9;
+    cursor: pointer; user-select: none;
+}
+.pg-head:hover { background: #f2f7f4; }
+.pg-title {
+    font-size: 0.85rem; font-weight: 800; color: #0F3D2E;
+    display: flex; align-items: center; gap: 0.55rem;
+    text-transform: capitalize;
+}
+.pg-title i { color: #C8A951; font-size: 0.9rem; }
+.pg-count {
+    font-size: 0.68rem; font-weight: 800;
+    background: rgba(200,169,81,0.15); color: #8a6a1a;
+    padding: 0.15rem 0.6rem; border-radius: 20px; margin-left: 0.5rem;
+}
+.pg-chevron { color: #8a9b95; transition: transform 0.25s; font-size: 0.85rem; }
+.pg-head.collapsed .pg-chevron { transform: rotate(-90deg); }
+.pg-body {
+    display: block; padding: 1rem 1.35rem 1.15rem;
+    border-top: 1px solid rgba(0,0,0,0.04);
+}
+.pg-body.collapsed { display: none; }
+.pg-toolbar { display: flex; gap: 0.4rem; margin-bottom: 0.85rem; flex-wrap: wrap; }
+.pg-toolbar button {
+    padding: 0.3rem 0.85rem; border-radius: 20px;
+    font-size: 0.68rem; font-weight: 800;
+    background: #fff; color: #4a5568;
+    border: 1px solid rgba(0,0,0,0.08);
+    cursor: pointer; font-family: inherit;
+    transition: all 0.15s;
+}
+.pg-toolbar button:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.perm-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+}
+.perm-check {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    padding: 0.6rem 0.85rem;
+    background: #fff; border: 1.5px solid transparent;
+    border-radius: 10px; cursor: pointer; transition: all 0.15s;
+    font-size: 0.82rem;
+}
+.perm-check:hover { border-color: rgba(200,169,81,0.4); background: #fef9ec; }
+.perm-check input { width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer; flex-shrink: 0; margin-top: 0.15rem; }
+.perm-check.checked {
+    background: linear-gradient(135deg, #e8f2ec 0%, #f0faf4 100%);
+    border-color: #38a169;
+}
+.perm-check.checked .perm-name { color: #0F3D2E; font-weight: 700; }
+.perm-name { color: #4a5568; line-height: 1.4; }
+
+.save-bar {
+    position: sticky; bottom: 1rem;
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 18px; padding: 0.85rem 1.35rem;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+    box-shadow: 0 12px 36px rgba(15,61,46,0.3);
+    z-index: 5; margin-top: 1.5rem;
+}
+.save-bar .hint {
+    color: rgba(255,255,255,0.85); font-size: 0.82rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.save-bar .hint i { color: #C8A951; }
+.btn-save {
+    padding: 0.7rem 1.75rem;
+    background: #C8A951; color: #0F3D2E;
+    border: none; border-radius: 50px;
+    font-weight: 800; font-size: 0.88rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    box-shadow: 0 6px 20px rgba(200,169,81,0.35);
+    transition: all 0.25s;
+}
+.btn-save:hover:not(:disabled) { background: #E0C96E; transform: translateY(-2px); }
+.btn-save:disabled { opacity: 0.6; cursor: wait; }
+.btn-cancel-bar {
+    padding: 0.7rem 1.35rem;
+    background: rgba(255,255,255,0.15); color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 50px;
+    font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.btn-cancel-bar:hover { background: rgba(255,255,255,0.25); color: #fff; }
+
+@media (max-width: 768px) {
+    .perm-head { padding: 1.35rem 1.35rem 1.25rem; }
+    .perm-head h1 { font-size: 1.25rem; }
+    .perm-items { grid-template-columns: 1fr; }
+    .perm-toolbar { flex-direction: column; align-items: stretch; }
+    .save-bar .actions { width: 100%; }
+    .btn-save, .btn-cancel-bar { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="perm-wrap">
+    <a href="{% url 'governance:group_list' %}" class="perm-back">
+        <i class="fas fa-arrow-left"></i> Back to Groups
+    </a>
+
+    <div class="perm-head">
+        <div class="perm-head-inner">
+            <span class="perm-eyebrow">Group · Permissions</span>
+            <h1>{{ group.name }}</h1>
+            <p>Every user in this group gets all the permissions you select here.</p>
+        </div>
+    </div>
+
+    <div class="perm-info-strip">
+        <div class="info-mini green">
+            <div class="num">{{ current_count }}</div>
+            <div class="lbl">Currently Assigned</div>
+        </div>
+        <div class="info-mini gold">
+            <div class="num">{{ total_perms }}</div>
+            <div class="lbl">Total Available</div>
+        </div>
+        <div class="info-mini green">
+            <div class="num" id="selectedCount">{{ current_count }}</div>
+            <div class="lbl">Selected Now</div>
+        </div>
+    </div>
+
+    <form method="post" id="permForm">
+        {% csrf_token %}
+
+        <div class="perm-toolbar">
+            <input type="text" class="search-input" id="searchInput"
+                   placeholder="Search permissions…" oninput="filterPermissions()">
+            <button type="button" class="tb" onclick="expandAll()">
+                <i class="fas fa-expand-alt"></i> Expand all
+            </button>
+            <button type="button" class="tb" onclick="collapseAll()">
+                <i class="fas fa-compress-alt"></i> Collapse all
+            </button>
+            <span class="counter">
+                Selected: <strong id="selectedCounter">{{ current_count }}</strong>
+                / {{ total_perms }}
+            </span>
+        </div>
+
+        <div class="perm-groups">
+            {% for app_label, perms in grouped_permissions.items %}
+            <div class="perm-group" data-app="{{ app_label }}">
+                <div class="pg-head" onclick="toggleGroup(this)">
+                    <div class="pg-title">
+                        <i class="fas fa-cube"></i>
+                        {{ app_label|title }}
+                        <span class="pg-count">{{ perms|length }} perm{{ perms|length|pluralize }}</span>
+                    </div>
+                    <i class="fas fa-chevron-down pg-chevron"></i>
+                </div>
+                <div class="pg-body">
+                    <div class="pg-toolbar">
+                        <button type="button" onclick="groupAll('{{ app_label }}', true)">✓ Select all in {{ app_label|title }}</button>
+                        <button type="button" onclick="groupAll('{{ app_label }}', false)">✕ Clear all in {{ app_label|title }}</button>
+                    </div>
+                    <div class="perm-items">
+                        {% for item in perms %}
+                        <label class="perm-check {% if item.granted %}checked{% endif %}"
+                               data-perm-name="{{ item.perm.name|lower }}"
+                               data-perm-codename="{{ item.perm.codename|lower }}">
+                            <input type="checkbox" name="permissions" value="{{ item.perm.id }}"
+                                   {% if item.granted %}checked{% endif %}
+                                   onchange="updateCounter()">
+                            <span class="perm-name">{{ item.perm.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="save-bar">
+            <div class="hint">
+                <i class="fas fa-info-circle"></i>
+                <span>Changes apply to all {{ members.count }} member{{ members.count|pluralize }} of this group.</span>
+            </div>
+            <div class="actions">
+                <a href="{% url 'governance:group_list' %}" class="btn-cancel-bar">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn-save" id="saveBtn">
+                    <i class="fas fa-save"></i> Save Permissions
+                </button>
+            </div>
+        </div>
+    </form>
+
+    {% if members %}
+    <div style="background:var(--card-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:var(--radius-md);padding:1.5rem 1.75rem;margin-top:1.75rem;box-shadow:var(--shadow-sm);">
+        <h3 style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#8a6a1a;margin:0 0 1rem;display:flex;align-items:center;gap:0.5rem;">
+            <i class="fas fa-users"></i> Members ({{ members.count }})
+        </h3>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+            {% for m in members %}
+            <a href="{% url 'governance:user_edit' m.pk %}" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.4rem 0.85rem;background:#f8faf9;border-radius:50px;text-decoration:none;color:#0F3D2E;font-size:0.82rem;font-weight:600;transition:all 0.2s;">
+                <span style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#0F3D2E,#2D7D5A);color:#C8A951;display:inline-flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;">
+                    {{ m.first_name|first|upper }}{{ m.last_name|first|upper }}
+                </span>
+                {{ m.get_full_name|default:m.email }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleGroup(head) {
+    const body = head.nextElementSibling;
+    head.classList.toggle('collapsed');
+    body.classList.toggle('collapsed');
+}
+function expandAll() {
+    document.querySelectorAll('.pg-head').forEach(h => h.classList.remove('collapsed'));
+    document.querySelectorAll('.pg-body').forEach(b => b.classList.remove('collapsed'));
+}
+function collapseAll() {
+    document.querySelectorAll('.pg-head').forEach(h => h.classList.add('collapsed'));
+    document.querySelectorAll('.pg-body').forEach(b => b.classList.add('collapsed'));
+}
+function groupAll(appLabel, on) {
+    document.querySelectorAll(`.perm-group[data-app="${appLabel}"] input[type="checkbox"]`)
+        .forEach(cb => cb.checked = on);
+    updateCounter();
+}
+function updateCounter() {
+    const all = document.querySelectorAll('input[name="permissions"]');
+    const checked = document.querySelectorAll('input[name="permissions"]:checked');
+    document.getElementById('selectedCounter').textContent = checked.length;
+    document.getElementById('selectedCount').textContent = checked.length;
+    all.forEach(cb => {
+        const label = cb.closest('.perm-check');
+        if (cb.checked) label.classList.add('checked');
+        else label.classList.remove('checked');
+    });
+}
+function filterPermissions() {
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    document.querySelectorAll('.perm-check').forEach(label => {
+        const name = label.dataset.permName || '';
+        const code = label.dataset.permCodename || '';
+        const match = !q || name.includes(q) || code.includes(q);
+        label.style.display = match ? '' : 'none';
+    });
+    document.querySelectorAll('.perm-group').forEach(group => {
+        const visible = group.querySelectorAll('.perm-check:not([style*="display: none"])').length;
+        group.style.display = visible ? '' : 'none';
+    });
+}
+document.getElementById('permForm').addEventListener('submit', function() {
+    const btn = document.getElementById('saveBtn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+});
+document.addEventListener('DOMContentLoaded', updateCounter);
+</script>
+
+{% endblock %}

@@ -1,0 +1,316 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 700px; margin: 0 auto; }
+.form-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+.form-back:hover { text-decoration: underline; }
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.form-header h2 { margin: 0; color: var(--text-primary); }
+.form-header p { color: var(--text-muted); margin: 0.25rem 0 1rem; }
+.form-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+.form-group label .required { color: #e53e3e; font-size: 1.1rem; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.6rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.95rem; background: var(--card-bg);
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--gold); outline: none;
+}
+.form-group .help-text { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+.form-group .error-text { font-size: 0.8rem; color: #e53e3e; margin-top: 0.2rem; }
+.form-check-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+}
+.form-check-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--gold);
+    cursor: pointer;
+}
+.form-check-group label { font-weight: 500; color: var(--text-secondary); cursor: pointer; }
+.form-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.05); }
+.btn-primary {
+    background: var(--primary); color: #fff;
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; transition: var(--transition);
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; text-decoration: none; text-align: center;
+    transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 0.4rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-outline:hover { background: var(--gold); color: #fff; }
+.image-preview {
+    margin-top: 0.5rem;
+    max-width: 200px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e8edec;
+}
+.image-preview img { width: 100%; height: auto; display: block; }
+
+/* Modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-md);
+    max-width: 500px;
+    width: 90%;
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--card-border);
+}
+.modal h3 { margin: 0 0 1rem; color: var(--text-primary); }
+.modal .form-group { margin-bottom: 1rem; }
+.modal .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; }
+.modal .modal-actions .btn {
+    padding: 0.5rem 1.5rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.modal .modal-actions .btn-primary { background: var(--primary); color: #fff; }
+.modal .modal-actions .btn-primary:hover { background: var(--primary-dark); }
+.modal .modal-actions .btn-secondary { background: var(--gold); color: var(--text-primary); }
+.modal .modal-actions .btn-secondary:hover { background: var(--gold-dark); }
+
+@media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="form-container">
+    <a href="{% url 'community:admin_executive_list' %}" class="form-back">← Back to Executives</a>
+
+    <div class="form-header">
+        <h2>{{ title }}</h2>
+        <p>{{ button_text }}.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="form-card">
+        {% csrf_token %}
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_name">Name <span class="required">*</span></label>
+                {{ form.name }}
+                {% if form.name.errors %}<div class="error-text">{{ form.name.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_role">Role <span class="required">*</span></label>
+                {{ form.role }}
+                {% if form.role.errors %}<div class="error-text">{{ form.role.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_year">Year <span class="required">*</span></label>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    {{ form.year }}
+                    <button type="button" class="btn-outline" style="padding:0.2rem 0.8rem; font-size:0.8rem;" onclick="openYearModal()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="help-text">Click the <strong>+</strong> button to add a new year.</div>
+                {% if form.year.errors %}<div class="error-text">{{ form.year.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_contribution_summary">Contribution Summary</label>
+                {{ form.contribution_summary }}
+                <div class="help-text">Brief summary of their contributions.</div>
+                {% if form.contribution_summary.errors %}<div class="error-text">{{ form.contribution_summary.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_photo">Photo</label>
+                {{ form.photo }}
+                {% if form.photo.errors %}<div class="error-text">{{ form.photo.errors }}</div>{% endif %}
+                {% if form.instance.photo %}
+                <div class="image-preview">
+                    <img src="{{ form.instance.photo.url }}" alt="Current photo">
+                    <div class="help-text" style="padding:0.3rem 0.6rem;">Current photo</div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_display_order">Display Order</label>
+                {{ form.display_order }}
+                <div class="help-text">Lower numbers appear first.</div>
+                {% if form.display_order.errors %}<div class="error-text">{{ form.display_order.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full" style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+                <div class="form-check-group">
+                    {{ form.is_active }}
+                    <label for="id_is_active">✅ Active <span style="font-weight:400; color:var(--text-muted);">(Visible on public page)</span></label>
+                </div>
+            </div>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="form-row">
+            <div class="form-group full">
+                {% for error in form.non_field_errors %}
+                <div class="error-text" style="background:#fdecea; padding:0.8rem 1rem; border-radius:8px; border-left:4px solid #e53e3e;">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">{{ button_text }}</button>
+            <a href="{% url 'community:admin_executive_list' %}" class="btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<!-- ===== MODAL: Add New Year ===== -->
+<div class="modal-overlay" id="yearModal">
+    <div class="modal">
+        <h3>📅 Add New Year</h3>
+        <form method="post" action="{% url 'community:admin_executive_year_create_ajax' %}" id="yearForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="year_label">Year Label <span class="required">*</span></label>
+                <input type="text" name="year_label" id="year_label" class="form-control" placeholder="e.g., 2025/2026" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea name="description" id="description" class="form-control" rows="2" placeholder="Optional description"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="display_order">Display Order</label>
+                <input type="number" name="display_order" id="display_order" class="form-control" value="0" step="1">
+                <div class="help-text">Lower numbers appear first.</div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeYearModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Year</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Modal functions
+    function openYearModal() {
+        document.getElementById('yearModal').classList.add('active');
+    }
+    function closeYearModal() {
+        document.getElementById('yearModal').classList.remove('active');
+        document.getElementById('yearForm').reset();
+    }
+
+    // Handle modal form submission via AJAX or redirect
+    document.getElementById('yearForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = this;
+        const formData = new FormData(form);
+
+        fetch("{% url 'community:admin_executive_year_create_ajax' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+            },
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Add new option to select
+                const select = document.getElementById('id_year');
+                const option = document.createElement('option');
+                option.value = data.year_id;
+                option.textContent = data.year_label;
+                select.appendChild(option);
+                select.value = data.year_id;
+                closeYearModal();
+            } else {
+                alert('Error: ' + (data.error || 'Could not create year.'));
+            }
+        })
+        .catch(error => {
+            alert('Something went wrong. Please try again.');
+            console.error(error);
+        });
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('yearModal').addEventListener('click', function(e) {
+        if (e.target === this) closeYearModal();
+    });
+</script>
+{% endblock %}

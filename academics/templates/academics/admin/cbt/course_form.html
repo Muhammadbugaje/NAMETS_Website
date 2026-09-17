@@ -1,0 +1,329 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · CBT{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 780px; margin: 0 auto; }
+
+.form-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none; font-weight: 600;
+    margin-bottom: 0.85rem; font-size: 0.85rem;
+}
+.form-back:hover { text-decoration: underline; }
+
+.form-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 20px; padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 28px rgba(15,61,46,0.2);
+}
+.form-header::before {
+    content: "✨"; font-size: 4rem;
+    position: absolute; bottom: -0.5rem; right: 1.5rem;
+    opacity: 0.1;
+}
+.form-header .eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.18);
+    padding: 0.15rem 0.75rem; border-radius: 20px;
+    margin-bottom: 0.35rem;
+}
+.form-header h2 {
+    font-size: 1.3rem; font-weight: 700;
+    margin: 0 0 0.25rem; position: relative;
+}
+.form-header p {
+    color: rgba(255,255,255,0.75); font-size: 0.85rem;
+    margin: 0; position: relative;
+}
+
+.form-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem; box-shadow: var(--shadow-sm);
+}
+
+.form-section-title {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a6a1a; margin: 0 0 0.9rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.form-section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent);
+}
+.form-section-title i { font-size: 0.85rem; }
+
+.form-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1rem; margin-bottom: 0.9rem;
+}
+.form-row .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label {
+    font-weight: 600; color: var(--text-primary);
+    font-size: 0.8rem; margin-bottom: 0.3rem;
+}
+.form-group label .required { color: #e53e3e; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.6rem 0.85rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.9rem; background: #fff;
+    transition: var(--transition); font-family: inherit;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.form-group .help-text {
+    font-size: 0.72rem; color: var(--text-muted);
+    margin-top: 0.25rem; line-height: 1.4;
+}
+.form-group .error-text {
+    font-size: 0.75rem; color: #e53e3e;
+    margin-top: 0.25rem;
+}
+
+.form-check-group {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.75rem 1rem; background: #f8faf9;
+    border-radius: 10px; border: 1px solid rgba(0,0,0,0.05);
+}
+.form-check-group input[type="checkbox"] {
+    width: 18px; height: 18px; accent-color: var(--gold);
+    cursor: pointer;
+}
+.form-check-group label {
+    font-weight: 600; margin: 0; cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.icon-picker {
+    display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem;
+}
+.icon-pick {
+    width: 40px; height: 40px; border-radius: 10px;
+    border: 2px solid #e0e8e5; background: #fff;
+    cursor: pointer; font-size: 1.2rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+}
+.icon-pick:hover { border-color: var(--gold); transform: scale(1.1); }
+.icon-pick.selected {
+    border-color: var(--gold);
+    background: rgba(200,169,81,0.15);
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.2);
+}
+
+.form-actions {
+    display: flex; gap: 0.85rem; flex-wrap: wrap;
+    margin-top: 1.75rem; padding-top: 1.5rem;
+    border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-primary, .btn-secondary {
+    padding: 0.7rem 1.9rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.88rem; cursor: pointer;
+    transition: var(--transition); font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    text-decoration: none;
+}
+.btn-primary {
+    background: var(--primary); color: #fff;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.25);
+}
+.btn-primary:hover {
+    background: var(--primary-dark); color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15,61,46,0.35);
+}
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+}
+.btn-secondary:hover {
+    background: #E0C96E; color: var(--text-primary);
+    transform: translateY(-2px);
+}
+
+.error-summary {
+    background: #fdecea; border-left: 4px solid #e53e3e;
+    border-radius: 10px; padding: 1rem 1.2rem;
+    margin-bottom: 1.25rem; color: #9b2c2c;
+    font-size: 0.88rem;
+}
+.error-summary strong { display: block; margin-bottom: 0.4rem; }
+.error-summary ul { margin: 0; padding-left: 1.2rem; }
+
+@media (max-width: 768px) {
+    .form-card { padding: 1.25rem; }
+    .form-row { grid-template-columns: 1fr; gap: 0.7rem; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn-primary, .form-actions .btn-secondary {
+        width: 100%; justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="form-container">
+
+    <a href="{% url 'academics:admin_cbt_course_list' %}" class="form-back">
+        <i class="fas fa-arrow-left"></i> Back to CBT Courses
+    </a>
+
+    <div class="form-header">
+        <span class="eyebrow">CBT · Course</span>
+        <h2>{{ title }}</h2>
+        <p>{% if course %}Update course details and defaults.{% else %}Create a new CBT course. You'll add questions next.{% endif %}</p>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="error-summary">
+        <strong>Please fix the following:</strong>
+        <ul>{% for err in form.non_field_errors %}<li>{{ err }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    <form method="post" class="form-card" novalidate id="cbtCourseForm">
+        {% csrf_token %}
+
+        <!-- Basic Info -->
+        <div class="form-section-title"><i class="fas fa-info-circle"></i> Basic Info</div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.name.id_for_label }}">Course Name <span class="required">*</span></label>
+                {{ form.name }}
+                {% if form.name.errors %}<div class="error-text">{{ form.name.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.slug.id_for_label }}">URL Slug</label>
+                {{ form.slug }}
+                <div class="help-text">Leave blank to auto-generate. Lowercase, no spaces.</div>
+                {% if form.slug.errors %}<div class="error-text">{{ form.slug.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.description.id_for_label }}">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}<div class="error-text">{{ form.description.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- Icon -->
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.icon.id_for_label }}">Icon Emoji</label>
+                {{ form.icon }}
+                <div class="help-text">Pick an emoji to display next to the course name.</div>
+                <div class="icon-picker">
+                    {% for emoji in "📘,📖,🕌,⚖️,🧠,💡,🔬,📝,🎓,🌟,🕋,🧪" %}{% endfor %}
+                    <button type="button" class="icon-pick" onclick="pickIcon('📘')">📘</button>
+                    <button type="button" class="icon-pick" onclick="pickIcon('📖')">📖</button>
+                    <button type="button" class="icon-pick" onclick="pickIcon('🕌')">🕌</button>
+                    <button type="button" class="icon-pick" onclick="pickIcon('⚖️')">⚖️</button>
+                    <button type="button" class="icon-pick" onclick="pickIcon('🧠')">🧠</button>
+                    <button type="button" class="icon-pick" onclick="pickIcon('💡')">💡</button>
+                    <button type="button" class="icon-pick" onclick="pickIcon('🎓')">🎓</button>
+                    <button type="button" class="icon-pick" onclick="pickIcon('🌟')">🌟</button>
+                    <button type="button" class="icon-pick" onclick="pickIcon('🕋')">🕋</button>
+                    <button type="button" class="icon-pick" onclick="pickIcon('🧪')">🧪</button>
+                </div>
+                {% if form.icon.errors %}<div class="error-text">{{ form.icon.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="form-section-title" style="margin-top:1.75rem;"><i class="fas fa-quote-left"></i> Student Instructions</div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.instructions.id_for_label }}">Instructions (optional)</label>
+                {{ form.instructions }}
+                <div class="help-text">Shown above the test for this course only. Leave blank to skip.</div>
+                {% if form.instructions.errors %}<div class="error-text">{{ form.instructions.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- Display -->
+        <div class="form-section-title" style="margin-top:1.75rem;"><i class="fas fa-eye"></i> Display & Order</div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.order.id_for_label }}">Display Order</label>
+                {{ form.order }}
+                <div class="help-text">Lower numbers appear first.</div>
+                {% if form.order.errors %}<div class="error-text">{{ form.order.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group" style="justify-content:center;">
+                <div class="form-check-group">
+                    {{ form.is_active }}
+                    <label for="{{ form.is_active.id_for_label }}">Active — visible to students</label>
+                </div>
+                {% if form.is_active.errors %}<div class="error-text">{{ form.is_active.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- Overrides -->
+        <div class="form-section-title" style="margin-top:1.75rem;"><i class="fas fa-sliders-h"></i> Per-course Overrides</div>
+        <p style="font-size:0.78rem;color:#8a9b95;margin:0 0 0.9rem;">Leave blank to inherit from global Site Settings.</p>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.default_question_count.id_for_label }}">Default Question Count</label>
+                {{ form.default_question_count }}
+                {% if form.default_question_count.errors %}<div class="error-text">{{ form.default_question_count.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.default_time_minutes.id_for_label }}">Default Time (minutes)</label>
+                {{ form.default_time_minutes }}
+                {% if form.default_time_minutes.errors %}<div class="error-text">{{ form.default_time_minutes.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-save"></i> {{ button_text }}
+            </button>
+            <a href="{% url 'academics:admin_cbt_course_list' %}" class="btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+function pickIcon(emoji) {
+    const input = document.getElementById('{{ form.icon.id_for_label }}');
+    if (input) {
+        input.value = emoji;
+        document.querySelectorAll('.icon-pick').forEach(function(b) {
+            b.classList.toggle('selected', b.textContent.trim() === emoji);
+        });
+    }
+}
+// Highlight the currently selected icon on load
+(function() {
+    const input = document.getElementById('{{ form.icon.id_for_label }}');
+    if (!input) return;
+    const current = input.value.trim();
+    document.querySelectorAll('.icon-pick').forEach(function(b) {
+        if (b.textContent.trim() === current) b.classList.add('selected');
+    });
+})();
+</script>
+
+{% endblock %}

@@ -1,0 +1,235 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · Islamiyya{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 780px; margin: 0 auto; }
+.form-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none; font-weight: 600;
+    margin-bottom: 0.6rem; font-size: 0.85rem;
+}
+.form-back:hover { text-decoration: underline; }
+.form-header { margin-bottom: 1rem; }
+.form-header h2 { margin: 0; color: var(--text-primary); font-size: 1.4rem; font-weight: 700; }
+.form-header p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
+.form-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 2rem; box-shadow: var(--shadow-sm);
+}
+.field-section {
+    margin-bottom: 1.5rem; padding-bottom: 1.5rem;
+    border-bottom: 1px dashed rgba(0,0,0,0.08);
+}
+.field-section:last-of-type { border-bottom: none; padding-bottom: 0; }
+.field-section-title {
+    font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #8a6a1a; margin-bottom: 0.9rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.field-section-title::after {
+    content: ''; flex: 1; height: 1px; background: rgba(200,169,81,0.25);
+}
+.field-section-title i { font-size: 0.9rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.85rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label {
+    font-weight: 600; color: var(--text-primary);
+    font-size: 0.8rem; margin-bottom: 0.3rem;
+}
+.form-group label .required { color: #e53e3e; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.55rem 0.85rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.9rem; background: #fff;
+    transition: var(--transition); font-family: inherit;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.form-group .help-text { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; line-height: 1.4; }
+.form-group .error-text { font-size: 0.78rem; color: #e53e3e; margin-top: 0.25rem; }
+.form-check-group {
+    display: flex; align-items: flex-start; gap: 0.55rem;
+    padding: 0.75rem 1rem; background: #f8faf9;
+    border-radius: 10px; border: 1px solid rgba(0,0,0,0.05);
+}
+.form-check-group input[type="checkbox"] {
+    width: 18px; height: 18px; accent-color: var(--gold);
+    cursor: pointer; margin-top: 0.15rem; flex-shrink: 0;
+}
+.form-check-group label {
+    font-weight: 600; margin: 0; cursor: pointer; font-size: 0.85rem;
+    color: var(--text-primary);
+}
+.form-check-group .help-text {
+    font-size: 0.72rem; color: var(--text-muted);
+    margin-top: 0.2rem; line-height: 1.4;
+}
+.form-actions {
+    display: flex; gap: 0.85rem; flex-wrap: wrap;
+    margin-top: 1.5rem; padding-top: 1.5rem;
+    border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-primary {
+    background: var(--primary); color: #fff;
+    padding: 0.6rem 1.8rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.88rem; cursor: pointer;
+    transition: var(--transition); display: inline-flex;
+    align-items: center; gap: 0.4rem; text-decoration: none;
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.6rem 1.8rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.88rem; cursor: pointer;
+    transition: var(--transition); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+
+.error-summary {
+    background: #fdecea; border-left: 4px solid #e53e3e;
+    border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 1.2rem;
+    color: #9b2c2c; font-size: 0.88rem;
+}
+.error-summary strong { display: block; margin-bottom: 0.4rem; }
+.error-summary ul { margin: 0; padding-left: 1.2rem; }
+
+.info-banner {
+    background: linear-gradient(135deg, #e6f0fb 0%, #f0f7ff 100%);
+    border-left: 4px solid #3182ce;
+    border-radius: 10px; padding: 0.9rem 1.15rem;
+    margin-bottom: 1.25rem; font-size: 0.83rem; color: #1e40af;
+    line-height: 1.55;
+}
+.info-banner strong { color: #1e3a8a; }
+.info-banner i { margin-right: 0.35rem; }
+
+@media (max-width: 768px) {
+    .form-card { padding: 1.25rem; }
+    .form-row { grid-template-columns: 1fr; gap: 0.7rem; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn { justify-content: center; width: 100%; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="form-container">
+    <a href="{% url 'academics:admin_islamiyya_settings_list' %}" class="form-back">
+        <i class="fas fa-arrow-left"></i> Back to Sessions
+    </a>
+
+    <div class="form-header">
+        <h2>{{ title }}</h2>
+        <p>{{ button_text }}.</p>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="error-summary">
+        <strong>Please fix the following:</strong>
+        <ul>{% for err in form.non_field_errors %}<li>{{ err }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    <form method="post" class="form-card" novalidate>
+        {% csrf_token %}
+
+        <div class="field-section">
+            <div class="field-section-title"><i class="fas fa-calendar"></i> Session Identity</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.academic_session.id_for_label }}">Academic Session <span class="required">*</span></label>
+                    {{ form.academic_session }}
+                    <div class="help-text">Format: e.g. 2025/2026</div>
+                    {% if form.academic_session.errors %}<div class="error-text">{{ form.academic_session.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="form-check-group">
+                {{ form.is_active }}
+                <label for="{{ form.is_active.id_for_label }}">
+                    Mark as <strong>current active session</strong>
+                    <div class="help-text">Only one session is active at a time. Activating this one will deactivate the previous.</div>
+                </label>
+            </div>
+        </div>
+
+        <div class="field-section">
+            <div class="field-section-title"><i class="fas fa-coins"></i> Payment</div>
+            <div class="info-banner">
+                <i class="fas fa-info-circle"></i>
+                All Islamiyya payments for this session will be recorded to the chosen bank account and appear in the Revenue Report as <strong>Islamiyya Registration</strong>.
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.registration_fee.id_for_label }}">Registration Fee (₦) <span class="required">*</span></label>
+                    {{ form.registration_fee }}
+                    <div class="help-text">{{ form.registration_fee.help_text|default:"Fixed fee every student must pay." }}</div>
+                    {% if form.registration_fee.errors %}<div class="error-text">{{ form.registration_fee.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.account.id_for_label }}">Receiving Bank Account <span class="required">*</span></label>
+                    {{ form.account }}
+                    <div class="help-text">{{ form.account.help_text|default:"Money lands here." }}</div>
+                    {% if form.account.errors %}<div class="error-text">{{ form.account.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="field-section">
+            <div class="field-section-title"><i class="fas fa-unlock"></i> Registration Window</div>
+            <div class="form-check-group" style="margin-bottom: 0.85rem;">
+                {{ form.is_open }}
+                <label for="{{ form.is_open.id_for_label }}">
+                    Registration currently <strong>OPEN</strong>
+                    <div class="help-text">Toggle off to block new registrations immediately.</div>
+                </label>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.registration_opens_at.id_for_label }}">Auto-Open At</label>
+                    {{ form.registration_opens_at }}
+                    <div class="help-text">{{ form.registration_opens_at.help_text|default:"Leave blank to open immediately." }}</div>
+                    {% if form.registration_opens_at.errors %}<div class="error-text">{{ form.registration_opens_at.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.registration_closes_at.id_for_label }}">Auto-Close At</label>
+                    {{ form.registration_closes_at }}
+                    <div class="help-text">{{ form.registration_closes_at.help_text|default:"Leave blank for no auto-close." }}</div>
+                    {% if form.registration_closes_at.errors %}<div class="error-text">{{ form.registration_closes_at.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="field-section">
+            <div class="field-section-title"><i class="fas fa-comment"></i> Student Communication</div>
+            <div class="form-row">
+                <div class="form-group full">
+                    <label for="{{ form.whatsapp_group_link.id_for_label }}">WhatsApp Group Link</label>
+                    {{ form.whatsapp_group_link }}
+                    <div class="help-text">{{ form.whatsapp_group_link.help_text|default:"Revealed to students after payment is verified." }}</div>
+                    {% if form.whatsapp_group_link.errors %}<div class="error-text">{{ form.whatsapp_group_link.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group full">
+                    <label for="{{ form.instructions.id_for_label }}">Instructions (shown on registration page)</label>
+                    {{ form.instructions }}
+                    {% if form.instructions.errors %}<div class="error-text">{{ form.instructions.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> {{ button_text }}</button>
+            <a href="{% url 'academics:admin_islamiyya_settings_list' %}" class="btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

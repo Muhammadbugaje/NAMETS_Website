@@ -1,0 +1,390 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}CBT Courses · Academics{% endblock %}
+
+{% block extra_css %}
+<style>
+.cbt-page-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.5rem 2rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.cbt-page-head::before {
+    content: "📚"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem;
+    opacity: 0.08;
+}
+.head-inner {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.head-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.15); padding: 0.15rem 0.8rem;
+    border-radius: 20px; margin-bottom: 0.3rem;
+}
+.head-inner h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.head-inner p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+
+.head-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.2rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem; text-decoration: none;
+    border: 1px solid transparent; transition: all 0.25s;
+}
+.hbtn-gold {
+    background: var(--gold); color: var(--text-primary);
+    border-color: var(--gold);
+}
+.hbtn-gold:hover { background: #E0C96E; transform: translateY(-2px); color: var(--text-primary); }
+.hbtn-outline {
+    background: rgba(255,255,255,0.12); color: #fff;
+    border-color: rgba(255,255,255,0.2);
+}
+.hbtn-outline:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); color: #fff; }
+
+.filters-bar {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1.2rem; margin-bottom: 1.25rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form input, .filter-form select {
+    padding: 0.45rem 0.85rem; border: 1px solid #d0d9d6;
+    border-radius: 8px; background: #fff;
+    flex: 1; min-width: 140px; font-size: 0.85rem;
+}
+.filter-form input:focus, .filter-form select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.filter-form .btn-search {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.5rem 1.15rem; border-radius: 8px; cursor: pointer;
+    font-weight: 600; font-size: 0.85rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+}
+.filter-form .clear {
+    color: var(--text-muted); text-decoration: none; font-size: 0.82rem;
+}
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.1rem;
+}
+
+.course-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 18px; padding: 1.35rem 1.4rem;
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    display: flex; flex-direction: column;
+    animation: cardFade 0.4s ease-out backwards;
+}
+@keyframes cardFade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.course-card::before {
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0;
+    width: 4px; background: linear-gradient(180deg, #C8A951, #0F3D2E);
+    opacity: 0.85;
+}
+.course-card.inactive::before {
+    background: linear-gradient(180deg, #ccc, #999);
+}
+.course-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(200,169,81,0.4);
+}
+.course-card.inactive { opacity: 0.72; }
+
+.cc-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 0.6rem; margin-bottom: 0.6rem;
+}
+.cc-icon {
+    font-size: 2rem; line-height: 1;
+}
+.cc-badge {
+    font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 0.2rem 0.7rem; border-radius: 20px;
+}
+.cc-badge.active { background: #e8f2ec; color: #1a6b3c; }
+.cc-badge.inactive { background: #f0f0f0; color: #777; }
+
+.cc-name {
+    font-size: 1.05rem; font-weight: 700;
+    color: #0F3D2E; margin-bottom: 0.3rem;
+}
+.cc-desc {
+    font-size: 0.8rem; color: #5A5A5A;
+    line-height: 1.5; margin-bottom: 0.85rem;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+    min-height: 2.4em;
+}
+
+.cc-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem; margin-bottom: 0.85rem;
+}
+.cc-stat {
+    text-align: center; padding: 0.5rem 0.3rem;
+    border-radius: 10px; background: #f8faf9;
+}
+.cc-stat .num {
+    font-size: 1.05rem; font-weight: 800;
+    color: #0F3D2E; line-height: 1.1;
+}
+.cc-stat .lbl {
+    font-size: 0.6rem; font-weight: 700;
+    text-transform: uppercase; color: #8a9b95;
+    margin-top: 0.15rem; letter-spacing: 0.04em;
+}
+.cc-stat.easy { background: #e8f2ec; }
+.cc-stat.easy .num { color: #1a6b3c; }
+.cc-stat.medium { background: #f5e9c8; }
+.cc-stat.medium .num { color: #8a6a1a; }
+.cc-stat.hard { background: #fdecea; }
+.cc-stat.hard .num { color: #9b2c2c; }
+
+.cc-progress {
+    height: 6px; background: #f0f4f2;
+    border-radius: 4px; overflow: hidden;
+    margin-bottom: 0.85rem;
+}
+.cc-progress .bar {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, #38a169, #48bb78);
+    transition: width 0.6s ease-out;
+}
+.cc-progress .bar.mid { background: linear-gradient(90deg, #d69e2e, #ecc94b); }
+.cc-progress .bar.low { background: linear-gradient(90deg, #c0392b, #e53e3e); }
+
+.cc-actions {
+    display: flex; gap: 0.35rem; flex-wrap: wrap;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    margin-top: auto;
+}
+.cc-btn {
+    flex: 1; text-align: center;
+    padding: 0.42rem 0.8rem; border-radius: 50px;
+    font-size: 0.72rem; font-weight: 700;
+    text-decoration: none; border: none;
+    display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.3rem;
+    transition: all 0.2s; cursor: pointer;
+    font-family: inherit;
+}
+.cc-btn-primary { background: var(--primary); color: #fff; }
+.cc-btn-primary:hover { background: var(--primary-dark); color: #fff; transform: translateY(-1px); }
+.cc-btn-gold { background: var(--gold); color: var(--text-primary); }
+.cc-btn-gold:hover { background: #E0C96E; transform: translateY(-1px); }
+.cc-btn-ghost { background: #f0f4f2; color: #0F3D2E; }
+.cc-btn-ghost:hover { background: #e0e8e5; }
+.cc-btn-danger { background: #fdecea; color: #9b2c2c; }
+.cc-btn-danger:hover { background: #fce4e0; }
+
+.empty-state {
+    grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;
+    background: var(--card-bg); border: 1px dashed rgba(200,169,81,0.35);
+    border-radius: 16px;
+}
+.empty-state .icon { font-size: 3.5rem; display: block; margin-bottom: 0.6rem; }
+.empty-state h3 { color: var(--text-primary); margin: 0 0 0.3rem; }
+.empty-state p { color: #8a9b95; font-size: 0.9rem; margin: 0 0 1rem; }
+
+.pagination {
+    margin-top: 1.5rem; display: flex; justify-content: center;
+    gap: 0.3rem; flex-wrap: wrap;
+}
+.pagination a, .pagination .current {
+    padding: 0.4rem 0.85rem; border-radius: 8px;
+    text-decoration: none; font-size: 0.82rem;
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    color: var(--text-primary);
+}
+.pagination a:hover { background: var(--gold); border-color: var(--gold); color: #fff; }
+.pagination .current {
+    background: var(--primary); color: #fff;
+    border-color: var(--primary); font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .head-inner { flex-direction: column; align-items: stretch; }
+    .head-actions { flex-direction: column; }
+    .hbtn { justify-content: center; width: 100%; }
+    .course-grid { grid-template-columns: 1fr; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="cbt-page-head">
+    <div class="head-inner">
+        <div>
+            <span class="head-eyebrow">CBT · Academics</span>
+            <h1>📚 CBT Courses</h1>
+            <p>Manage courses available in the CBT module.</p>
+        </div>
+        <div class="head-actions">
+            <a href="{% url 'academics:admin_cbt_dashboard' %}" class="hbtn hbtn-outline">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+            {% if perms.academics.add_cbtcourse %}
+            <a href="{% url 'academics:admin_cbt_course_create' %}" class="hbtn hbtn-gold">
+                <i class="fas fa-plus"></i> New Course
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="filters-bar">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search by name or description…" value="{{ query }}">
+        <select name="active">
+            <option value="">All Courses</option>
+            <option value="yes" {% if active_filter == 'yes' %}selected{% endif %}>Active only</option>
+            <option value="no" {% if active_filter == 'no' %}selected{% endif %}>Inactive only</option>
+        </select>
+        <button type="submit" class="btn-search"><i class="fas fa-search"></i> Filter</button>
+        {% if query or active_filter %}
+        <a href="{% url 'academics:admin_cbt_course_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="course-grid">
+    {% for c in courses %}
+    <div class="course-card {% if not c.is_active %}inactive{% endif %}">
+        <div class="cc-top">
+            <div class="cc-icon">{{ c.icon|default:"📘" }}</div>
+            {% if c.is_active %}
+            <span class="cc-badge active">Active</span>
+            {% else %}
+            <span class="cc-badge inactive">Inactive</span>
+            {% endif %}
+        </div>
+
+        <div class="cc-name">{{ c.name }}</div>
+        <div class="cc-desc">{{ c.description|default:"No description provided."|truncatechars:120 }}</div>
+
+        <div class="cc-stats">
+            <div class="cc-stat easy">
+                <div class="num">{{ c.easy_count }}</div>
+                <div class="lbl">Easy</div>
+            </div>
+            <div class="cc-stat medium">
+                <div class="num">{{ c.medium_count }}</div>
+                <div class="lbl">Medium</div>
+            </div>
+            <div class="cc-stat hard">
+                <div class="num">{{ c.hard_count }}</div>
+                <div class="lbl">Hard</div>
+            </div>
+        </div>
+
+        {% with total=c.q_total|default:0 %}
+        {% if total >= 20 %}
+        <div class="cc-progress"><div class="bar" style="width: 100%;"></div></div>
+        {% elif total >= 10 %}
+        <div class="cc-progress"><div class="bar mid" style="width: 60%;"></div></div>
+        {% else %}
+        <div class="cc-progress"><div class="bar low" style="width: {{ total|add:0|floatformat:0 }}0%;"></div></div>
+        {% endif %}
+        <div style="font-size:0.72rem; color:#8a9b95; margin-bottom:0.5rem;">
+            <strong style="color:#0F3D2E;">{{ total }}</strong> active question{{ total|pluralize }}
+            {% if total < 20 %}· aim for 20+{% endif %}
+        </div>
+        {% endwith %}
+
+        <div class="cc-actions">
+            {% if perms.academics.change_cbtcourse %}
+            <a href="{% url 'academics:admin_cbt_course_edit' c.pk %}" class="cc-btn cc-btn-gold">
+                <i class="fas fa-pen"></i> Edit
+            </a>
+            {% endif %}
+            <a href="{% url 'academics:admin_question_list' %}?course={{ c.pk }}" class="cc-btn cc-btn-ghost">
+                <i class="fas fa-list"></i> Questions
+            </a>
+            {% if perms.academics.change_cbtcourse %}
+            <form method="post" action="{% url 'academics:admin_cbt_course_toggle' c.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="cc-btn cc-btn-ghost" style="flex:none; padding:0.42rem 0.9rem;" title="{% if c.is_active %}Deactivate{% else %}Activate{% endif %}">
+                    {% if c.is_active %}<i class="fas fa-toggle-on"></i>{% else %}<i class="fas fa-toggle-off"></i>{% endif %}
+                </button>
+            </form>
+            {% endif %}
+            {% if perms.academics.delete_cbtcourse %}
+            <button type="button" class="cc-btn cc-btn-danger"
+                    style="flex:none; padding:0.42rem 0.9rem;"
+                    onclick="confirmCourseDelete('{{ c.pk }}', '{{ c.name|escapejs }}')">
+                <i class="fas fa-trash"></i>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <span class="icon">📚</span>
+        <h3>No CBT courses yet</h3>
+        <p>Create your first course to start adding questions.</p>
+        {% if perms.academics.add_cbtcourse %}
+        <a href="{% url 'academics:admin_cbt_course_create' %}" class="hbtn hbtn-gold" style="display:inline-flex;">
+            <i class="fas fa-plus"></i> Create Course
+        </a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹ Prev</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">Next ›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Delete form (hidden) -->
+<form method="post" id="courseDeleteForm" style="display:none;">
+    {% csrf_token %}
+</form>
+
+<script>
+function confirmCourseDelete(pk, name) {
+    NAMETS.confirm({
+        title: 'Delete CBT Course?',
+        message: `This will permanently delete "${name}" and all its questions. Cannot be undone.`,
+        confirmText: 'Yes, Delete',
+        danger: true,
+    }).then(function(ok) {
+        if (!ok) return;
+        const form = document.getElementById('courseDeleteForm');
+        form.action = `/academics/admin/cbt/courses/${pk}/delete/`;
+        form.submit();
+    });
+}
+</script>
+
+{% endblock %}

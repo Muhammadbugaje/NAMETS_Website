@@ -1,0 +1,459 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Handover · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.handover-wrap { max-width: 900px; margin: 0 auto; }
+
+.handover-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.handover-back:hover { text-decoration: underline; }
+
+/* Warning hero */
+.handover-hero {
+    background: linear-gradient(135deg, #7a1e1e 0%, #a52a2a 60%, #c0392b 100%);
+    border-radius: 24px;
+    padding: 2.5rem 2.25rem;
+    margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 16px 44px rgba(122,30,30,0.3);
+    color: #fff;
+    text-align: center;
+}
+.handover-hero::before {
+    content: "⚠️";
+    font-size: 12rem;
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.06; pointer-events: none;
+}
+.handover-hero-inner { position: relative; z-index: 1; }
+.handover-hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.68rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.14em;
+    color: #fdecea;
+    background: rgba(255,255,255,0.15);
+    padding: 0.35rem 1rem; border-radius: 20px;
+    margin-bottom: 0.85rem;
+    border: 1px solid rgba(255,255,255,0.25);
+}
+.handover-hero h1 {
+    font-size: 2rem; font-weight: 800;
+    margin: 0 0 0.6rem;
+    letter-spacing: -0.02em;
+}
+.handover-hero p {
+    color: rgba(255,255,255,0.9);
+    font-size: 0.95rem; margin: 0 auto;
+    max-width: 580px; line-height: 1.65;
+}
+
+/* Impact preview */
+.impact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+@media (max-width: 640px) { .impact-grid { grid-template-columns: 1fr; } }
+
+.impact-card {
+    border-radius: 18px;
+    padding: 1.5rem 1.65rem;
+    position: relative;
+    overflow: hidden;
+}
+.impact-card.danger {
+    background: linear-gradient(135deg, #fdecea 0%, #fce4e0 100%);
+    border: 1px solid rgba(192,57,43,0.3);
+    border-left: 5px solid #c0392b;
+}
+.impact-card.protected {
+    background: linear-gradient(135deg, #e6f0fb 0%, #f0f7ff 100%);
+    border: 1px solid rgba(24,95,165,0.3);
+    border-left: 5px solid #185fa5;
+}
+.impact-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; margin-bottom: 0.85rem;
+}
+.impact-card.danger .impact-icon {
+    background: rgba(192,57,43,0.15); color: #c0392b;
+}
+.impact-card.protected .impact-icon {
+    background: rgba(24,95,165,0.15); color: #185fa5;
+}
+.impact-num {
+    font-size: 2rem; font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.35rem;
+}
+.impact-card.danger .impact-num { color: #9b2c2c; }
+.impact-card.protected .impact-num { color: #185fa5; }
+.impact-lbl {
+    font-size: 0.85rem; font-weight: 700;
+    color: #2d3748; margin-bottom: 0.35rem;
+}
+.impact-sub {
+    font-size: 0.75rem; color: #8a9b95;
+    line-height: 1.5;
+}
+
+/* Preview lists */
+.preview-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem 1.75rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.25rem;
+}
+.preview-card h3 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #8a6a1a; margin: 0 0 1.1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.preview-card h3::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent);
+}
+
+.people-list {
+    list-style: none; padding: 0; margin: 0;
+    max-height: 320px; overflow-y: auto;
+}
+.people-item {
+    display: flex; align-items: center;
+    gap: 0.85rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.people-item:last-child { border-bottom: none; }
+.people-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 800;
+    flex-shrink: 0;
+}
+.people-avatar.dissolve {
+    background: linear-gradient(135deg, #c0392b, #e53e3e);
+    color: #fff;
+}
+.people-avatar.protected {
+    background: linear-gradient(135deg, #185fa5, #4299e1);
+    color: #fff;
+}
+.people-body { flex: 1; min-width: 0; }
+.people-name {
+    font-size: 0.88rem; font-weight: 700;
+    color: #0F3D2E;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.people-office {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.1rem;
+    display: flex; align-items: center; gap: 0.35rem;
+}
+.people-office i { color: #C8A951; font-size: 0.65rem; }
+
+.people-empty {
+    text-align: center; padding: 2rem 1rem;
+    color: #8a9b95; font-size: 0.85rem;
+}
+
+/* Confirmation form */
+.form-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem 1.85rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.25rem;
+}
+.form-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1rem; margin-bottom: 0.85rem;
+}
+@media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+.form-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label {
+    font-weight: 700; color: #0F3D2E;
+    font-size: 0.8rem; margin-bottom: 0.35rem;
+}
+.form-group input, .form-group textarea {
+    width: 100%; padding: 0.65rem 0.9rem;
+    border: 1px solid #d0d9d6; border-radius: 10px;
+    font-size: 0.9rem; background: #fff;
+    font-family: inherit; transition: all 0.2s;
+}
+.form-group input:focus, .form-group textarea:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 4px rgba(200,169,81,0.15);
+}
+.form-group .help {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.3rem; line-height: 1.4;
+}
+
+.confirm-checkbox {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    padding: 1rem 1.15rem;
+    background: #fdf6f3;
+    border: 1.5px solid rgba(192,57,43,0.3);
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    transition: all 0.2s;
+}
+.confirm-checkbox:hover {
+    background: #fce4e0;
+    border-color: rgba(192,57,43,0.5);
+}
+.confirm-checkbox input {
+    width: 20px; height: 20px;
+    accent-color: #c0392b;
+    cursor: pointer;
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+}
+.confirm-text {
+    font-size: 0.85rem; color: #4a2020;
+    line-height: 1.55;
+}
+.confirm-text strong { color: #9b2c2c; }
+
+.actions-row {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    padding-top: 1.5rem;
+    border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-cancel {
+    padding: 0.9rem 2rem;
+    border-radius: 50px;
+    background: #f0f4f2; color: var(--primary);
+    font-weight: 800; font-size: 0.9rem;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    transition: all 0.2s;
+    border: none; cursor: pointer; font-family: inherit;
+}
+.btn-cancel:hover { background: #e0e8e5; color: var(--primary); transform: translateY(-2px); }
+
+.btn-danger {
+    padding: 0.9rem 2rem;
+    border-radius: 50px;
+    background: linear-gradient(135deg, #7a1e1e, #c0392b);
+    color: #fff;
+    font-weight: 800; font-size: 0.9rem;
+    border: none; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    box-shadow: 0 8px 24px rgba(122,30,30,0.35);
+    transition: all 0.25s;
+    margin-left: auto;
+}
+.btn-danger:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(122,30,30,0.45);
+}
+.btn-danger:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+@media (max-width: 768px) {
+    .handover-hero { padding: 1.75rem 1.35rem; }
+    .handover-hero h1 { font-size: 1.45rem; }
+    .handover-hero p { font-size: 0.88rem; }
+    .preview-card, .form-card { padding: 1.25rem 1.35rem; }
+    .actions-row { flex-direction: column; }
+    .btn-cancel, .btn-danger { width: 100%; justify-content: center; margin-left: 0; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="handover-wrap">
+
+    <a href="{% url 'governance:dashboard' %}" class="handover-back">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <!-- WARNING HERO -->
+    <div class="handover-hero">
+        <div class="handover-hero-inner">
+            <span class="handover-hero-eyebrow">
+                <i class="fas fa-exclamation-triangle"></i> Dangerous Action
+            </span>
+            <h1>Dissolve Current EXCO</h1>
+            <p>
+                This will end all active office assignments, mark outgoing members
+                as alumni, generate graduation profiles, and send thank-you emails.
+                The <strong>ICT Head's office is protected</strong> and will never be touched.
+            </p>
+        </div>
+    </div>
+
+    <!-- IMPACT SUMMARY -->
+    <div class="impact-grid">
+        <div class="impact-card danger">
+            <div class="impact-icon"><i class="fas fa-users-slash"></i></div>
+            <div class="impact-num">{{ to_dissolve|length }}</div>
+            <div class="impact-lbl">Assignment{{ to_dissolve|length|pluralize }} will be dissolved</div>
+            <div class="impact-sub">Members become alumni. Their office access ends.</div>
+        </div>
+        <div class="impact-card protected">
+            <div class="impact-icon"><i class="fas fa-shield-alt"></i></div>
+            <div class="impact-num">{{ to_skip|length }}</div>
+            <div class="impact-lbl">Protected office{{ to_skip|length|pluralize }} preserved</div>
+            <div class="impact-sub">ICT Head's role and access remain untouched.</div>
+        </div>
+    </div>
+
+    <!-- PREVIEW LISTS -->
+    {% if to_dissolve %}
+    <div class="preview-card">
+        <h3><i class="fas fa-users-slash"></i> Will Be Dissolved ({{ to_dissolve|length }})</h3>
+        <ul class="people-list">
+            {% for a in to_dissolve %}
+            <li class="people-item">
+                <div class="people-avatar dissolve">
+                    {{ a.user.first_name|first|upper }}{{ a.user.last_name|first|upper }}
+                </div>
+                <div class="people-body">
+                    <div class="people-name">{{ a.user.get_full_name|default:a.user.username }}</div>
+                    <div class="people-office">
+                        <i class="fas fa-briefcase"></i>
+                        {{ a.display_label|default:a.office.name }}
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if to_skip %}
+    <div class="preview-card">
+        <h3><i class="fas fa-shield-alt" style="color:#185fa5;"></i> Protected — Not Touched ({{ to_skip|length }})</h3>
+        <ul class="people-list">
+            {% for a in to_skip %}
+            <li class="people-item">
+                <div class="people-avatar protected">
+                    {{ a.user.first_name|first|upper }}{{ a.user.last_name|first|upper }}
+                </div>
+                <div class="people-body">
+                    <div class="people-name">{{ a.user.get_full_name|default:a.user.username }}</div>
+                    <div class="people-office">
+                        <i class="fas fa-shield-alt"></i>
+                        {{ a.display_label|default:a.office.name }}
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if not to_dissolve %}
+    <div class="preview-card">
+        <div class="people-empty">
+            <div style="font-size:2rem;margin-bottom:0.5rem;">✨</div>
+            <div style="color:#0F3D2E;font-weight:700;margin-bottom:0.25rem;">Nothing to dissolve</div>
+            <p style="margin:0;">There are no active (non-protected) office assignments.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- CONFIRMATION FORM -->
+    {% if to_dissolve %}
+    <form method="post" action="{% url 'governance:handover_execute' %}" class="form-card" id="handoverForm">
+        {% csrf_token %}
+        <input type="hidden" name="confirmed" value="yes">
+
+        <h3 style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#8a6a1a;margin:0 0 1.1rem;display:flex;align-items:center;gap:0.5rem;">
+            <i class="fas fa-info-circle"></i> Handover Details
+            <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(200,169,81,0.3),transparent);"></span>
+        </h3>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="session_ending">Session Ending</label>
+                <input type="text" name="session_ending" id="session_ending" placeholder="e.g. 2024/2025">
+                <div class="help">Leave blank if not applicable.</div>
+            </div>
+            <div class="form-group">
+                <label for="session_starting">Session Starting</label>
+                <input type="text" name="session_starting" id="session_starting" placeholder="e.g. 2025/2026">
+                <div class="help">Leave blank if not applicable.</div>
+            </div>
+        </div>
+
+        <div class="form-group full">
+            <label for="notes">Notes (optional)</label>
+            <textarea name="notes" id="notes" rows="3" placeholder="Any context to record with this handover…"></textarea>
+        </div>
+
+        <label class="confirm-checkbox">
+            <input type="checkbox" id="confirmCheck" required>
+            <div class="confirm-text">
+                I understand that this action will <strong>permanently end</strong> all non-protected office
+                assignments. <strong>This cannot be undone.</strong> Graduation profiles will be generated,
+                and outgoing members will receive thank-you emails.
+            </div>
+        </label>
+
+        <div class="actions-row">
+            <a href="{% url 'governance:dashboard' %}" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="btn-danger" id="submitBtn" disabled>
+                <i class="fas fa-exchange-alt"></i> Dissolve EXCO Now
+            </button>
+        </div>
+    </form>
+    {% endif %}
+
+</div>
+
+<script>
+// Enable submit only when confirmation is checked
+(function() {
+    const check = document.getElementById('confirmCheck');
+    const btn = document.getElementById('submitBtn');
+    if (!check || !btn) return;
+
+    check.addEventListener('change', function() {
+        btn.disabled = !this.checked;
+    });
+
+    // Double confirmation via NAMETS.confirm
+    document.getElementById('handoverForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        NAMETS.confirm({
+            title: '⚠️ Final Confirmation',
+            message: 'This will dissolve {{ to_dissolve|length }} office assignment(s). This action CANNOT be undone. Are you absolutely sure?',
+            confirmText: 'Yes, Dissolve EXCO',
+            danger: true,
+        }).then(ok => {
+            if (ok) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+                e.target.submit();
+            }
+        });
+    });
+})();
+</script>
+
+{% endblock %}

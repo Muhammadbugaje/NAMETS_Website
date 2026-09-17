@@ -1,0 +1,442 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Session Archives · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.sd-wrap { max-width: 1250px; margin: 0 auto; }
+
+.sd-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 2.5rem 2.25rem;
+    margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 16px 44px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.sd-hero::before {
+    content: "📖"; font-size: 11rem;
+    position: absolute; bottom: -3rem; right: 1.5rem;
+    opacity: 0.07; pointer-events: none;
+}
+.sd-hero::after {
+    content: ''; position: absolute;
+    top: -40%; left: -10%;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(200,169,81,0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+.sd-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1.25rem;
+}
+.sd-hero-left { flex: 1; min-width: 260px; }
+.sd-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.28rem 0.9rem; border-radius: 20px; margin-bottom: 0.6rem;
+}
+.sd-hero h1 {
+    font-size: 1.95rem; font-weight: 800;
+    margin: 0 0 0.45rem; letter-spacing: -0.02em;
+}
+.sd-hero p {
+    color: rgba(255,255,255,0.82); font-size: 0.92rem;
+    margin: 0; max-width: 620px; line-height: 1.6;
+}
+.sd-hero-actions {
+    display: flex; gap: 0.55rem; flex-wrap: wrap;
+}
+.sd-hero-btn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.7rem 1.4rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem;
+    text-decoration: none; border: 1px solid transparent;
+    transition: all 0.25s ease;
+}
+.sd-hero-btn.gold {
+    background: #C8A951; color: #0F3D2E;
+    box-shadow: 0 6px 20px rgba(200,169,81,0.35);
+}
+.sd-hero-btn.gold:hover {
+    background: #E0C96E; transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(200,169,81,0.5);
+}
+.sd-hero-btn.outline {
+    background: rgba(255,255,255,0.12); color: #fff;
+    border-color: rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.sd-hero-btn.outline:hover {
+    background: rgba(255,255,255,0.22); transform: translateY(-3px);
+}
+
+/* STATS */
+.sd-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.85rem; margin-bottom: 1.5rem;
+}
+.sd-stat {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.25rem;
+    box-shadow: var(--shadow-sm);
+    position: relative; overflow: hidden;
+    transition: all 0.25s;
+}
+.sd-stat::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 4px;
+}
+.sd-stat.green::before  { background: linear-gradient(90deg,#0F3D2E,#38a169); }
+.sd-stat.gold::before   { background: linear-gradient(90deg,#8a6a1a,#E0C96E); }
+.sd-stat.blue::before   { background: linear-gradient(90deg,#185fa5,#4299e1); }
+.sd-stat.purple::before { background: linear-gradient(90deg,#6b21a8,#a78bfa); }
+.sd-stat:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.sd-stat .num {
+    font-size: 1.7rem; font-weight: 800;
+    color: var(--text-primary); line-height: 1;
+}
+.sd-stat .lbl {
+    font-size: 0.66rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a9b95; margin-top: 0.35rem;
+}
+
+/* FILTERS */
+.sd-filters {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.2rem; margin-bottom: 1.5rem;
+}
+.sd-filters-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 0.55rem; align-items: center;
+}
+@media (max-width: 900px) { .sd-filters-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .sd-filters-grid { grid-template-columns: 1fr; } }
+.sd-filters input, .sd-filters select {
+    padding: 0.6rem 0.9rem;
+    border: 1px solid #d5dcd9; border-radius: 10px;
+    background: #fff; font-size: 0.85rem; font-family: inherit;
+    width: 100%; color: #0F3D2E; transition: all 0.15s;
+}
+.sd-filters input:focus, .sd-filters select:focus {
+    border-color: #C8A951; outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.14);
+}
+.sd-filters .btn-search {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.6rem 1.2rem; border-radius: 10px;
+    cursor: pointer; font-weight: 700; font-size: 0.8rem;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    white-space: nowrap; font-family: inherit;
+    transition: all 0.2s;
+}
+.sd-filters .btn-search:hover { background: var(--primary-dark); }
+
+/* SESSION GROUP */
+.sd-session-block { margin-bottom: 2rem; }
+.sd-session-header {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 2px solid rgba(200,169,81,0.25);
+}
+.sd-session-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.35rem 0.9rem; border-radius: 20px;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951; font-size: 0.75rem; font-weight: 800;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 12px rgba(15,61,46,0.18);
+}
+.sd-session-count {
+    font-size: 0.78rem; color: #8a9b95; font-weight: 600;
+}
+
+/* GRID */
+.sd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.15rem;
+}
+
+.sd-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    text-decoration: none; color: inherit;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.35s cubic-bezier(0.34,1.4,0.64,1);
+    position: relative;
+}
+.sd-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(200,169,81,0.4);
+}
+
+.sd-cover {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    color: rgba(200,169,81,0.65); font-size: 3rem;
+}
+.sd-cover img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.5s ease;
+}
+.sd-card:hover .sd-cover img { transform: scale(1.06); }
+
+.sd-cover-pattern {
+    position: absolute; inset: 0;
+    background-image:
+        radial-gradient(circle at 80% 20%, rgba(200,169,81,0.2) 0%, transparent 50%),
+        radial-gradient(circle at 20% 80%, rgba(200,169,81,0.12) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.sd-type-badge {
+    position: absolute; top: 0.75rem; left: 0.75rem;
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.28rem 0.7rem; border-radius: 20px;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    background: rgba(200,169,81,0.92); color: #0F3D2E;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+.sd-featured-badge {
+    position: absolute; top: 0.75rem; right: 0.75rem;
+    padding: 0.28rem 0.65rem; border-radius: 20px;
+    font-size: 0.62rem; font-weight: 800;
+    background: rgba(255,255,255,0.9); color: #8a6a1a;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.sd-body { padding: 1rem 1.1rem 1.15rem; flex: 1; display: flex; flex-direction: column; }
+.sd-title {
+    font-size: 0.95rem; font-weight: 800;
+    color: var(--text-primary); margin: 0 0 0.4rem;
+    line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+    min-height: 2.6em;
+}
+.sd-desc {
+    font-size: 0.75rem; color: #8a9b95;
+    line-height: 1.5; margin: 0 0 0.75rem;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+    flex: 1;
+}
+.sd-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 0.65rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    font-size: 0.68rem; color: #8a9b95;
+}
+.sd-meta .type {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+}
+.sd-meta .type i { color: #C8A951; }
+
+/* EMPTY */
+.sd-empty {
+    grid-column: 1 / -1;
+    text-align: center; padding: 5rem 1.5rem;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 2px dashed rgba(200,169,81,0.35);
+    border-radius: 20px;
+}
+.sd-empty .ic { font-size: 4rem; display: block; margin-bottom: 0.85rem; opacity: 0.5; }
+.sd-empty h3 { color: var(--text-primary); margin: 0 0 0.4rem; font-size: 1.15rem; }
+.sd-empty p { color: #8a9b95; font-size: 0.88rem; margin: 0 0 1.25rem; max-width: 460px; margin-left: auto; margin-right: auto; }
+
+/* PAGINATION */
+.sd-pagination {
+    margin-top: 2rem; display: flex; justify-content: center;
+    gap: 0.35rem; flex-wrap: wrap;
+}
+.sd-pagination a, .sd-pagination .current {
+    min-width: 38px; height: 38px; padding: 0 0.8rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.82rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    color: var(--text-primary);
+}
+.sd-pagination a:hover {
+    background: var(--primary); color: #C8A951;
+    border-color: var(--primary); transform: translateY(-2px);
+}
+.sd-pagination .current {
+    background: var(--primary); color: #C8A951; border-color: var(--primary);
+}
+
+@media (max-width: 768px) {
+    .sd-hero { padding: 1.75rem 1.4rem; }
+    .sd-hero h1 { font-size: 1.45rem; }
+    .sd-hero-inner { flex-direction: column; align-items: stretch; }
+    .sd-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.85rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="sd-wrap">
+
+    <!-- HERO -->
+    <div class="sd-hero">
+        <div class="sd-hero-inner">
+            <div class="sd-hero-left">
+                <span class="sd-eyebrow">📖 Session Archives</span>
+                <h1>NAMETS Session Archives</h1>
+                <p>Magazines, reports, and memories from every session — preserved for every generation of NAMETS.</p>
+            </div>
+            <div class="sd-hero-actions">
+                {% if can_manage %}
+                <a href="{% url 'governance:session_document_manage' %}" class="sd-hero-btn outline">
+                    <i class="fas fa-cog"></i> Manage
+                </a>
+                <a href="{% url 'governance:session_document_create' %}" class="sd-hero-btn gold">
+                    <i class="fas fa-plus"></i> Upload New
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="sd-stats">
+        <div class="sd-stat green">
+            <div class="num">{{ total_documents }}</div>
+            <div class="lbl">Total Documents</div>
+        </div>
+        <div class="sd-stat gold">
+            <div class="num">{{ total_sessions }}</div>
+            <div class="lbl">Sessions Archived</div>
+        </div>
+        <div class="sd-stat blue">
+            <div class="num">{{ total_magazines }}</div>
+            <div class="lbl">Magazines</div>
+        </div>
+        <div class="sd-stat purple">
+            <div class="num">{{ total_photos }}</div>
+            <div class="lbl">Photo Albums</div>
+        </div>
+    </div>
+
+    <!-- FILTERS -->
+    <form method="get" class="sd-filters">
+        <div class="sd-filters-grid">
+            <input type="text" name="q" value="{{ q }}"
+                   placeholder="Search by title or description…">
+            <select name="type">
+                <option value="">All types</option>
+                {% for code, label in type_choices %}
+                <option value="{{ code }}" {% if type_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="year">
+                <option value="">All sessions</option>
+                {% for y in years %}
+                <option value="{{ y }}" {% if year_filter == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-search">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+    </form>
+
+    <!-- ARCHIVE GRID (grouped by session) -->
+    {% if documents %}
+    <div class="sd-session-block">
+        <div class="sd-grid">
+            {% for doc in documents %}
+            <a href="{% url 'governance:session_document_detail' doc.pk %}" class="sd-card">
+                <div class="sd-cover">
+                    {% if doc.has_cover %}
+                        <img src="{{ doc.cover_url }}" alt="{{ doc.title }}">
+                    {% else %}
+                        <div class="sd-cover-pattern"></div>
+                        <i class="fas {{ doc.type_icon }}"></i>
+                    {% endif %}
+
+                    <span class="sd-type-badge">
+                        <i class="fas {{ doc.type_icon }}"></i>
+                        {{ doc.get_document_type_display }}
+                    </span>
+
+                    {% if doc.is_featured %}
+                    <span class="sd-featured-badge">⭐ Featured</span>
+                    {% endif %}
+                </div>
+
+                <div class="sd-body">
+                    <h3 class="sd-title">{{ doc.title }}</h3>
+                    {% if doc.description %}
+                    <p class="sd-desc">{{ doc.description }}</p>
+                    {% endif %}
+                    <div class="sd-meta">
+                        <span class="type">
+                            <i class="fas fa-calendar-alt"></i> {{ doc.session_label }}
+                        </span>
+                        <span>
+                            <i class="fas {{ doc.file_icon }}"></i>
+                            {% if doc.file_extension %}{{ doc.file_extension|upper }}{% else %}FILE{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="sd-empty">
+        <span class="ic">📖</span>
+        <h3>No documents found</h3>
+        <p>
+            {% if q or type_filter or year_filter %}
+                Try adjusting your search or filters.
+            {% else %}
+                The session archive is empty. Once outgoing executives upload their session magazine or reports, they'll appear here.
+            {% endif %}
+        </p>
+        {% if can_manage and not q and not type_filter and not year_filter %}
+        <a href="{% url 'governance:session_document_create' %}" class="sd-hero-btn gold" style="display:inline-flex;">
+            <i class="fas fa-plus"></i> Upload the first document
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if is_paginated %}
+    <div class="sd-pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹</a>
+        {% endif %}
+        <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">›</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

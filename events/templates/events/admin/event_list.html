@@ -1,0 +1,410 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Events · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== HEADER ===== */
+.event-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.event-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.event-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.event-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.event-header-text h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 0.3rem;
+}
+.event-header-text p {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.88rem;
+    margin: 0;
+}
+.event-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.event-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+}
+.event-btn-primary {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.event-btn-primary:hover { background: rgba(255,255,255,0.2); color: #fff; transform: translateY(-2px); }
+
+/* ===== FILTERS ===== */
+.event-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+.filter-form input, .filter-form select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 140px;
+}
+.filter-form .btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.filter-form .clear {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.filter-form .clear:hover { color: var(--text-primary); }
+
+/* ===== EVENT GRID ===== */
+.event-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+.event-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: var(--transition);
+    cursor: pointer;
+}
+.event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--gold);
+}
+.event-card.featured {
+    border-top: 4px solid #C8A951;
+}
+.event-card .card-image {
+    height: 160px;
+    overflow: hidden;
+    background: #f0f4f2;
+    position: relative;
+}
+.event-card .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+.event-card:hover .card-image img {
+    transform: scale(1.05);
+}
+.event-card .card-image .badge-top {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.event-card .card-image .badge-featured {
+    background: #C8A951;
+    color: #0F3D2E;
+}
+.event-card .card-image .badge-status {
+    top: 10px;
+    left: 10px;
+    right: auto;
+}
+.event-card .card-image .badge-upcoming { background: #0F3D2E; color: #fff; }
+.event-card .card-image .badge-ongoing { background: #C8A951; color: #0F3D2E; }
+.event-card .card-image .badge-past { background: #777; color: #fff; }
+
+.event-card .card-body {
+    padding: 1.25rem;
+}
+.event-card .card-body .title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.2rem;
+}
+.event-card .card-body .title a {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+.event-card .card-body .title a:hover { color: var(--gold); }
+.event-card .card-body .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0.2rem 0 0.4rem;
+}
+.event-card .card-body .meta i {
+    width: 1rem;
+}
+.event-card .card-body .desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0.3rem 0 0.6rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.event-card .card-body .links-preview {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    margin: 0.3rem 0;
+}
+.event-card .card-body .links-preview .link-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+.event-card .card-body .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.event-card .card-body .footer .btn-sm {
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-sm-primary { background: var(--primary); color: #fff; }
+.btn-sm-primary:hover { background: var(--primary-dark); }
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+
+.empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 3rem 2rem; }
+.empty .empty-icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
+
+/* ===== PAGINATION ===== */
+.pagination { margin-top: 1.5rem; text-align: center; }
+.pagination .step-links a {
+    color: var(--gold);
+    text-decoration: none;
+    margin: 0 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+}
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.5rem; }
+
+@media (max-width: 768px) {
+    .event-header { padding: 1.4rem 1.25rem; border-radius: 18px; }
+    .event-header-content { flex-direction: column; align-items: stretch; }
+    .event-header-text h1 { font-size: 1.35rem; }
+    .event-header-actions { flex-direction: column; }
+    .event-btn { width: 100%; justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .event-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- ===== HEADER ===== -->
+<div class="event-header">
+    <div class="event-header-glow" aria-hidden="true"></div>
+    <div class="event-header-content">
+        <div class="event-header-text">
+            <span class="event-eyebrow">Event Management</span>
+            <h1>📅 Events</h1>
+            <p>Manage all NAMETS events — upcoming, ongoing, and past.</p>
+        </div>
+        <div class="event-header-actions">
+            {% if perms.events.add_event %}
+            <a href="{% url 'events:event_create' %}" class="event-btn event-btn-primary">
+                <i class="fas fa-plus-circle"></i> New Event
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ===== FILTERS ===== -->
+<div class="event-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search events..." value="{{ query }}">
+        <select name="category">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat.slug }}" {% if category_filter == cat.slug %}selected{% endif %}>
+                {{ cat.name }}
+            </option>
+            {% endfor %}
+        </select>
+        <select name="status">
+            <option value="">All Status</option>
+            <option value="upcoming" {% if status_filter == 'upcoming' %}selected{% endif %}>Upcoming</option>
+            <option value="ongoing" {% if status_filter == 'ongoing' %}selected{% endif %}>Ongoing</option>
+            <option value="past" {% if status_filter == 'past' %}selected{% endif %}>Past</option>
+        </select>
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query or category_filter or status_filter %}
+        <a href="{% url 'events:event_admin_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- ===== EVENTS ===== -->
+<div class="event-grid">
+    {% for event in events %}
+    <div class="event-card {% if event.is_featured %}featured{% endif %}"
+         onclick="window.location.href='{% url 'events:event_edit' event.slug %}'">
+        <div class="card-image">
+            {% if event.image %}
+                <img src="{{ event.image.url }}" alt="{{ event.title }}" loading="lazy">
+            {% else %}
+                <img src="{% static 'images/event-placeholder.jpg' %}" alt="No image" loading="lazy">
+            {% endif %}
+            {% if event.is_featured %}
+            <span class="badge-top badge-featured">⭐ Featured</span>
+            {% endif %}
+            <span class="badge-top badge-status badge-{{ event.status }}">
+                {{ event.status|title }}
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="title">
+                <a href="{% url 'events:event_edit' event.slug %}" onclick="event.stopPropagation();">
+                    {{ event.title }}
+                </a>
+            </div>
+            <div class="meta">
+                <span><i class="far fa-calendar-alt"></i> {{ event.start_datetime|date:"M d, Y" }}</span>
+                <span><i class="far fa-clock"></i> {{ event.start_datetime|date:"g:i A" }}</span>
+                <span><i class="fas fa-map-marker-alt"></i> {{ event.location|truncatechars:20 }}</span>
+            </div>
+            <div class="desc">{{ event.description|striptags|truncatechars:80 }}</div>
+            {% if event.links.exists %}
+            <div class="links-preview">
+                {% for link in event.links.all|slice:":3" %}
+                <span class="link-dot" style="background:{{ link.get_color }};" title="{{ link.get_link_type_display }}"></span>
+                {% endfor %}
+                {% if event.links.count > 3 %}
+                <span style="font-size:0.6rem; color:var(--text-muted);">+{{ event.links.count|add:"-3" }}</span>
+                {% endif %}
+            </div>
+            {% endif %}
+            <div class="footer">
+                <span style="font-size:0.7rem; color:var(--text-muted);">
+                    {% if event.category %}{{ event.category.name }}{% endif %}
+                </span>
+                <span style="font-size:0.6rem; color:var(--text-muted);">
+                    {% if event.hero_layout == 'separate' %}🖼️ Separate{% else %}📝 Overlay{% endif %}
+                </span>
+                <div style="display:flex; gap:0.3rem;">
+                    <a href="{% url 'events:event_edit' event.slug %}" class="btn-sm btn-sm-gold" onclick="event.stopPropagation();">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'events:event_delete' event.slug %}" class="btn-sm btn-sm-danger" onclick="event.stopPropagation();">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+        <span class="empty-icon">📭</span>
+        <h3>No events found</h3>
+        <p>Try adjusting your search or filters.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ===== PAGINATION ===== -->
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% if query %}&q={{ query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">previous</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+{% endblock %}

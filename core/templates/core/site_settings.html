@@ -1,0 +1,671 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Site Settings · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============ HERO ============ */
+.ss-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.25rem;
+    display: flex; flex-wrap: wrap; align-items: center;
+    justify-content: space-between; gap: 1rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(15,61,46,0.25);
+}
+.ss-hero::before {
+    content: "⚙️"; font-size: 8rem;
+    position: absolute; bottom: -2rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+    animation: ssSpin 30s linear infinite;
+}
+@keyframes ssSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.ss-hero-left h1 { font-size: 1.75rem; color: #fff; margin: 0 0 0.3rem; font-weight: 800; letter-spacing: -0.01em; }
+.ss-hero-left p { color: rgba(255,255,255,0.82); font-size: 0.92rem; margin: 0; max-width: 520px; }
+.ss-hero-left .ss-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(200,169,81,0.2); color: #E0C96E;
+    padding: 0.25rem 0.9rem; border-radius: 20px;
+    font-size: 0.7rem; font-weight: 700; margin-bottom: 0.6rem;
+    letter-spacing: 0.06em; text-transform: uppercase;
+}
+.ss-hero-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; position: relative; z-index: 1; }
+.ss-save-btn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.75rem 1.75rem; border-radius: 50px;
+    background: #C8A951; color: #0F3D2E;
+    border: none; cursor: pointer; font-family: inherit;
+    font-weight: 800; font-size: 0.88rem;
+    box-shadow: 0 6px 20px rgba(200,169,81,0.35);
+    transition: all 0.25s ease;
+}
+.ss-save-btn:hover { background: #E0C96E; transform: translateY(-3px); box-shadow: 0 10px 28px rgba(200,169,81,0.55); }
+.ss-save-btn:disabled { opacity: 0.6; cursor: wait; }
+.ss-save-btn i { font-size: 0.95rem; }
+
+/* ============ TABS ============ */
+.ss-tabs {
+    display: flex; gap: 0.35rem; margin-bottom: 1.5rem;
+    flex-wrap: wrap; background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 50px; padding: 0.35rem;
+    box-shadow: var(--shadow-sm);
+}
+.ss-tab {
+    padding: 0.6rem 1.35rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem;
+    background: transparent; color: var(--text-secondary);
+    border: none; cursor: pointer; font-family: inherit;
+    transition: all 0.25s; display: inline-flex;
+    align-items: center; gap: 0.45rem; white-space: nowrap;
+}
+.ss-tab:hover { background: rgba(200,169,81,0.1); color: var(--text-primary); }
+.ss-tab.active {
+    background: #0F3D2E; color: #fff;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.25);
+}
+.ss-tab i { font-size: 0.9rem; }
+
+/* ============ CARD / SECTION ============ */
+.ss-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.75rem 1.85rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.25rem;
+}
+.ss-section-title {
+    font-size: 0.78rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a6a1a; margin: 0 0 1.25rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.ss-section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.35), transparent);
+}
+.ss-section-title i { font-size: 0.9rem; }
+
+/* ============ FIELD ROW (toggle) ============ */
+.ss-row {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1rem 1.15rem;
+    background: #f8faf9;
+    border-radius: 14px;
+    margin-bottom: 0.85rem;
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.2s;
+}
+.ss-row:hover { background: #f2f7f4; border-color: rgba(200,169,81,0.25); }
+.ss-row-info { flex: 1; min-width: 0; }
+.ss-row-label {
+    font-size: 0.92rem; font-weight: 700;
+    color: var(--text-primary); margin-bottom: 0.2rem;
+}
+.ss-row-help {
+    font-size: 0.78rem; color: #8a9b95;
+    line-height: 1.5;
+}
+
+/* ============ TOGGLE SWITCH ============ */
+.ss-toggle {
+    position: relative; display: inline-block;
+    width: 54px; height: 30px; flex-shrink: 0;
+    cursor: pointer;
+    margin-top: 0.1rem;
+}
+.ss-toggle input {
+    opacity: 0; width: 0; height: 0;
+    position: absolute;
+}
+.ss-toggle .ss-slider {
+    position: absolute; cursor: pointer;
+    inset: 0; background: #cbd5d0;
+    transition: 0.3s;
+    border-radius: 30px;
+}
+.ss-toggle .ss-slider:before {
+    position: absolute; content: "";
+    height: 22px; width: 22px;
+    left: 4px; bottom: 4px;
+    background: #fff;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+}
+.ss-toggle input:checked + .ss-slider {
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    box-shadow: 0 0 0 3px rgba(15,61,46,0.12);
+}
+.ss-toggle input:checked + .ss-slider:before {
+    transform: translateX(24px);
+}
+.ss-toggle input:focus-visible + .ss-slider {
+    outline: 2px solid #C8A951;
+    outline-offset: 2px;
+}
+
+/* Highlight row when active (used on CBT master toggle) */
+.ss-row.highlight { background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 100%); border-color: rgba(200,169,81,0.4); }
+.ss-row.highlight .ss-row-label { color: #8a6a1a; }
+
+/* ============ INPUTS ============ */
+.ss-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem; margin-bottom: 1rem;
+}
+.ss-field { display: flex; flex-direction: column; margin-bottom: 0.85rem; }
+.ss-field-label {
+    font-size: 0.8rem; font-weight: 700;
+    color: var(--text-primary); margin-bottom: 0.35rem;
+}
+.ss-field-label .req { color: #e53e3e; }
+.ss-input {
+    width: 100%; padding: 0.65rem 0.9rem;
+    border: 1px solid #d0d9d6; border-radius: 10px;
+    font-size: 0.9rem; background: #fff;
+    font-family: inherit; transition: all 0.2s;
+    color: var(--text-primary);
+}
+.ss-input:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 4px rgba(200,169,81,0.15);
+}
+.ss-textarea { resize: vertical; min-height: 80px; line-height: 1.55; }
+.ss-field-help { font-size: 0.72rem; color: #8a9b95; margin-top: 0.3rem; line-height: 1.45; }
+.ss-field-error {
+    font-size: 0.75rem; color: #c0392b;
+    margin-top: 0.35rem;
+    padding: 0.35rem 0.6rem;
+    background: #fdecea; border-radius: 6px;
+}
+
+/* ============ TAB PANES ============ */
+.ss-pane { display: none; }
+.ss-pane.active { display: block; animation: ssFade 0.3s ease-out; }
+@keyframes ssFade {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============ STICKY SAVE BAR ============ */
+.ss-save-bar {
+    position: sticky; bottom: 1rem;
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 18px;
+    padding: 0.85rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+    margin-top: 1.5rem;
+    box-shadow: 0 12px 36px rgba(15,61,46,0.3);
+    z-index: 5;
+}
+.ss-save-bar .ss-save-hint {
+    color: rgba(255,255,255,0.85); font-size: 0.85rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.ss-save-bar .ss-save-hint i { color: #C8A951; }
+.ss-save-bar.dirty .ss-save-hint { color: #f5e9c8; font-weight: 700; }
+.ss-save-bar .ss-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.ss-cancel-btn {
+    padding: 0.7rem 1.5rem; border-radius: 50px;
+    background: rgba(255,255,255,0.15); color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    font-family: inherit; font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.ss-cancel-btn:hover { background: rgba(255,255,255,0.25); color: #fff; }
+.ss-save-btn-bottom {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.7rem 1.75rem; border-radius: 50px;
+    background: #C8A951; color: #0F3D2E;
+    border: none; cursor: pointer; font-family: inherit;
+    font-weight: 800; font-size: 0.88rem;
+    box-shadow: 0 6px 20px rgba(200,169,81,0.35);
+    transition: all 0.25s ease;
+}
+.ss-save-btn-bottom:hover { background: #E0C96E; transform: translateY(-2px); }
+.ss-save-btn-bottom:disabled { opacity: 0.6; cursor: wait; }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .ss-hero { padding: 1.4rem 1.25rem; }
+    .ss-hero-left h1 { font-size: 1.35rem; }
+    .ss-hero::before { font-size: 5rem; }
+    .ss-hero-actions { width: 100%; }
+    .ss-save-btn { justify-content: center; width: 100%; }
+    .ss-card { padding: 1.25rem 1.2rem; }
+    .ss-tabs { overflow-x: auto; border-radius: 16px; padding: 0.4rem; }
+    .ss-tab { padding: 0.5rem 1rem; font-size: 0.75rem; }
+    .ss-tab span.tab-label { display: none; }
+    .ss-save-bar { padding: 0.85rem 1rem; }
+    .ss-save-bar .ss-actions { width: 100%; }
+    .ss-save-btn-bottom, .ss-cancel-btn { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<form method="post" id="ssForm" novalidate>
+    {% csrf_token %}
+
+    <!-- ============ HERO ============ -->
+    <div class="ss-hero">
+        <div class="ss-hero-left">
+            <span class="ss-badge"><i class="fas fa-cog"></i> Global Configuration</span>
+            <h1>Site Settings</h1>
+            <p>Central toggles for applications, Islamiyya, tutor evaluations, and the CBT module. Changes apply site-wide.</p>
+        </div>
+        <div class="ss-hero-actions">
+            <button type="submit" class="ss-save-btn">
+                <i class="fas fa-save"></i> Save All Changes
+            </button>
+        </div>
+    </div>
+
+    <!-- ============ TABS ============ -->
+    <div class="ss-tabs" role="tablist">
+        <button type="button" class="ss-tab active" data-tab="applications" role="tab">
+            <i class="fas fa-user-plus"></i> <span class="tab-label">Applications</span>
+        </button>
+        <button type="button" class="ss-tab" data-tab="islamiyya" role="tab">
+            <i class="fas fa-mosque"></i> <span class="tab-label">Islamiyya</span>
+        </button>
+        <button type="button" class="ss-tab" data-tab="evaluations" role="tab">
+            <i class="fas fa-star"></i> <span class="tab-label">Evaluations</span>
+        </button>
+        <button type="button" class="ss-tab" data-tab="cbt" role="tab">
+            <i class="fas fa-brain"></i> <span class="tab-label">CBT</span>
+            {% if form.cbt_enabled.value %}
+            <span style="width:8px;height:8px;border-radius:50%;background:#38a169;display:inline-block;margin-left:0.35rem;animation:pulse 1.8s infinite;"></span>
+            {% endif %}
+        </button>
+    </div>
+
+    <!-- ============ TAB: APPLICATIONS ============ -->
+    <div class="ss-pane active" data-pane="applications">
+
+        <div class="ss-card">
+            <h2 class="ss-section-title"><i class="fas fa-chalkboard-teacher"></i> Tutor Applications</h2>
+
+            <div class="ss-row">
+                <div class="ss-row-info">
+                    <div class="ss-row-label">Allow Tutor Applications</div>
+                    <div class="ss-row-help">When ON, the public tutor application form is open for submissions.</div>
+                </div>
+                <label class="ss-toggle">
+                    {{ form.tutor_applications_open }}
+                    <span class="ss-slider"></span>
+                </label>
+            </div>
+
+            <div class="ss-field">
+                <label class="ss-field-label" for="{{ form.tutor_intro_text.id_for_label }}">Intro Text</label>
+                {{ form.tutor_intro_text }}
+                {% if form.tutor_intro_text.help_text %}<div class="ss-field-help">{{ form.tutor_intro_text.help_text }}</div>{% endif %}
+                {% if form.tutor_intro_text.errors %}<div class="ss-field-error">{{ form.tutor_intro_text.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="ss-card">
+            <h2 class="ss-section-title"><i class="fas fa-users"></i> Membership Applications</h2>
+
+            <div class="ss-row">
+                <div class="ss-row-info">
+                    <div class="ss-row-label">Allow Membership Applications</div>
+                    <div class="ss-row-help">When ON, the public membership form is open for submissions.</div>
+                </div>
+                <label class="ss-toggle">
+                    {{ form.membership_applications_open }}
+                    <span class="ss-slider"></span>
+                </label>
+            </div>
+
+            <div class="ss-field">
+                <label class="ss-field-label" for="{{ form.membership_intro_text.id_for_label }}">Intro Text</label>
+                {{ form.membership_intro_text }}
+                {% if form.membership_intro_text.help_text %}<div class="ss-field-help">{{ form.membership_intro_text.help_text }}</div>{% endif %}
+                {% if form.membership_intro_text.errors %}<div class="ss-field-error">{{ form.membership_intro_text.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============ TAB: ISLAMIYYA ============ -->
+    <div class="ss-pane" data-pane="islamiyya">
+
+        <div class="ss-card">
+            <h2 class="ss-section-title"><i class="fas fa-mosque"></i> Islamiyya Registration</h2>
+
+            <div class="ss-row highlight">
+                <div class="ss-row-info">
+                    <div class="ss-row-label">Islamiyya Registration Open</div>
+                    <div class="ss-row-help">
+                        Global toggle. <strong>Note:</strong> each Islamiyya session has its own
+                        open/closed state which takes priority. This is the fallback when no session overrides it.
+                    </div>
+                </div>
+                <label class="ss-toggle">
+                    {{ form.islamiyya_registration_open }}
+                    <span class="ss-slider"></span>
+                </label>
+            </div>
+
+            <div class="ss-field">
+                <label class="ss-field-label" for="{{ form.islamiyya_whatsapp_link.id_for_label }}">Default WhatsApp Group Link</label>
+                {{ form.islamiyya_whatsapp_link }}
+                <div class="ss-field-help">
+                    Shown to verified students when their session doesn't define its own link.
+                </div>
+                {% if form.islamiyya_whatsapp_link.errors %}<div class="ss-field-error">{{ form.islamiyya_whatsapp_link.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============ TAB: EVALUATIONS ============ -->
+    <div class="ss-pane" data-pane="evaluations">
+
+        <div class="ss-card">
+            <h2 class="ss-section-title"><i class="fas fa-star"></i> Tutor Evaluations</h2>
+
+            <div class="ss-row">
+                <div class="ss-row-info">
+                    <div class="ss-row-label">Allow Tutor Evaluations</div>
+                    <div class="ss-row-help">When ON, students can submit feedback on their tutors.</div>
+                </div>
+                <label class="ss-toggle">
+                    {{ form.tutor_evaluations_open }}
+                    <span class="ss-slider"></span>
+                </label>
+            </div>
+
+            <div class="ss-field">
+                <label class="ss-field-label" for="{{ form.evaluation_intro_text.id_for_label }}">Intro Text</label>
+                {{ form.evaluation_intro_text }}
+                {% if form.evaluation_intro_text.help_text %}<div class="ss-field-help">{{ form.evaluation_intro_text.help_text }}</div>{% endif %}
+                {% if form.evaluation_intro_text.errors %}<div class="ss-field-error">{{ form.evaluation_intro_text.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============ TAB: CBT ============ -->
+    <div class="ss-pane" data-pane="cbt">
+
+        <!-- Master switches -->
+        <div class="ss-card">
+            <h2 class="ss-section-title"><i class="fas fa-power-off"></i> Master Switch</h2>
+
+            <div class="ss-row highlight">
+                <div class="ss-row-info">
+                    <div class="ss-row-label">🧠 CBT Module Enabled</div>
+                    <div class="ss-row-help">
+                        Global master switch. When OFF, students see <em>"CBT is currently disabled"</em>.
+                        All CBT pages, links, and stats are hidden from the public site.
+                    </div>
+                </div>
+                <label class="ss-toggle">
+                    {{ form.cbt_enabled }}
+                    <span class="ss-slider"></span>
+                </label>
+            </div>
+
+            <div class="ss-row">
+                <div class="ss-row-info">
+                    <div class="ss-row-label">Show CBT Link on Public Navigation</div>
+                    <div class="ss-row-help">Adds a CBT link to the public academics navbar &amp; footer.</div>
+                </div>
+                <label class="ss-toggle">
+                    {{ form.cbt_show_on_public_nav }}
+                    <span class="ss-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Student experience -->
+        <div class="ss-card">
+            <h2 class="ss-section-title"><i class="fas fa-user-graduate"></i> Student Experience</h2>
+
+            <div class="ss-row">
+                <div class="ss-row-info">
+                    <div class="ss-row-label">Allow Difficulty Choice</div>
+                    <div class="ss-row-help">Let students pick Easy / Medium / Hard / Mixed.</div>
+                </div>
+                <label class="ss-toggle">
+                    {{ form.cbt_allow_difficulty_choice }}
+                    <span class="ss-slider"></span>
+                </label>
+            </div>
+
+            <div class="ss-row">
+                <div class="ss-row-info">
+                    <div class="ss-row-label">Allow Topic Filter</div>
+                    <div class="ss-row-help">Let students narrow a test to a specific topic.</div>
+                </div>
+                <label class="ss-toggle">
+                    {{ form.cbt_allow_topic_filter }}
+                    <span class="ss-slider"></span>
+                </label>
+            </div>
+
+            <div class="ss-row">
+                <div class="ss-row-info">
+                    <div class="ss-row-label">Show Correct Answers on Results</div>
+                    <div class="ss-row-help">Display the answer key + explanations after the test.</div>
+                </div>
+                <label class="ss-toggle">
+                    {{ form.cbt_show_answers }}
+                    <span class="ss-slider"></span>
+                </label>
+            </div>
+
+            <div class="ss-row">
+                <div class="ss-row-info">
+                    <div class="ss-row-label">Allow Retake</div>
+                    <div class="ss-row-help">Show the "Take Another Test" button on the result page.</div>
+                </div>
+                <label class="ss-toggle">
+                    {{ form.cbt_allow_retake }}
+                    <span class="ss-slider"></span>
+                </label>
+            </div>
+
+            <div class="ss-row">
+                <div class="ss-row-info">
+                    <div class="ss-row-label">🤖 AI Report Enabled</div>
+                    <div class="ss-row-help">Generate a personalized report with Gemini after each test.</div>
+                </div>
+                <label class="ss-toggle">
+                    {{ form.cbt_ai_report_enabled }}
+                    <span class="ss-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Defaults -->
+        <div class="ss-card">
+            <h2 class="ss-section-title"><i class="fas fa-sliders-h"></i> Test Defaults</h2>
+
+            <div class="ss-grid">
+                <div class="ss-field">
+                    <label class="ss-field-label" for="{{ form.cbt_default_question_count.id_for_label }}">Default Question Count</label>
+                    {{ form.cbt_default_question_count }}
+                    <div class="ss-field-help">Pre-filled when a student starts a test.</div>
+                    {% if form.cbt_default_question_count.errors %}<div class="ss-field-error">{{ form.cbt_default_question_count.errors|join:" " }}</div>{% endif %}
+                </div>
+                <div class="ss-field">
+                    <label class="ss-field-label" for="{{ form.cbt_default_time_minutes.id_for_label }}">Default Time (minutes)</label>
+                    {{ form.cbt_default_time_minutes }}
+                    <div class="ss-field-help">Test duration in minutes.</div>
+                    {% if form.cbt_default_time_minutes.errors %}<div class="ss-field-error">{{ form.cbt_default_time_minutes.errors|join:" " }}</div>{% endif %}
+                </div>
+                <div class="ss-field">
+                    <label class="ss-field-label" for="{{ form.cbt_min_questions.id_for_label }}">Minimum Questions</label>
+                    {{ form.cbt_min_questions }}
+                    <div class="ss-field-help">Smallest test a student can request.</div>
+                    {% if form.cbt_min_questions.errors %}<div class="ss-field-error">{{ form.cbt_min_questions.errors|join:" " }}</div>{% endif %}
+                </div>
+                <div class="ss-field">
+                    <label class="ss-field-label" for="{{ form.cbt_max_questions.id_for_label }}">Maximum Questions</label>
+                    {{ form.cbt_max_questions }}
+                    <div class="ss-field-help">Largest test a student can request.</div>
+                    {% if form.cbt_max_questions.errors %}<div class="ss-field-error">{{ form.cbt_max_questions.errors|join:" " }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Integrity -->
+        <div class="ss-card">
+            <h2 class="ss-section-title"><i class="fas fa-shield-alt"></i> Integrity &amp; Timing</h2>
+
+            <div class="ss-grid">
+                <div class="ss-field">
+                    <label class="ss-field-label" for="{{ form.cbt_grace_seconds.id_for_label }}">Grace Window (seconds)</label>
+                    {{ form.cbt_grace_seconds }}
+                    <div class="ss-field-help">Extra time allowed for late submissions due to network lag. Not shown to students.</div>
+                    {% if form.cbt_grace_seconds.errors %}<div class="ss-field-error">{{ form.cbt_grace_seconds.errors|join:" " }}</div>{% endif %}
+                </div>
+                <div class="ss-field">
+                    <label class="ss-field-label" for="{{ form.cbt_tab_switch_warning_threshold.id_for_label }}">Tab-Switch Warning Threshold</label>
+                    {{ form.cbt_tab_switch_warning_threshold }}
+                    <div class="ss-field-help">Show the honesty reminder once, after this many tab switches.</div>
+                    {% if form.cbt_tab_switch_warning_threshold.errors %}<div class="ss-field-error">{{ form.cbt_tab_switch_warning_threshold.errors|join:" " }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pre-test screen -->
+        <div class="ss-card">
+            <h2 class="ss-section-title"><i class="fas fa-pray"></i> Pre-Test Screen</h2>
+
+            <div class="ss-field">
+                <label class="ss-field-label" for="{{ form.cbt_pre_test_verse.id_for_label }}">Verse / Hadith</label>
+                {{ form.cbt_pre_test_verse }}
+                <div class="ss-field-help">Shown on the pre-test screen. Keep it short and peaceful.</div>
+                {% if form.cbt_pre_test_verse.errors %}<div class="ss-field-error">{{ form.cbt_pre_test_verse.errors|join:" " }}</div>{% endif %}
+            </div>
+
+            <div class="ss-field">
+                <label class="ss-field-label" for="{{ form.cbt_pre_test_message.id_for_label }}">Honesty Reminder</label>
+                {{ form.cbt_pre_test_message }}
+                <div class="ss-field-help">Short message encouraging sincerity and self-reflection.</div>
+                {% if form.cbt_pre_test_message.errors %}<div class="ss-field-error">{{ form.cbt_pre_test_message.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============ STICKY SAVE BAR ============ -->
+    <div class="ss-save-bar" id="ssSaveBar">
+        <div class="ss-save-hint" id="ssSaveHint">
+            <i class="fas fa-info-circle"></i>
+            <span>Changes apply across the entire site after saving.</span>
+        </div>
+        <div class="ss-actions">
+            <a href="{% url 'dashboards:dashboard' %}" class="ss-cancel-btn" onclick="return confirmCancel(event);">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="ss-save-btn-bottom">
+                <i class="fas fa-save"></i> Save Settings
+            </button>
+        </div>
+    </div>
+
+</form>
+
+<script>
+(function() {
+    // ---------- Tab switching ----------
+    const tabs = document.querySelectorAll('.ss-tab');
+    const panes = document.querySelectorAll('.ss-pane');
+
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            const target = tab.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            panes.forEach(function(pane) {
+                pane.classList.toggle('active', pane.dataset.pane === target);
+            });
+            // Remember last tab
+            try { localStorage.setItem('nametsSiteSettingsTab', target); } catch(e) {}
+        });
+    });
+
+    // Restore last tab
+    try {
+        const last = localStorage.getItem('nametsSiteSettingsTab');
+        if (last) {
+            const tab = document.querySelector(`.ss-tab[data-tab="${last}"]`);
+            if (tab) tab.click();
+        }
+    } catch(e) {}
+
+    // ---------- Dirty tracking ----------
+    const form = document.getElementById('ssForm');
+    const bar = document.getElementById('ssSaveBar');
+    const hint = document.getElementById('ssSaveHint');
+    let initialSnapshot = '';
+    let isDirty = false;
+
+    function snapshot() {
+        const data = new FormData(form);
+        const entries = [];
+        for (const [k, v] of data.entries()) {
+            if (k !== 'csrfmiddlewaretoken') entries.push(k + '=' + v);
+        }
+        return entries.sort().join('&');
+    }
+
+    function markDirty() {
+        if (!isDirty) {
+            isDirty = true;
+            bar.classList.add('dirty');
+            hint.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>You have unsaved changes.</span>';
+        }
+    }
+
+    form.addEventListener('input', markDirty);
+    form.addEventListener('change', markDirty);
+    form.addEventListener('submit', function() {
+        isDirty = false;
+        const btns = form.querySelectorAll('button[type="submit"]');
+        btns.forEach(b => { b.disabled = true; b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; });
+    });
+
+    // Warn before leaving
+    window.addEventListener('beforeunload', function(e) {
+        if (isDirty) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // Custom cancel confirm
+    window.confirmCancel = function(e) {
+        if (!isDirty) return true;
+        if (!confirm('You have unsaved changes. Leave anyway?')) {
+            e.preventDefault();
+            return false;
+        }
+        isDirty = false;
+        return true;
+    };
+
+    // Snapshot after everything is loaded (for future use)
+    initialSnapshot = snapshot();
+})();
+</script>
+
+{% endblock %}

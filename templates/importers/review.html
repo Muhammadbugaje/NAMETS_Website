@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+{% load static %}
+{% load dashboard_extras %}
+
+
+{% block extra_css %}
+<style>
+    .review-section {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 0;
+    }
+    .review-header {
+        background: linear-gradient(135deg, #0F3D2E 0%, #1A5A44 100%);
+        color: #ffffff;
+        padding: 2rem 2.5rem;
+        border-radius: 16px 16px 0 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .review-header::after {
+        content: "📋";
+        position: absolute;
+        right: 2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 4rem;
+        opacity: 0.15;
+    }
+    .review-header h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+    .review-header p {
+        margin: 0.5rem 0 0;
+        opacity: 0.85;
+        font-size: 1rem;
+    }
+    .review-body {
+        background: #ffffff;
+        padding: 2.5rem;
+        border-radius: 0 0 16px 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.25rem;
+        margin: 1.5rem 0;
+    }
+    .stat-card {
+        background: #f8faf9;
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        text-align: center;
+        border: 1px solid #e8edec;
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+    .stat-card .number {
+        font-size: 2.25rem;
+        font-weight: 700;
+        display: block;
+    }
+    .stat-card .label {
+        color: #5a6b65;
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+    .stat-card.success .number { color: #2d7d4e; }
+    .stat-card.error .number { color: #b85c4a; }
+    .stat-card.info .number { color: #C8A951; }
+    /* AI Summary */
+    .ai-summary-box {
+        background: #f0f7f4;
+        padding: 1rem 1.5rem;
+        border-left: 4px solid #C8A951;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+        color: #1a3c2e;
+        line-height: 1.6;
+    }
+    .ai-summary-box strong {
+        color: #0F3D2E;
+    }
+    /* Error List */
+    .error-list {
+        margin: 1.5rem 0;
+        padding: 0;
+        list-style: none;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .error-item {
+        background: #fdf6f3;
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        border-left: 4px solid #d48b7a;
+        margin-bottom: 0.5rem;
+        color: #6b3d32;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    .error-item .row-num {
+        background: #d48b7a;
+        color: #ffffff;
+        font-weight: 700;
+        padding: 0.1rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        min-width: 3.5rem;
+        text-align: center;
+        flex-shrink: 0;
+        margin-top: 0.1rem;
+    }
+    .error-item .msg {
+        flex: 1;
+    }
+    .error-item .msg strong {
+        color: #b85c4a;
+    }
+    .error-item .msg .highlight {
+        background: #fce8e0;
+        padding: 0.1rem 0.4rem;
+        border-radius: 4px;
+        font-weight: 600;
+        color: #b85c4a;
+    }
+    .error-item:last-child {
+        margin-bottom: 0;
+    }
+    /* Valid rows */
+    .valid-rows-list {
+        margin: 1.5rem 0;
+        padding: 0;
+        list-style: none;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .valid-row-item {
+        background: #f0f7f4;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+        color: #2d7d4e;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .valid-row-item::before {
+        content: "✅";
+        font-size: 1rem;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid #f0f4f2;
+    }
+    .btn-confirm {
+        background: linear-gradient(135deg, #0F3D2E 0%, #1A5A44 100%);
+        color: #ffffff;
+        border: none;
+        padding: 0.9rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        flex: 1;
+        min-width: 200px;
+    }
+    .btn-confirm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(15, 61, 46, 0.25);
+    }
+    .btn-confirm:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .btn-back {
+        background: #f0f4f2;
+        color: #0F3D2E;
+        border: 2px solid #d0d9d6;
+        padding: 0.9rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 140px;
+        justify-content: center;
+    }
+    .btn-back:hover {
+        background: #e8edec;
+        border-color: #C8A951;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: #8a9b95;
+    }
+    .empty-state .icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-section">
+    <!-- Header -->
+    <div class="review-header">
+        <h1>📋 Review: {{ spec.label }}</h1>
+        <p>Review your data before importing. Nothing has been saved yet.</p>
+    </div>
+
+    <!-- Body -->
+    <div class="review-body">
+        <!-- AI Summary -->
+        {% if ai_summary %}
+        <div class="ai-summary-box">
+            <strong>🤖 AI Summary:</strong> {{ ai_summary }}
+        </div>
+        {% endif %}
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card success">
+                <span class="number">{{ valid_count }}</span>
+                <span class="label">✅ Ready to Import</span>
+            </div>
+            <div class="stat-card error">
+                <span class="number">{{ row_errors|length }}</span>
+                <span class="label">⚠️ Need Fixing</span>
+            </div>
+            <div class="stat-card info">
+                <span class="number">{{ row_errors|length|add:valid_count }}</span>
+                <span class="label">📄 Total Rows</span>
+            </div>
+        </div>
+
+        <!-- Errors -->
+        {% if row_errors %}
+        <h3 style="color: #b85c4a; margin: 1.5rem 0 0.5rem;">⚠️ {{ row_errors|length }} row(s) need fixing</h3>
+        <p style="color: #5a6b65; margin-bottom: 0.5rem;">Fix these rows in your spreadsheet and upload again.</p>
+        <ul class="error-list">
+            {% for row_error in row_errors %}
+            <li class="error-item">
+                <span class="row-num">Row {{ row_error.row_number }}</span>
+                <span class="msg">
+                    {% for err in row_error.errors %}
+                        <span class="highlight">• {{ err }}</span>{% if not forloop.last %}<br>{% endif %}
+                    {% endfor %}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        <p style="color: #8a9b95; font-size: 0.9rem; margin-top: 0.5rem;">
+            💡 None of this batch has been saved yet. Fix the errors, re-upload, and try again.
+        </p>
+        {% endif %}
+
+        <!-- Valid Rows Preview -->
+        {% if valid_count > 0 and not row_errors %}
+        <h3 style="color: #2d7d4e; margin: 1.5rem 0 0.5rem;">✅ {{ valid_count }} row(s) ready to import</h3>
+        <ul class="valid-rows-list">
+            {% for row in batch.valid_rows|slice:":10" %}
+                <li class="valid-row-item">Row {{ row.row_number }} — {{ row.data|first_value }}</li>
+            {% endfor %}
+            {% if batch.valid_rows|length > 10 %}
+            <li class="valid-row-item" style="background: transparent; color: #8a9b95;">… and {{ batch.valid_rows|length|add:"-10" }} more</li>
+            {% endif %}
+        </ul>
+        {% endif %}
+
+        <!-- No rows -->
+        {% if valid_count == 0 and not row_errors %}
+        <div class="empty-state">
+            <span class="icon">📭</span>
+            <p><strong>No data found</strong></p>
+            <p style="color: #8a9b95;">The file appears to be empty. Please check your spreadsheet and try again.</p>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="action-buttons">
+            <a href="{% url 'importers:upload' spec.key %}" class="btn-back">
+                ← Back to Upload
+            </a>
+            {% if valid_count > 0 %}
+            <form method="post" action="{% url 'importers:confirm' spec.key batch.token %}" style="flex:1; display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-confirm" id="confirmBtn">
+                    <span class="btn-text">✅ Confirm — Import {{ valid_count }} Row(s)</span>
+                    <span class="spinner-border spinner-border-sm d-none" id="confirmSpinner" style="vertical-align: middle;"></span>
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Confirm button spinner
+    const confirmBtn = document.getElementById('confirmBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const btn = this;
+            const text = btn.querySelector('.btn-text');
+            const spinner = document.getElementById('confirmSpinner');
+            btn.disabled = true;
+            text.textContent = '⏳ Importing...';
+            spinner.classList.remove('d-none');
+            // Submit the form after a moment
+            setTimeout(() => {
+                btn.closest('form').submit();
+            }, 300);
+        });
+    }
+</script>
+{% endblock %}

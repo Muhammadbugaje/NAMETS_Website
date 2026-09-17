@@ -172,6 +172,18 @@
     <div class="gold-strip">✧ ISLAMIYYA REGISTRATION ✧</div>
     <div class="form-content">
       <h1>Join Our Islamiyya Program</h1>
+      {% if settings and settings.registration_fee > 0 %}
+      <div style="background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 100%); border-left: 4px solid #C8A951; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+          <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #8a6a1a; margin-bottom: 0.35rem;">
+              💰 Registration Fee
+          </div>
+          <p style="margin: 0; font-size: 0.9rem; color: #0F3D2E; line-height: 1.55;">
+              The current session (<strong>{{ settings.academic_session }}</strong>) has a registration fee of
+              <strong>₦{{ settings.registration_fee|floatformat:2 }}</strong>.
+              After submitting this form, you'll be able to pay online or at the mosque.
+          </p>
+      </div>
+      {% endif %}
       <p>Deepen your understanding of Islam – beginner to advanced levels.</p>
 
       <form method="post" enctype="multipart/form-data">

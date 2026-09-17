@@ -1,0 +1,168 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Correct Transaction · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.correct-container { max-width: 700px; margin: 0 auto; }
+.correct-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 20px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+    color: #fff;
+}
+.correct-header .eyebrow {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.1rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.2rem;
+}
+.correct-header h1 { font-size: 1.3rem; font-weight: 700; margin: 0; }
+.correct-header p { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+
+.original-box {
+    background: #f8faf9;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--gold);
+}
+.original-box .label { font-weight: 600; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; }
+.original-box .field { display: flex; padding: 0.1rem 0; font-size: 0.85rem; }
+.original-box .field .lbl { font-weight: 600; color: var(--text-muted); min-width: 90px; }
+
+.form-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.8rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label {
+    font-weight: 600; color: var(--text-primary); font-size: 0.8rem; margin-bottom: 0.2rem;
+}
+.form-group label .required { color: #e53e3e; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.5rem 0.8rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.9rem;
+    background: #fff;
+    transition: var(--transition);
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--gold); outline: none; box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.form-group .help-text { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; }
+.form-group .error-text { font-size: 0.75rem; color: #e53e3e; margin-top: 0.15rem; }
+.form-actions {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-primary {
+    background: var(--primary); color: #fff;
+    padding: 0.5rem 1.8rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; transition: var(--transition);
+    text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.5rem 1.8rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; text-decoration: none; transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+    .correct-header { padding: 1rem 1.25rem; }
+    .form-card { padding: 1.25rem; }
+    .form-row { grid-template-columns: 1fr; gap: 0.6rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="correct-container">
+    <div class="correct-header">
+        <div>
+            <span class="eyebrow">Financial Secretary</span>
+            <h1>✏️ Correct Transaction</h1>
+            <p>Create a reversal entry that corrects the original transaction.</p>
+        </div>
+    </div>
+
+    <div class="original-box">
+        <div class="label">Original Transaction</div>
+        <div class="field"><span class="lbl">Description</span><span>{{ transaction.description }}</span></div>
+        <div class="field"><span class="lbl">Category</span><span>{{ transaction.get_category_display }}</span></div>
+        <div class="field"><span class="lbl">Amount</span><span>₦{{ transaction.amount|floatformat:2 }}</span></div>
+        <div class="field"><span class="lbl">Account</span><span>{{ transaction.account.name }}</span></div>
+        <div class="field"><span class="lbl">Date</span><span>{{ transaction.date|date:"M d, Y H:i" }}</span></div>
+        {% if transaction.corrections.exists %}
+        <div class="field" style="margin-top:0.3rem; padding-top:0.3rem; border-top:1px solid rgba(0,0,0,0.05);">
+            <span class="lbl">⚠️ Existing Corrections</span>
+            <span style="color:#a8671a;">{{ transaction.corrections.count }} correction(s) already exist</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <form method="post" class="form-card">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.new_amount.id_for_label }}">New Amount <span class="required">*</span></label>
+                {{ form.new_amount }}
+                <div class="help-text">Enter the correct amount.</div>
+                {% if form.new_amount.errors %}<div class="error-text">{{ form.new_amount.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.new_category.id_for_label }}">New Category <span class="required">*</span></label>
+                {{ form.new_category }}
+                {% if form.new_category.errors %}<div class="error-text">{{ form.new_category.errors }}</div>{% endif %}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.new_description.id_for_label }}">New Description</label>
+                {{ form.new_description }}
+                <div class="help-text">Optional — update the description for clarity.</div>
+                {% if form.new_description.errors %}<div class="error-text">{{ form.new_description.errors }}</div>{% endif %}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.reason.id_for_label }}">Reason for Correction <span class="required">*</span></label>
+                {{ form.reason }}
+                <div class="help-text">Why is this correction needed?</div>
+                {% if form.reason.errors %}<div class="error-text">{{ form.reason.errors }}</div>{% endif %}
+            </div>
+        </div>
+        {% if form.non_field_errors %}
+        <div class="form-row">
+            <div class="form-group full">
+                {% for error in form.non_field_errors %}
+                <div class="error-text" style="background:#fdecea; padding:0.5rem 1rem; border-radius:8px; border-left:4px solid #e53e3e;">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <div class="form-actions">
+            <button type="submit" class="btn-primary"><i class="fas fa-pen"></i> Create Correction</button>
+            <a href="{% url 'business:admin_transaction_list' %}" class="btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

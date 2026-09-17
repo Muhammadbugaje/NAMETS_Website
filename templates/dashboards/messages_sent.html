@@ -1,0 +1,447 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Sent Messages · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.msx-wrap { max-width: 1100px; margin: 0 auto; }
+
+.msx-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 14px 40px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.msx-hero::before {
+    content: "📤"; font-size: 10rem;
+    position: absolute; bottom: -2.5rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.msx-hero::after {
+    content: ''; position: absolute;
+    top: -50%; left: -10%;
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(200,169,81,0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+.msx-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1.25rem;
+}
+.msx-hero-left { flex: 1; min-width: 240px; }
+.msx-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.28rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.6rem;
+}
+.msx-hero h1 {
+    font-size: 1.85rem; font-weight: 800;
+    margin: 0 0 0.4rem; letter-spacing: -0.02em;
+}
+.msx-hero p {
+    color: rgba(255,255,255,0.82); font-size: 0.9rem;
+    margin: 0; line-height: 1.55; max-width: 520px;
+}
+.msx-hero-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.75rem 1.5rem; border-radius: 50px;
+    background: #C8A951; color: #0F3D2E;
+    font-weight: 800; font-size: 0.85rem;
+    text-decoration: none; border: none;
+    box-shadow: 0 8px 22px rgba(200,169,81,0.4);
+    transition: all 0.25s ease;
+    font-family: inherit; cursor: pointer;
+}
+.msx-hero-btn:hover {
+    background: #E0C96E; transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(200,169,81,0.55);
+}
+
+.msx-tabs {
+    display: flex; gap: 0.35rem; margin-bottom: 1.15rem;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    flex-wrap: wrap; padding-bottom: 0;
+}
+.msx-tab {
+    padding: 0.75rem 1.35rem;
+    font-size: 0.85rem; font-weight: 700;
+    color: #8a9b95; background: transparent;
+    border: none; border-bottom: 3px solid transparent;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    transition: all 0.2s; font-family: inherit;
+}
+.msx-tab:hover { color: #0F3D2E; }
+.msx-tab.active { color: #0F3D2E; border-bottom-color: #C8A951; }
+.msx-tab .cnt {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 20px; padding: 0 0.45rem;
+    background: rgba(15,61,46,0.08); color: #0F3D2E;
+    border-radius: 20px; font-size: 0.65rem; font-weight: 800;
+}
+.msx-tab.active .cnt { background: #C8A951; color: #0F3D2E; }
+
+.msx-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden; box-shadow: var(--shadow-sm);
+}
+
+.msx-filters {
+    padding: 1rem 1.15rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.msx-search { position: relative; }
+.msx-search i {
+    position: absolute; left: 0.9rem; top: 50%;
+    transform: translateY(-50%);
+    color: #8a9b95; font-size: 0.85rem; pointer-events: none;
+}
+.msx-search input {
+    width: 100%; padding: 0.6rem 0.9rem 0.6rem 2.35rem;
+    border: 1px solid #d5dcd9; border-radius: 10px;
+    background: #fff; font-size: 0.85rem; font-family: inherit;
+    color: #0F3D2E; transition: all 0.15s;
+}
+.msx-search input:focus {
+    border-color: #C8A951; outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.14);
+}
+
+.msx-list { display: flex; flex-direction: column; }
+
+/* Sent rows: wrapper + link + delete button */
+.msx-row {
+    position: relative;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: background 0.2s;
+}
+.msx-row:last-child { border-bottom: none; }
+.msx-row:hover {
+    background: rgba(200,169,81,0.05);
+}
+
+.msx-row-link {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.25rem; align-items: center;
+    padding: 1.15rem 3.6rem 1.15rem 1.35rem;
+    text-decoration: none;
+    color: inherit;
+    min-width: 0;
+}
+
+.msx-subject {
+    font-size: 0.92rem; font-weight: 800;
+    color: #0F3D2E; margin-bottom: 0.35rem;
+    display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+}
+.msx-pin {
+    font-size: 0.65rem; color: #8a6a1a;
+    background: #f5e9c8; padding: 0.1rem 0.55rem;
+    border-radius: 20px; font-weight: 800;
+    display: inline-flex; align-items: center; gap: 0.2rem;
+}
+.msx-target-line {
+    display: flex; align-items: center; gap: 0.55rem;
+    font-size: 0.75rem; color: #8a9b95;
+    margin-bottom: 0.4rem; flex-wrap: wrap;
+}
+.msx-target {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    background: rgba(15,61,46,0.06); color: #4a5568;
+    padding: 0.2rem 0.65rem; border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.68rem;
+    text-transform: uppercase; letter-spacing: 0.03em;
+}
+.msx-recip-count {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-weight: 700; color: #4a5568;
+    font-size: 0.72rem;
+}
+.msx-preview {
+    font-size: 0.78rem; color: #8a9b95;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    line-height: 1.45;
+}
+
+.msx-stats {
+    display: flex; flex-direction: column;
+    align-items: flex-end; gap: 0.45rem;
+    flex-shrink: 0;
+}
+.msx-time {
+    font-size: 0.7rem; color: #8a9b95;
+    white-space: nowrap; font-weight: 600;
+}
+.msx-read-pill {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.68rem; font-weight: 800;
+    padding: 0.25rem 0.7rem; border-radius: 20px;
+    background: #e8f2ec; color: #1a6b3c;
+    white-space: nowrap;
+}
+.msx-read-pill.partial {
+    background: #f5e9c8; color: #8a6a1a;
+}
+.msx-read-pill.none {
+    background: #f0f4f2; color: #8a9b95;
+}
+
+/* Delete button */
+.msx-delete-btn {
+    position: absolute;
+    right: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(220,53,69,0.08);
+    color: #dc3545;
+    font-size: 0.82rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: all 0.22s ease;
+    z-index: 2;
+}
+.msx-row:hover .msx-delete-btn { opacity: 1; }
+.msx-delete-btn:hover {
+    background: #dc3545;
+    color: #fff;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 4px 12px rgba(220,53,69,0.35);
+}
+.msx-delete-btn:active {
+    transform: translateY(-50%) scale(0.98);
+}
+
+.msx-empty {
+    padding: 4.5rem 1.5rem; text-align: center;
+}
+.msx-empty .ic {
+    font-size: 4rem; display: block;
+    margin-bottom: 1rem; opacity: 0.35; color: #0F3D2E;
+}
+.msx-empty h3 {
+    color: #0F3D2E; margin: 0 0 0.5rem; font-size: 1.2rem;
+    font-weight: 800;
+}
+.msx-empty p {
+    margin: 0 0 1.5rem; font-size: 0.9rem;
+    color: #8a9b95; max-width: 400px;
+    margin-left: auto; margin-right: auto; line-height: 1.55;
+}
+
+.msx-pag {
+    margin-top: 1.5rem;
+    display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap;
+}
+.msx-pag a, .msx-pag .current {
+    min-width: 40px; height: 40px; padding: 0 0.9rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.85rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fff; border: 1px solid rgba(0,0,0,0.08);
+    color: #0F3D2E; transition: all 0.15s;
+}
+.msx-pag a:hover {
+    background: #0F3D2E; color: #C8A951;
+    border-color: #0F3D2E; transform: translateY(-2px);
+}
+.msx-pag .current { background: #0F3D2E; color: #C8A951; border-color: #0F3D2E; }
+
+@media (max-width: 640px) {
+    .msx-hero { padding: 1.5rem 1.35rem; }
+    .msx-hero h1 { font-size: 1.35rem; }
+    .msx-hero-inner { flex-direction: column; align-items: stretch; }
+    .msx-hero-btn { justify-content: center; }
+    .msx-row-link {
+        padding: 0.9rem 3.2rem 0.9rem 0.9rem;
+        gap: 0.75rem;
+    }
+    .msx-preview { display: none; }
+    .msx-target-line { font-size: 0.7rem; }
+    .msx-delete-btn { opacity: 1; width: 30px; height: 30px; right: 0.6rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+{% csrf_token %}
+
+<div class="msx-wrap">
+
+    <div class="msx-hero">
+        <div class="msx-hero-inner">
+            <div class="msx-hero-left">
+                <span class="msx-eyebrow">📤 Sent</span>
+                <h1>Sent Messages</h1>
+                <p>Everything you've sent to members, offices, and groups — with read receipts.</p>
+            </div>
+            <a href="{% url 'dashboards:message_compose' %}" class="msx-hero-btn">
+                <i class="fas fa-pen"></i> New Message
+            </a>
+        </div>
+    </div>
+
+    <div class="msx-tabs">
+        <a href="{% url 'dashboards:messages' %}" class="msx-tab">
+            <i class="fas fa-inbox"></i> Inbox
+            <span class="cnt">{{ total_count }}</span>
+        </a>
+        <a href="{% url 'dashboards:messages_sent' %}" class="msx-tab active">
+            <i class="fas fa-paper-plane"></i> Sent
+            <span class="cnt">{{ sent_count }}</span>
+        </a>
+    </div>
+
+    <div class="msx-card">
+        <form method="get" class="msx-filters">
+            <div class="msx-search">
+                <i class="fas fa-search"></i>
+                <input type="text" name="q" value="{{ q }}"
+                       placeholder="Search your sent messages…">
+            </div>
+        </form>
+
+        <div class="msx-list">
+            {% for m in messages %}
+            <div class="msx-row">
+                <a href="{% url 'dashboards:message_detail' m.pk %}" class="msx-row-link">
+                    <div>
+                        <div class="msx-subject">
+                            <span>{{ m.subject }}</span>
+                            {% if m.is_pinned %}
+                            <span class="msx-pin">📌 Pinned</span>
+                            {% endif %}
+                        </div>
+                        <div class="msx-target-line">
+                            <span class="msx-target">
+                                <i class="fas {{ m.target_icon }}"></i>
+                                {{ m.target_label|default:m.get_target_type_display|truncatechars:32 }}
+                            </span>
+                            <span class="msx-recip-count">
+                                <i class="fas fa-user-friends"></i>
+                                {{ m.recipient_count }} recipient{{ m.recipient_count|pluralize }}
+                            </span>
+                        </div>
+                        <div class="msx-preview">{{ m.body|truncatechars:110 }}</div>
+                    </div>
+
+                    <div class="msx-stats">
+                        <div class="msx-time">{{ m.sent_at|date:"M j, Y" }}</div>
+                        {% if m.read_count == m.recipient_count and m.recipient_count > 0 %}
+                        <span class="msx-read-pill">
+                            <i class="fas fa-check-double"></i>
+                            All read
+                        </span>
+                        {% elif m.read_count %}
+                        <span class="msx-read-pill partial">
+                            <i class="fas fa-check"></i>
+                            {{ m.read_count }}/{{ m.recipient_count }} read
+                        </span>
+                        {% else %}
+                        <span class="msx-read-pill none">
+                            <i class="fas fa-clock"></i>
+                            No reads yet
+                        </span>
+                        {% endif %}
+                    </div>
+                </a>
+
+                <button type="button"
+                        class="msx-delete-btn js-msg-delete"
+                        data-url="{% url 'dashboards:message_delete' m.pk %}"
+                        data-subject="{{ m.subject|escapejs }}"
+                        data-kind="sent"
+                        title="Delete for everyone"
+                        aria-label="Delete message">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            {% empty %}
+            <div class="msx-empty">
+                <i class="fas fa-paper-plane ic"></i>
+                <h3>You haven't sent any messages yet</h3>
+                <p>Messages you send will show here, along with how many people have read them.</p>
+                <a href="{% url 'dashboards:message_compose' %}" class="msx-hero-btn" style="display:inline-flex;">
+                    <i class="fas fa-pen"></i> Send your first message
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if is_paginated %}
+    <div class="msx-pag">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹</a>
+        {% endif %}
+        <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">›</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+(function() {
+    function submitDeleteForm(url) {
+        const tokenEl = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrf = tokenEl ? tokenEl.value
+                             : (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        form.style.display = 'none';
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'csrfmiddlewaretoken';
+        input.value = csrf;
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    document.querySelectorAll('.js-msg-delete').forEach(function(btn) {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const url = btn.dataset.url;
+            const subject = btn.dataset.subject || 'this message';
+            const isSent = (btn.dataset.kind === 'sent');
+
+            const ok = await window.NAMETS.confirm({
+                title: isSent ? 'Delete for everyone?' : 'Remove from inbox?',
+                message: isSent
+                    ? 'This will permanently delete "' + subject + '" for all recipients. This cannot be undone.'
+                    : 'This will remove "' + subject + '" from your inbox only. The sender will still see it in their Sent folder.',
+                danger: true,
+                confirmText: isSent ? 'Delete for everyone' : 'Remove',
+                cancelText: 'Cancel'
+            });
+
+            if (!ok) return;
+            submitDeleteForm(url);
+        });
+    });
+})();
+</script>
+{% endblock %}

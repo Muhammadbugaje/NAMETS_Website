@@ -1,0 +1,651 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Add User · NAMETS EXCO{% endblock %}
+
+{% block dash_content %}
+
+<div class="form-container">
+
+    <div class="form-header">
+
+        <a href="{% url 'ict:user_list' %}" class="back-link">
+            ← Back to Users
+        </a>
+
+        <h2>➕ Add New User</h2>
+
+        <p>
+            Create a new user account. The user's email address will
+            automatically be used as their username.
+        </p>
+
+    </div>
+
+
+    <form method="post" class="form-card">
+
+        {% csrf_token %}
+
+
+        <!-- NAME -->
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label for="first_name">
+                    First Name *
+                </label>
+
+                <input
+                    type="text"
+                    name="first_name"
+                    id="first_name"
+                    required
+                    placeholder="First name"
+                    value="{{ form.first_name.value|default:'' }}"
+                >
+
+                {% for error in form.first_name.errors %}
+                    <div class="error-text">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="last_name">
+                    Last Name *
+                </label>
+
+                <input
+                    type="text"
+                    name="last_name"
+                    id="last_name"
+                    required
+                    placeholder="Last name"
+                    value="{{ form.last_name.value|default:'' }}"
+                >
+
+                {% for error in form.last_name.errors %}
+                    <div class="error-text">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+        <!-- MIDDLE NAME -->
+
+        <div class="form-row">
+
+            <div class="form-group full">
+
+                <label for="middle_name">
+                    Middle Name
+                </label>
+
+                <input
+                    type="text"
+                    name="middle_name"
+                    id="middle_name"
+                    placeholder="Middle name (optional)"
+                    value="{{ form.middle_name.value|default:'' }}"
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- EMAIL -->
+
+        <div class="form-row">
+
+            <div class="form-group full">
+
+                <label for="email">
+                    Email *
+                </label>
+
+                <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    required
+                    placeholder="user@example.com"
+                    value="{{ form.email.value|default:'' }}"
+                    autocomplete="email"
+                >
+
+                {% for error in form.email.errors %}
+                    <div class="error-text">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+        <!-- USERNAME -->
+
+        <div class="form-row">
+
+            <div class="form-group full">
+
+                <label for="username_preview">
+                    Username
+                </label>
+
+                <input
+                    type="text"
+                    id="username_preview"
+                    readonly
+                    placeholder="Username will be the email address"
+                >
+
+                <div class="field-help">
+                    🔐 The email address above will automatically be used
+                    as this user's login username.
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PHONE + MATRIC -->
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label for="phone_number">
+                    Phone Number
+                </label>
+
+                <input
+                    type="tel"
+                    name="phone_number"
+                    id="phone_number"
+                    placeholder="08012345678"
+                    value="{{ form.phone_number.value|default:'' }}"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="matric_number">
+                    Matric Number
+                </label>
+
+                <input
+                    type="text"
+                    name="matric_number"
+                    id="matric_number"
+                    placeholder="U22ME1001"
+                    value="{{ form.matric_number.value|default:'' }}"
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- GENDER + STATUS -->
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label for="gender">
+                    Gender
+                </label>
+
+                <select name="gender" id="gender">
+
+                    <option value="">
+                        — Select —
+                    </option>
+
+                    <option
+                        value="male"
+                        {% if form.gender.value == "male" %}
+                            selected
+                        {% endif %}
+                    >
+                        Male
+                    </option>
+
+                    <option
+                        value="female"
+                        {% if form.gender.value == "female" %}
+                            selected
+                        {% endif %}
+                    >
+                        Female
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="is_alumni">
+                    Status
+                </label>
+
+                <select name="is_alumni" id="is_alumni">
+
+                    <option value="False">
+                        Current
+                    </option>
+
+                    <option value="True">
+                        Alumni
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- PASSWORD -->
+
+        <div class="password-section">
+
+            <div class="password-section-header">
+
+                <div>
+
+                    <h3>🔐 Login Password</h3>
+
+                    <p>
+                        Set a temporary password manually or leave it
+                        blank to generate one automatically.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="{{ form.temporary_password.id_for_label }}">
+                    Temporary Password
+                </label>
+
+                {{ form.temporary_password }}
+
+                <div class="field-help">
+                    Leave blank and a secure temporary password will
+                    be generated and sent to the user's email.
+                </div>
+
+                {% for error in form.temporary_password.errors %}
+                    <div class="error-text">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+
+            </div>
+
+
+            <div class="password-notice">
+
+                <span class="notice-icon">⚠️</span>
+
+                <div>
+                    <strong>Password change required</strong>
+
+                    <p>
+                        The user will be required to change this
+                        temporary password immediately after logging in.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- OFFICE -->
+
+        <div class="form-row">
+
+            <div class="form-group full">
+
+                <label for="office">
+                    Assign Office (optional)
+                </label>
+
+                <select name="office" id="office">
+
+                    <option value="">
+                        — No office —
+                    </option>
+
+                    {% for o in offices %}
+
+                        <option value="{{ o.id }}">
+                            {{ o.name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- DISPLAY LABEL -->
+
+        <div class="form-row">
+
+            <div class="form-group full">
+
+                <label for="display_label">
+                    Display Label
+                </label>
+
+                <input
+                    type="text"
+                    name="display_label"
+                    id="display_label"
+                    placeholder="e.g., PRO I (Sister)"
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
+        <div class="form-actions">
+
+            <button
+                type="submit"
+                class="btn-primary"
+            >
+                ✅ Create User
+            </button>
+
+            <a
+                href="{% url 'ict:user_list' %}"
+                class="btn-secondary"
+            >
+                Cancel
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<style>
+
+.form-container {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.form-header {
+    margin-bottom: 1.5rem;
+}
+
+.form-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.form-header p {
+    color: var(--text-muted);
+    margin: 0.35rem 0 0;
+    line-height: 1.5;
+}
+
+.form-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-row .full {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--gold);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.1);
+}
+
+.form-group input[readonly] {
+    background: rgba(0, 0, 0, 0.04);
+    cursor: not-allowed;
+    font-weight: 600;
+}
+
+.field-help {
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.error-text {
+    color: #e53e3e;
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+}
+
+
+/* PASSWORD SECTION */
+
+.password-section {
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.password-section-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.password-section-header p {
+    margin: 0.25rem 0 1rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.password-notice {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    margin-top: 1rem;
+    padding: 0.85rem;
+    border-radius: 8px;
+    background: rgba(218, 165, 32, 0.08);
+}
+
+.notice-icon {
+    font-size: 1.1rem;
+}
+
+.password-notice strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+.password-notice p {
+    margin: 0.2rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+
+/* BUTTONS */
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.65rem 2rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: var(--gold);
+    color: var(--text-primary);
+    padding: 0.65rem 2rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.btn-secondary:hover {
+    background: var(--gold-dark);
+    transform: translateY(-2px);
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+
+@media (max-width: 600px) {
+
+    .form-card {
+        padding: 1.25rem;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+}
+
+</style>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const emailInput = document.getElementById("email");
+    const usernamePreview =
+        document.getElementById("username_preview");
+
+    function updateUsername() {
+
+        usernamePreview.value =
+            emailInput.value.trim().toLowerCase();
+
+    }
+
+    emailInput.addEventListener("input", updateUsername);
+
+    emailInput.addEventListener("change", updateUsername);
+
+    updateUsername();
+
+});
+
+</script>
+
+{% endblock %}

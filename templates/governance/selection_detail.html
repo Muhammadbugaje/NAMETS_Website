@@ -1,0 +1,254 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ record.session_label }} · Selection Record{% endblock %}
+
+{% block extra_css %}
+<style>
+.sel-wrap { max-width: 1000px; margin: 0 auto; }
+.sel-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.sel-back:hover { text-decoration: underline; }
+
+.sel-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.85rem 2rem;
+    margin-bottom: 1.25rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 12px 36px rgba(15,61,46,0.22);
+}
+.sel-header::before {
+    content: "📜"; font-size: 7rem;
+    position: absolute; bottom: -1.5rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.sel-header-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;
+}
+.sel-header-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.55rem;
+}
+.sel-header h1 { font-size: 1.65rem; font-weight: 800; margin: 0 0 0.4rem; }
+.sel-header-meta {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    font-size: 0.82rem; color: rgba(255,255,255,0.82);
+}
+.sel-header-meta span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.sel-header-meta i { color: #C8A951; }
+
+.sel-publish-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.15rem; border-radius: 50px;
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    white-space: nowrap;
+    position: relative; z-index: 1;
+}
+.sel-publish-badge.published { background: #d4edda; color: #155724; }
+.sel-publish-badge.draft { background: rgba(255,255,255,0.15); color: #fff; }
+
+.card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem 1.75rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.25rem;
+}
+.card-title {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #8a6a1a; margin: 0 0 1.1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.card-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent);
+}
+
+/* Snapshot table */
+.snap-table-wrap { overflow-x: auto; border-radius: 12px; }
+.snap-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.88rem;
+}
+.snap-table th {
+    background: var(--primary); color: #fff;
+    padding: 0.7rem 1rem;
+    text-align: left; font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    font-weight: 800;
+}
+.snap-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    color: #2d3748;
+}
+.snap-table tbody tr:hover { background: rgba(200,169,81,0.04); }
+.snap-table tbody tr:last-child td { border-bottom: none; }
+.snap-table td strong { color: #0F3D2E; }
+
+/* Actions */
+.actions-row {
+    display: flex; gap: 0.6rem; flex-wrap: wrap;
+    padding-top: 0.5rem;
+}
+.act-btn {
+    padding: 0.7rem 1.35rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem;
+    text-decoration: none; border: none;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.act-btn.primary { background: var(--primary); color: #fff; }
+.act-btn.primary:hover { background: var(--primary-dark); color: #fff; transform: translateY(-2px); }
+.act-btn.gold { background: var(--gold); color: var(--primary); }
+.act-btn.gold:hover { background: #E0C96E; color: var(--primary); transform: translateY(-2px); }
+.act-btn.danger { background: #fdecea; color: #9b2c2c; }
+.act-btn.danger:hover { background: #f5c2bc; }
+.act-btn.ghost { background: transparent; color: var(--primary); border: 1.5px solid rgba(15,61,46,0.2); }
+.act-btn.ghost:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.sel-notes {
+    font-size: 0.9rem; color: #4a5568;
+    line-height: 1.7; white-space: pre-wrap;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .sel-header { padding: 1.35rem 1.35rem 1.25rem; }
+    .sel-header h1 { font-size: 1.25rem; }
+    .sel-header-inner { flex-direction: column; }
+    .card { padding: 1.25rem 1.35rem; }
+    .snap-table th, .snap-table td { padding: 0.55rem 0.7rem; font-size: 0.8rem; }
+    .actions-row { flex-direction: column; }
+    .actions-row .act-btn { justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="sel-wrap">
+
+    <a href="{% url 'governance:selection_list' %}" class="sel-back">
+        <i class="fas fa-arrow-left"></i> Back to Selection Records
+    </a>
+
+    <!-- HEADER -->
+    <div class="sel-header">
+        <div class="sel-header-inner">
+            <div>
+                <span class="sel-header-eyebrow">Selection Record</span>
+                <h1>{{ record.session_label }}</h1>
+                <div class="sel-header-meta">
+                    {% if record.finalized_by %}
+                    <span><i class="fas fa-user-tie"></i> Finalized by {{ record.finalized_by.get_full_name|default:record.finalized_by.username }}</span>
+                    {% endif %}
+                    <span><i class="far fa-clock"></i> {{ record.finalized_at|date:"M d, Y · H:i" }}</span>
+                    <span><i class="fas fa-users"></i> {{ record.snapshot|length|default:0 }} entries</span>
+                </div>
+            </div>
+            {% if record.is_published %}
+            <span class="sel-publish-badge published"><i class="fas fa-check-circle"></i> Published</span>
+            {% else %}
+            <span class="sel-publish-badge draft"><i class="fas fa-pencil"></i> Draft</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- SNAPSHOT -->
+    <div class="card">
+        <h3 class="card-title"><i class="fas fa-list"></i> Selection Snapshot</h3>
+        {% if record.snapshot %}
+        <div class="snap-table-wrap">
+            <table class="snap-table">
+                <thead>
+                    <tr>
+                        <th style="width:50px;">#</th>
+                        <th>Office</th>
+                        <th>Person</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in record.snapshot %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ row.office|default:"—" }}</strong></td>
+                        <td>{{ row.person_name|default:"—" }}</td>
+                        <td>{{ row.person_email|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color:#8a9b95;font-size:0.88rem;margin:0;font-style:italic;">
+            No snapshot entries recorded yet. Edit the record to add them.
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- NOTES -->
+    {% if record.notes %}
+    <div class="card">
+        <h3 class="card-title"><i class="fas fa-sticky-note"></i> Notes</h3>
+        <div class="sel-notes">{{ record.notes }}</div>
+    </div>
+    {% endif %}
+
+    <!-- ACTIONS -->
+    <div class="card">
+        <h3 class="card-title"><i class="fas fa-cogs"></i> Actions</h3>
+        <div class="actions-row">
+            {% if perms.governance.change_selectionrecord %}
+            <form method="post" action="{% url 'governance:selection_publish' record.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="act-btn gold">
+                    {% if record.is_published %}
+                    <i class="fas fa-eye-slash"></i> Unpublish
+                    {% else %}
+                    <i class="fas fa-check-circle"></i> Publish
+                    {% endif %}
+                </button>
+            </form>
+            {% endif %}
+
+            <a href="{% url 'governance:selection_list' %}" class="act-btn ghost">
+                <i class="fas fa-list"></i> All Records
+            </a>
+
+            {% if perms.governance.delete_selectionrecord %}
+            <button type="button" class="act-btn danger" onclick="confirmDelete()">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<form method="post" action="{% url 'governance:selection_delete' record.pk %}" id="delForm" style="display:none;">{% csrf_token %}</form>
+
+<script>
+function confirmDelete() {
+    NAMETS.confirm({
+        title: 'Delete Selection Record?',
+        message: 'The record for {{ record.session_label|escapejs }} will be permanently removed. This cannot be undone.',
+        confirmText: 'Yes, Delete',
+        danger: true,
+    }).then(ok => { if (ok) document.getElementById('delForm').submit(); });
+}
+</script>
+
+{% endblock %}

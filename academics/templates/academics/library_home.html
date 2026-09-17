@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Library · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.lib-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 3rem 2.5rem;
+    margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 16px 44px rgba(15,61,46,0.22);
+    color: #fff;
+    text-align: center;
+}
+.lib-hero::before {
+    content: "📚"; font-size: 12rem;
+    position: absolute; bottom: -3.5rem; right: 1rem;
+    opacity: 0.06; pointer-events: none;
+}
+.lib-hero::after {
+    content: ''; position: absolute;
+    top: -50%; left: -10%;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(200,169,81,0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+.lib-hero-inner { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; }
+.lib-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.14em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.32rem 1rem; border-radius: 20px; margin-bottom: 0.85rem;
+}
+.lib-hero h1 {
+    font-size: 2.25rem; font-weight: 800;
+    margin: 0 0 0.6rem; letter-spacing: -0.02em;
+}
+.lib-hero p {
+    font-size: 1rem; color: rgba(255,255,255,0.85);
+    margin: 0; line-height: 1.6;
+}
+
+.lib-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.9rem; margin-bottom: 1.5rem;
+}
+.lib-stat {
+    background: #fff; border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px; padding: 1.15rem 1.25rem;
+    box-shadow: 0 4px 12px rgba(15,61,46,0.05);
+    position: relative; overflow: hidden;
+    transition: all 0.25s;
+}
+.lib-stat::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg,#0F3D2E,#C8A951);
+}
+.lib-stat:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(15,61,46,0.1); }
+.lib-stat .num {
+    font-size: 1.85rem; font-weight: 800; color: #0F3D2E;
+    line-height: 1; letter-spacing: -0.02em;
+}
+.lib-stat .lbl {
+    font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a9b95; margin-top: 0.4rem;
+}
+
+.lib-section-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 2rem 0 1rem; flex-wrap: wrap; gap: 0.75rem;
+}
+.lib-section-head h2 {
+    font-size: 1.1rem; font-weight: 800; color: #0F3D2E;
+    margin: 0; display: flex; align-items: center; gap: 0.55rem;
+    letter-spacing: -0.01em;
+}
+.lib-section-head h2 i { color: #C8A951; }
+
+.lib-filters {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 12px rgba(15,61,46,0.05);
+}
+.lib-filters-grid {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr 1fr auto;
+    gap: 0.55rem; align-items: center;
+}
+@media (max-width: 900px) {
+    .lib-filters-grid { grid-template-columns: 1fr 1fr; }
+    .lib-filters-grid .grow-2 { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+    .lib-filters-grid { grid-template-columns: 1fr; }
+}
+.lib-filters input, .lib-filters select {
+    padding: 0.62rem 0.9rem;
+    border: 1px solid #d5dcd9; border-radius: 10px;
+    background: #fff; font-size: 0.86rem; font-family: inherit;
+    width: 100%; color: #0F3D2E;
+    transition: all 0.15s;
+}
+.lib-filters input:focus, .lib-filters select:focus {
+    border-color: #C8A951; outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.14);
+}
+.lib-filters .btn-search {
+    background: #0F3D2E; color: #fff; border: none;
+    padding: 0.62rem 1.25rem; border-radius: 10px;
+    cursor: pointer; font-weight: 700; font-size: 0.82rem;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    white-space: nowrap; transition: all 0.2s;
+}
+.lib-filters .btn-search:hover { background: #1a5a44; transform: translateY(-1px); }
+
+.lib-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.15rem;
+}
+
+.lib-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    overflow: hidden;
+    text-decoration: none; color: inherit;
+    display: flex; flex-direction: column;
+    box-shadow: 0 4px 12px rgba(15,61,46,0.05);
+    transition: all 0.35s cubic-bezier(0.34,1.4,0.64,1);
+    position: relative;
+}
+.lib-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 36px rgba(15,61,46,0.14);
+    border-color: rgba(200,169,81,0.4);
+}
+.lib-card .lib-cover {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    background: linear-gradient(135deg, #f0f4f2, #e6ece9);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    color: #0F3D2E; font-size: 2.5rem;
+}
+.lib-card .lib-cover img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+.lib-card:hover .lib-cover img { transform: scale(1.06); }
+.lib-card .lib-cover i { opacity: 0.4; }
+
+.lib-badge {
+    position: absolute; top: 0.65rem; right: 0.65rem;
+    font-size: 0.62rem; font-weight: 800;
+    padding: 0.28rem 0.65rem; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    background: rgba(200,169,81,0.95);
+    color: #0F3D2E;
+    display: inline-flex; align-items: center; gap: 0.25rem;
+}
+
+.lib-card .lib-body { padding: 0.9rem 1rem 1.05rem; flex: 1; display: flex; flex-direction: column; }
+.lib-card .lib-title {
+    font-size: 0.92rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.3rem;
+    line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+    min-height: 2.6em;
+}
+.lib-card .lib-author {
+    font-size: 0.74rem; color: #8a9b95;
+    margin: 0 0 0.5rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.lib-card .lib-meta {
+    display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+    margin-top: auto;
+}
+.lib-card .lib-cat {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.62rem; font-weight: 700;
+    padding: 0.2rem 0.55rem; border-radius: 20px;
+    background: rgba(15,61,46,0.07); color: #0F3D2E;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+.lib-card .lib-format {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    font-size: 0.62rem; font-weight: 700;
+    padding: 0.2rem 0.55rem; border-radius: 20px;
+    background: rgba(24,95,165,0.08); color: #185fa5;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+.lib-featured-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.85rem;
+    padding: 1.15rem;
+    background: linear-gradient(135deg, #fef9ec, #faf5e0);
+    border-radius: 20px;
+    border: 1px solid rgba(200,169,81,0.25);
+    margin-bottom: 1.5rem;
+}
+.lib-featured-strip .lib-card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    text-align: center;
+}
+.lib-featured-strip .lib-card:hover { transform: translateY(-4px); }
+.lib-featured-strip .lib-cover {
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(138,106,26,0.15);
+    border: 1px solid rgba(200,169,81,0.3);
+}
+.lib-featured-strip .lib-body { padding: 0.6rem 0.35rem 0; }
+
+.lib-empty {
+    grid-column: 1 / -1;
+    text-align: center; padding: 4rem 1.5rem;
+    background: #fff;
+    border: 2px dashed rgba(200,169,81,0.35);
+    border-radius: 20px;
+}
+.lib-empty .ic {
+    font-size: 3.5rem; display: block;
+    margin-bottom: 0.9rem; opacity: 0.45; color: #0F3D2E;
+}
+.lib-empty h3 { color: #0F3D2E; margin: 0 0 0.4rem; font-size: 1.15rem; }
+.lib-empty p { color: #8a9b95; font-size: 0.88rem; margin: 0; }
+
+.lib-pagination {
+    margin-top: 2rem;
+    display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap;
+}
+.lib-pagination a, .lib-pagination .current {
+    min-width: 40px; height: 40px; padding: 0 0.9rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.85rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fff; border: 1px solid rgba(0,0,0,0.08);
+    color: #0F3D2E; transition: all 0.15s;
+}
+.lib-pagination a:hover {
+    background: #0F3D2E; color: #C8A951;
+    border-color: #0F3D2E; transform: translateY(-2px);
+}
+.lib-pagination .current {
+    background: #0F3D2E; color: #C8A951; border-color: #0F3D2E;
+}
+
+@media (max-width: 768px) {
+    .lib-hero { padding: 2rem 1.35rem; }
+    .lib-hero h1 { font-size: 1.6rem; }
+    .lib-hero p { font-size: 0.9rem; }
+    .lib-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.85rem; }
+    .lib-card .lib-body { padding: 0.75rem 0.8rem 0.9rem; }
+    .lib-card .lib-title { font-size: 0.85rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="lib-hero">
+    <div class="lib-hero-inner">
+        <span class="lib-eyebrow">📚 NAMETS E-Library</span>
+        <h1>Books, references & resources</h1>
+        <p>Browse our growing collection and download any book instantly — free and open to everyone.</p>
+    </div>
+</div>
+
+<div class="lib-stats">
+    <div class="lib-stat">
+        <div class="num">{{ total_books }}</div>
+        <div class="lbl">Total Books</div>
+    </div>
+    <div class="lib-stat">
+        <div class="num">{{ total_categories }}</div>
+        <div class="lbl">Categories</div>
+    </div>
+</div>
+
+{% if featured %}
+<div class="lib-section-head">
+    <h2><i class="fas fa-star"></i> Featured Picks</h2>
+</div>
+<div class="lib-featured-strip">
+    {% for book in featured %}
+    <a href="{% url 'academics:library_detail' book.pk %}" class="lib-card">
+        <div class="lib-cover">
+            {% if book.has_cover %}
+                <img src="{{ book.cover_url }}" alt="{{ book.title }}" loading="lazy">
+            {% else %}
+                <i class="fas fa-book"></i>
+            {% endif %}
+        </div>
+        <div class="lib-body">
+            <div class="lib-title">{{ book.title }}</div>
+            <div class="lib-author">{{ book.author|default:"—" }}</div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form method="get" class="lib-filters">
+    <div class="lib-filters-grid">
+        <input class="grow-2" type="text" name="q"
+               placeholder="Search by title, author, ISBN…"
+               value="{{ q }}">
+
+        <select name="category">
+            <option value="">All Categories</option>
+            {% for c in categories %}
+            <option value="{{ c.slug }}" {% if category_slug == c.slug %}selected{% endif %}>
+                {{ c.name }} ({{ c.count }})
+            </option>
+            {% endfor %}
+        </select>
+
+        <select name="sort">
+            <option value="title"  {% if sort == 'title'  %}selected{% endif %}>Sort: Title</option>
+            <option value="author" {% if sort == 'author' %}selected{% endif %}>Sort: Author</option>
+            <option value="recent" {% if sort == 'recent' %}selected{% endif %}>Sort: Newest</option>
+        </select>
+
+        <button type="submit" class="btn-search">
+            <i class="fas fa-search"></i> Search
+        </button>
+    </div>
+</form>
+
+<div class="lib-section-head">
+    <h2><i class="fas fa-book-open"></i>
+        {% if q or category_slug %}
+            Results ({{ page_obj.paginator.count }})
+        {% else %}
+            All Books
+        {% endif %}
+    </h2>
+    {% if q or category_slug %}
+    <a href="{% url 'academics:library_home' %}"
+       style="color:#8a9b95; font-size:0.8rem; text-decoration:none;">
+       ✕ Clear filters
+    </a>
+    {% endif %}
+</div>
+
+<div class="lib-grid">
+    {% for book in books %}
+    <a href="{% url 'academics:library_detail' book.pk %}" class="lib-card">
+        <div class="lib-cover">
+            {% if book.has_cover %}
+                <img src="{{ book.cover_url }}" alt="{{ book.title }}" loading="lazy">
+            {% else %}
+                <i class="fas fa-book"></i>
+            {% endif %}
+
+            {% if book.has_file %}
+            <span class="lib-badge">
+                <i class="fas {{ book.file_icon }}"></i>
+                {% if book.file_extension %}{{ book.file_extension|upper }}{% else %}FILE{% endif %}
+            </span>
+            {% endif %}
+        </div>
+        <div class="lib-body">
+            <h3 class="lib-title">{{ book.title }}</h3>
+            <div class="lib-author">{{ book.author|default:"Unknown author" }}</div>
+            <div class="lib-meta">
+                {% if book.category %}
+                <span class="lib-cat">
+                    {% if book.category.icon %}<i class="fas {{ book.category.icon }}"></i>{% endif %}
+                    {{ book.category.name }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </a>
+    {% empty %}
+    <div class="lib-empty">
+        <i class="fas fa-book-open ic"></i>
+        <h3>No books found</h3>
+        <p>Try adjusting your search or filters.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="lib-pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

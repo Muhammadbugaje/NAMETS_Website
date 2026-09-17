@@ -1,0 +1,381 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}User Management · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.ul-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.75rem 2rem; margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.ul-head::before { content: "👥"; font-size: 6rem; position: absolute; bottom: -1.2rem; right: 1.5rem; opacity: 0.08; }
+.ul-head-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.ul-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px; margin-bottom: 0.5rem;
+}
+.ul-head h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.3rem; }
+.ul-head p { color: rgba(255,255,255,0.78); font-size: 0.88rem; margin: 0; }
+.ul-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.6rem 1.35rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem; text-decoration: none;
+    border: 1px solid transparent; transition: all 0.25s;
+}
+.hbtn-gold { background: #C8A951; color: #0F3D2E; border-color: #C8A951; }
+.hbtn-gold:hover { background: #E0C96E; color: #0F3D2E; transform: translateY(-2px); }
+.hbtn-outline { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2); }
+.hbtn-outline:hover { background: rgba(255,255,255,0.22); color: #fff; transform: translateY(-2px); }
+
+/* Stats */
+.stat-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem; margin-bottom: 1.25rem;
+}
+.stat-mini {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 0.95rem 1.15rem; box-shadow: var(--shadow-sm);
+    display: flex; align-items: center; gap: 0.8rem;
+    position: relative; overflow: hidden;
+}
+.stat-mini::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.stat-mini.green::before { background: linear-gradient(90deg,#0F3D2E,#38a169); }
+.stat-mini.blue::before { background: linear-gradient(90deg,#185fa5,#4299e1); }
+.stat-mini.gold::before { background: linear-gradient(90deg,#8a6a1a,#E0C96E); }
+.stat-mini .ic {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+.stat-mini.green .ic { background: #e8f2ec; color: #1a6b3c; }
+.stat-mini.blue .ic { background: #e6f0fb; color: #185fa5; }
+.stat-mini.gold .ic { background: #f5e9c8; color: #8a6a1a; }
+.stat-mini .num { font-size: 1.25rem; font-weight: 800; color: #0F3D2E; line-height: 1; }
+.stat-mini .lbl { font-size: 0.68rem; color: #8a9b95; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-top: 0.2rem; }
+
+/* Filters */
+.filters-bar {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1rem 1.2rem; margin-bottom: 1.25rem;
+}
+.filters-grid {
+    display: grid; grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 0.5rem; align-items: center;
+}
+.filters-grid input, .filters-grid select {
+    padding: 0.55rem 0.85rem; border: 1px solid #d0d9d6;
+    border-radius: 8px; background: #fff;
+    font-size: 0.85rem; font-family: inherit; width: 100%;
+}
+.filters-grid input:focus, .filters-grid select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.filters-grid .btn-search {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.55rem 1.1rem; border-radius: 8px; cursor: pointer;
+    font-weight: 700; font-size: 0.82rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    white-space: nowrap;
+}
+
+/* User table */
+.user-table-wrap {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.user-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.user-table th {
+    background: var(--primary); color: #fff;
+    padding: 0.75rem 1rem; text-align: left;
+    font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.05em; font-weight: 800;
+}
+.user-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    vertical-align: middle;
+}
+.user-table tr:hover { background: rgba(200,169,81,0.04); }
+.user-table tr:last-child td { border-bottom: none; }
+
+.user-cell { display: flex; align-items: center; gap: 0.75rem; }
+.user-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 800;
+    flex-shrink: 0; border: 2px solid #C8A951;
+}
+.user-avatar.inactive {
+    background: #c0c8c5; color: #fff;
+    border-color: #d0d9d6;
+}
+.user-name {
+    font-weight: 700; color: #0F3D2E;
+    font-size: 0.88rem;
+}
+.user-email {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.1rem;
+}
+
+.badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.2rem 0.65rem; border-radius: 20px;
+    font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+.badge.superuser { background: #f5e9c8; color: #8a6a1a; }
+.badge.staff     { background: #e6f0fb; color: #185fa5; }
+.badge.active    { background: #e8f2ec; color: #1a6b3c; }
+.badge.inactive  { background: #f0f0f0; color: #777; }
+.badge.alumni    { background: #f0eafb; color: #6b21a8; }
+.badge.exco      { background: #fef3e8; color: #a8671a; }
+
+.badge-row { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+
+.row-actions { display: flex; gap: 0.35rem; }
+.action-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; cursor: pointer; font-size: 0.75rem;
+    text-decoration: none; transition: all 0.2s;
+    font-family: inherit;
+}
+.action-btn.edit { background: #f5e9c8; color: #8a6a1a; }
+.action-btn.edit:hover { background: var(--gold); color: #fff; transform: scale(1.08); }
+.action-btn.del { background: #fdecea; color: #9b2c2c; }
+.action-btn.del:hover { background: #f5c2bc; }
+
+.empty-state {
+    text-align: center; padding: 4rem 1.5rem;
+    color: #8a9b95;
+}
+.empty-state .ic { font-size: 3.5rem; display: block; margin-bottom: 0.75rem; opacity: 0.5; }
+.empty-state h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1.05rem; }
+
+.pagination { margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap; }
+.pagination a, .pagination .current {
+    min-width: 38px; height: 38px; padding: 0 0.8rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.82rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: #0F3D2E;
+}
+.pagination a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pagination .current { background: var(--primary); color: #C8A951; border-color: var(--primary); }
+
+@media (max-width: 900px) {
+    .filters-grid { grid-template-columns: 1fr 1fr; }
+    .filters-grid .btn-search { grid-column: 1 / -1; }
+}
+@media (max-width: 768px) {
+    .ul-head-inner { flex-direction: column; align-items: stretch; }
+    .ul-actions { flex-direction: column; }
+    .hbtn { justify-content: center; width: 100%; }
+    .filters-grid { grid-template-columns: 1fr; }
+    .user-table .hide-sm { display: none; }
+    .user-table th, .user-table td { padding: 0.6rem 0.7rem; font-size: 0.78rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="ul-head">
+    <div class="ul-head-inner">
+        <div>
+            <span class="ul-eyebrow">Governance · User Admin</span>
+            <h1>User Management</h1>
+            <p>Full control over every account — edit info, manage groups, assign permissions, activate/deactivate, delete.</p>
+        </div>
+        <div class="ul-actions">
+            <a href="{% url 'governance:group_list' %}" class="hbtn hbtn-gold">
+                <i class="fas fa-users-cog"></i> Groups
+            </a>
+            <a href="{% url 'governance:dashboard' %}" class="hbtn hbtn-outline">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-strip">
+    <div class="stat-mini green">
+        <div class="ic"><i class="fas fa-users"></i></div>
+        <div>
+            <div class="num">{{ total_users }}</div>
+            <div class="lbl">Total Users</div>
+        </div>
+    </div>
+    <div class="stat-mini blue">
+        <div class="ic"><i class="fas fa-user-check"></i></div>
+        <div>
+            <div class="num">{{ active_users }}</div>
+            <div class="lbl">Active</div>
+        </div>
+    </div>
+    <a href="?status=staff" class="stat-mini gold" style="text-decoration:none;">
+        <div class="ic"><i class="fas fa-user-shield"></i></div>
+        <div>
+            <div class="num" style="color:#0F3D2E;">{{ staff_users }}</div>
+            <div class="lbl">Staff</div>
+        </div>
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+    <form method="get">
+        <div class="filters-grid">
+            <input type="text" name="q" placeholder="Search by name or email…" value="{{ q }}">
+            <select name="status">
+                <option value="">All Status</option>
+                <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+                <option value="staff" {% if status == 'staff' %}selected{% endif %}>Staff</option>
+                <option value="superuser" {% if status == 'superuser' %}selected{% endif %}>Superusers</option>
+                <option value="alumni" {% if status == 'alumni' %}selected{% endif %}>Alumni</option>
+            </select>
+            <select name="role">
+                <option value="">All Roles</option>
+                <option value="exco" {% if role == 'exco' %}selected{% endif %}>Current EXCO</option>
+                <option value="no_office" {% if role == 'no_office' %}selected{% endif %}>No Active Office</option>
+            </select>
+            <button type="submit" class="btn-search"><i class="fas fa-search"></i> Filter</button>
+        </div>
+    </form>
+</div>
+
+<!-- User table -->
+<div class="user-table-wrap">
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th class="hide-sm">Badges</th>
+                <th class="hide-sm">Groups</th>
+                <th style="width:90px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>
+                    <div class="user-cell">
+                        <div class="user-avatar {% if not u.is_active %}inactive{% endif %}">
+                            {% if u.first_name or u.last_name %}
+                                {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                            {% else %}
+                                {{ u.email|first|upper }}
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="user-name">
+                                {{ u.get_full_name|default:u.username }}
+                                {% if u.pk == request.user.pk %}<span style="color:#C8A951;font-size:0.7rem;"> (you)</span>{% endif %}
+                            </div>
+                            <div class="user-email">{{ u.email }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="hide-sm">
+                    <div class="badge-row">
+                        {% if u.is_superuser %}<span class="badge superuser">👑 Superuser</span>{% endif %}
+                        {% if u.is_staff %}<span class="badge staff">🛡 Staff</span>{% endif %}
+                        {% if u.is_active %}<span class="badge active">✓ Active</span>
+                        {% else %}<span class="badge inactive">✕ Inactive</span>{% endif %}
+                        {% if u.is_alumni %}<span class="badge alumni">🎓 Alumni</span>{% endif %}
+                        {% if u.office_assignments.filter %}{% endif %}
+                        {% for a in u.office_assignments.all|slice:":1" %}
+                            {% if a.is_active %}<span class="badge exco">{{ a.office.name }}</span>{% endif %}
+                        {% endfor %}
+                    </div>
+                </td>
+                <td class="hide-sm">
+                    {% for g in u.groups.all|slice:":3" %}
+                    <span class="badge staff" style="margin-right:0.2rem;">{{ g.name }}</span>
+                    {% empty %}
+                    <span style="color:#8a9b95;font-size:0.75rem;">No groups</span>
+                    {% endfor %}
+                    {% if u.groups.count > 3 %}
+                    <span style="color:#8a9b95;font-size:0.72rem;">+{{ u.groups.count|add:"-3" }} more</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="row-actions">
+                        <a href="{% url 'governance:user_edit' u.pk %}" class="action-btn edit" title="Edit">
+                            <i class="fas fa-pen"></i>
+                        </a>
+                        {% if request.user.is_superuser and u.pk != request.user.pk and not u.is_superuser %}
+                        <button type="button" class="action-btn del" title="Delete"
+                                onclick="confirmDelete('{{ u.pk }}', '{{ u.get_full_name|default:u.email|escapejs }}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">
+                <div class="empty-state">
+                    <span class="ic">👥</span>
+                    <h3>No users found</h3>
+                    <p>Try adjusting the filters.</p>
+                </div>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<form method="post" id="userDeleteForm" style="display:none;">{% csrf_token %}</form>
+
+<script>
+function confirmDelete(pk, name) {
+    NAMETS.confirm({
+        title: 'Delete User?',
+        message: `“${name}” will be permanently removed along with all their data. This cannot be undone.`,
+        confirmText: 'Yes, Delete',
+        danger: true,
+    }).then(ok => {
+        if (!ok) return;
+        const form = document.getElementById('userDeleteForm');
+        form.action = `/governance/users/${pk}/delete/`;
+        form.submit();
+    });
+}
+</script>
+
+{% endblock %}

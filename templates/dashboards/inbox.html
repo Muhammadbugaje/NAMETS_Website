@@ -1,0 +1,139 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static i18n %}
+
+{% block title %}Inbox · NAMETS EXCO{% endblock %}
+
+{% block dash_content %}
+
+<div class="inbox-container">
+    <div class="inbox-header">
+        <h1><i class="fas fa-inbox"></i> Inbox</h1>
+        <p>
+            {% if unread_count %}
+                <strong>{{ unread_count }}</strong> unread notification{{ unread_count|pluralize }}
+            {% else %}
+                All caught up — no unread notifications 🎉
+            {% endif %}
+        </p>
+        {% if unread_count %}
+        <form method="post" action="{% url 'dashboards:inbox_mark_all_read' %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn-secondary">Mark all read</button>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="inbox-tabs">
+        <a href="?type=all" class="inbox-tab {% if current_filter == 'all' %}active{% endif %}">All</a>
+        {% for value, label in notification_types %}
+        <a href="?type={{ value }}" class="inbox-tab {% if current_filter == value %}active{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- Notifications list -->
+    {% if notifications %}
+    <div class="notification-list">
+        {% for notif in notifications %}
+        <div class="notification-item {% if not notif.is_read %}unread{% endif %}">
+            <div class="notif-icon" style="background:{% if notif.color_class == 'green' %}#e8f2ec{% elif notif.color_class == 'gold' %}#f5e9c8{% elif notif.color_class == 'blue' %}#e6f1fb{% elif notif.color_class == 'red' %}#fdecea{% elif notif.color_class == 'purple' %}#f0eafb{% else %}#e0f7f4{% endif %};">
+                <i class="fas {{ notif.icon_class }}" style="color:{% if notif.color_class == 'green' %}#1a3c2e{% elif notif.color_class == 'gold' %}#8a6a1a{% elif notif.color_class == 'blue' %}#185fa5{% elif notif.color_class == 'red' %}#9b2c2c{% elif notif.color_class == 'purple' %}#6b21a8{% else %}#0d7a6b{% endif %};"></i>
+            </div>
+            <div class="notif-body">
+                <div class="notif-title">{{ notif.title }}</div>
+                <div class="notif-message">{{ notif.message|truncatechars:200 }}</div>
+                <div class="notif-meta">
+                    <span class="notif-type">{{ notif.get_notification_type_display }}</span>
+                    <span class="notif-time">{{ notif.created_at|timesince }} ago</span>
+                    {% if notif.is_read and notif.read_at %}
+                        <span class="notif-read-status"><i class="fas fa-check-circle"></i> Read {{ notif.read_at|timesince }} ago</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="notif-actions">
+                {% if notif.admin_link %}
+                <a href="{{ notif.admin_link }}" class="btn-primary btn-sm">View →</a>
+                {% endif %}
+                {% if not notif.is_read %}
+                <form method="post" action="{% url 'dashboards:inbox_mark_read' notif.pk %}" style="margin:0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'dashboards:inbox' %}?type={{ current_filter }}">
+                    <button type="submit" class="btn-secondary btn-sm">Mark read</button>
+                </form>
+                {% endif %}
+            </div>
+            {% if not notif.is_read %}
+            <div class="notif-unread-dot"></div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🔔</div>
+        <h3>No notifications</h3>
+        <p>When things happen across NAMETS your notifications will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.inbox-container { max-width: 860px; margin: 0 auto; }
+.inbox-header {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.inbox-header h1 { margin: 0; font-size: 1.5rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
+.inbox-header p { margin: 0; color: var(--text-muted); flex: 1; }
+.inbox-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 0.5rem; }
+.inbox-tab {
+    padding: 0.3rem 1rem; border-radius: 30px; font-size: 0.8rem; font-weight: 500;
+    background: rgba(255,255,255,0.5); border: 1px solid rgba(0,0,0,0.1);
+    color: #1a1a1a; text-decoration: none; transition: all 0.15s;
+}
+.inbox-tab:hover { border-color: var(--gold); background: rgba(200,169,81,0.1); }
+.inbox-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.notification-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.notification-item {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border-radius: 20px; border: 1px solid var(--card-border);
+    display: flex; gap: 1rem; align-items: flex-start;
+    padding: 1rem 1.25rem; position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.notification-item.unread { border-left: 4px solid var(--gold); }
+.notification-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.notif-icon {
+    width: 46px; height: 46px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.notif-icon i { font-size: 1.3rem; }
+.notif-body { flex: 1; min-width: 0; }
+.notif-title { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.2rem; }
+.notif-message { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.3rem; }
+.notif-meta { display: flex; flex-wrap: wrap; gap: 0.6rem; font-size: 0.7rem; color: var(--text-muted); }
+.notif-type { background: #e8f2ec; color: var(--primary); padding: 0.1rem 0.6rem; border-radius: 6px; }
+.notif-read-status { color: #38a169; }
+.notif-read-status i { margin-right: 0.2rem; }
+.notif-actions { display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end; flex-shrink: 0; }
+.btn-sm { font-size: 0.75rem; padding: 0.3rem 1rem; border-radius: 30px; border: none; cursor: pointer; text-decoration: none; font-weight: 600; transition: all 0.15s; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-secondary { background: rgba(232,242,236,0.8); color: var(--primary); }
+.btn-secondary:hover { background: var(--primary); color: #fff; }
+.notif-unread-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--gold);
+    flex-shrink: 0; margin-top: 0.4rem;
+    animation: pdot 2s ease-in-out infinite;
+}
+@keyframes pdot { 0%,100% { box-shadow: 0 0 0 0 rgba(200,169,81,0.5); } 50% { box-shadow: 0 0 0 5px rgba(200,169,81,0); } }
+
+@media (max-width: 600px) {
+    .notification-item { flex-wrap: wrap; }
+    .notif-actions { flex-direction: row; width: 100%; }
+    .btn-sm { flex: 1; text-align: center; }
+}
+</style>
+
+{% endblock %}

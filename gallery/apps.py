@@ -6,3 +6,4 @@ class GalleryConfig(AppConfig):
 
     def ready(self):
         import gallery.signals  # noqa: F401
+        import gallery.dashboard_widgets

@@ -1,0 +1,275 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Expenses · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.ex-header {
+    background: linear-gradient(135deg, #7a1a10 0%, #c0392b 100%);
+    border-radius: 24px; padding: 2rem 2rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(192,57,43,0.25);
+}
+.ex-header::before {
+    content: "💸"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 2rem; opacity: 0.1;
+}
+.ex-header-content {
+    position: relative; color: #fff;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.ex-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #FFB8A8; background: rgba(255,255,255,0.15);
+    padding: 0.15rem 0.8rem; border-radius: 20px; margin-bottom: 0.4rem;
+}
+.ex-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.3rem; }
+.ex-header p { color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; }
+.ex-header-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.ex-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.65rem 1.4rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.85rem; text-decoration: none;
+    transition: all 0.25s ease;
+}
+.ex-btn-primary {
+    background: #fff; color: #c0392b;
+    box-shadow: 0 4px 14px rgba(255,255,255,0.3);
+}
+.ex-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(255,255,255,0.4); color: #9b2c2c; }
+.ex-btn-outline {
+    background: rgba(255,255,255,0.12); color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+.ex-btn-outline:hover { background: rgba(255,255,255,0.22); color: #fff; transform: translateY(-2px); }
+
+/* Filter */
+.ex-filter {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 0.8rem 1.2rem; margin-bottom: 1.5rem;
+}
+.ex-filter form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.ex-filter input[type="date"] {
+    padding: 0.4rem 0.8rem; border: 1px solid #d0d9d6;
+    border-radius: 8px; background: #fff; font-size: 0.85rem;
+}
+.ex-filter .btn { background: var(--primary); color: #fff; border: none; padding: 0.45rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
+.ex-filter .clear { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+
+/* Total card */
+.total-card {
+    background: linear-gradient(135deg, #fdf6f3 0%, #fdecea 100%);
+    border: 1px solid rgba(192,57,43,0.15);
+    border-left: 4px solid #c0392b;
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 0.75rem;
+}
+.total-card .label {
+    font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #9b2c2c; margin-bottom: 0.2rem;
+}
+.total-card .value {
+    font-size: 2rem; font-weight: 800;
+    color: #9b2c2c; line-height: 1.2;
+}
+.total-card .sub { font-size: 0.78rem; color: #8a4a45; margin-top: 0.15rem; }
+
+/* Section */
+.ex-section {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);
+}
+.ex-section h3 {
+    font-size: 0.95rem; font-weight: 700; color: var(--text-primary);
+    margin: 0 0 0.85rem; display: flex; align-items: center; gap: 0.5rem;
+}
+
+.ex-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.ex-table thead { background: #f8faf9; }
+.ex-table th {
+    padding: 0.6rem 0.8rem; text-align: left;
+    font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-muted); border-bottom: 2px solid #e8edec;
+}
+.ex-table td {
+    padding: 0.75rem 0.8rem; border-bottom: 1px solid #eef2f0;
+    color: #2d3748; vertical-align: middle;
+}
+.ex-table tbody tr:last-child td { border-bottom: none; }
+.ex-table tbody tr:hover { background: #fafcfb; }
+.ex-table .amount { font-weight: 700; color: #9b2c2c; text-align: right; }
+.badge-count {
+    display: inline-block; font-size: 0.7rem; font-weight: 700;
+    background: #fdecea; color: #9b2c2c;
+    padding: 0.15rem 0.55rem; border-radius: 10px;
+}
+.cat-chip {
+    display: inline-block; font-size: 0.7rem; font-weight: 700;
+    padding: 0.15rem 0.6rem; border-radius: 10px;
+    background: #fef3e8; color: #a8671a;
+}
+
+.empty-row {
+    text-align: center; padding: 2rem 1rem;
+    color: var(--text-muted); font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .ex-header { padding: 1.5rem 1.25rem; }
+    .ex-header h1 { font-size: 1.35rem; }
+    .ex-header-content { flex-direction: column; align-items: stretch; }
+    .ex-btn { justify-content: center; }
+    .ex-filter form { flex-direction: column; align-items: stretch; }
+    .ex-table th, .ex-table td { padding: 0.5rem 0.4rem; font-size: 0.78rem; }
+    .ex-table .hide-sm { display: none; }
+    .total-card .value { font-size: 1.5rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="ex-header">
+    <div class="ex-header-content">
+        <div>
+            <span class="ex-eyebrow">Business Office</span>
+            <h1>💸 Expense Report</h1>
+            <p>Track all money that has gone out of NAMETS accounts.</p>
+        </div>
+        <div class="ex-header-actions">
+            {% if perms.business.add_transaction %}
+            <a href="{% url 'business:admin_expense_create' %}" class="ex-btn ex-btn-primary">
+                <i class="fas fa-plus-circle"></i> Record Expense
+            </a>
+            {% endif %}
+            <a href="{% url 'business:admin_transaction_list' %}?type=expense" class="ex-btn ex-btn-outline">
+                <i class="fas fa-list"></i> Full Ledger
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="ex-filter">
+    <form method="get">
+        <input type="date" name="date_from" value="{{ date_from }}">
+        <input type="date" name="date_to" value="{{ date_to }}">
+        <button type="submit" class="btn"><i class="fas fa-filter"></i> Apply</button>
+        {% if date_from or date_to %}
+        <a href="{% url 'business:admin_expense_report' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="total-card">
+    <div>
+        <div class="label">Total Expenses</div>
+        <div class="value">₦{{ total|floatformat:2 }}</div>
+        <div class="sub">{% if date_from or date_to %}Filtered period{% else %}All time{% endif %}</div>
+    </div>
+</div>
+
+<!-- By Category -->
+<div class="ex-section">
+    <h3><i class="fas fa-tags" style="color:#c0392b;"></i> Expenses by Category</h3>
+    {% if per_category %}
+    <div style="overflow-x: auto;">
+        <table class="ex-table">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th class="hide-sm" style="text-align:right;">Count</th>
+                    <th style="text-align:right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in per_category %}
+                <tr>
+                    <td><span class="cat-chip">{{ c.label }}</span></td>
+                    <td class="hide-sm" style="text-align:right;"><span class="badge-count">{{ c.count }}</span></td>
+                    <td class="amount">₦{{ c.total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-row">No expenses recorded for this period.</div>
+    {% endif %}
+</div>
+
+<!-- By Account -->
+<div class="ex-section">
+    <h3><i class="fas fa-university" style="color:#c0392b;"></i> Expenses by Account</h3>
+    {% if per_account %}
+    <div style="overflow-x: auto;">
+        <table class="ex-table">
+            <thead>
+                <tr>
+                    <th>Account</th>
+                    <th class="hide-sm" style="text-align:right;">Count</th>
+                    <th style="text-align:right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in per_account %}
+                <tr>
+                    <td>
+                        <div style="font-weight:700; color:#0F3D2E;">{{ a.account__name }}</div>
+                        {% if a.account__bank_name %}<div style="font-size:0.72rem; color:#8a9b95;">{{ a.account__bank_name }}</div>{% endif %}
+                    </td>
+                    <td class="hide-sm" style="text-align:right;"><span class="badge-count">{{ a.count }}</span></td>
+                    <td class="amount">₦{{ a.total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-row">No expenses recorded for this period.</div>
+    {% endif %}
+</div>
+
+<!-- Recent -->
+<div class="ex-section">
+    <h3><i class="fas fa-history" style="color:#c0392b;"></i> Recent Expenses <span style="font-size:0.72rem; font-weight:500; color:#8a9b95; margin-left:auto;">Last 30</span></h3>
+    {% if recent %}
+    <div style="overflow-x: auto;">
+        <table class="ex-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th class="hide-sm">Category</th>
+                    <th>Description</th>
+                    <th class="hide-sm">Account</th>
+                    <th style="text-align:right;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in recent %}
+                <tr>
+                    <td>{{ tx.date|date:"M d, Y" }}</td>
+                    <td class="hide-sm"><span class="cat-chip">{{ tx.get_category_display }}</span></td>
+                    <td>{{ tx.description|truncatechars:50 }}</td>
+                    <td class="hide-sm">{{ tx.account.name }}</td>
+                    <td class="amount">-₦{{ tx.amount|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-row">No expense entries yet.</div>
+    {% endif %}
+</div>
+
+{% endblock %}s

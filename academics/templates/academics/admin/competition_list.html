@@ -1,0 +1,324 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Competition Results · Academics{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px; padding: 1.5rem 2rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.page-header::before {
+    content: "🏆"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.page-header-inner {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.page-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem; border-radius: 20px; margin-bottom: 0.3rem;
+}
+.page-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.page-header p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+.header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.header-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.2rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem; text-decoration: none;
+    background: rgba(255,255,255,0.12); color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.25s;
+}
+.header-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); color: #fff; }
+.header-btn-gold { background: var(--gold); color: var(--text-primary); border-color: var(--gold); }
+.header-btn-gold:hover { background: #E0C96E; color: var(--text-primary); }
+
+.filters-bar {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 0.85rem 1.2rem; margin-bottom: 1rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form select {
+    padding: 0.45rem 0.85rem; border: 1px solid #d0d9d6;
+    border-radius: 8px; background: #fff; flex: 1; min-width: 160px; font-size: 0.85rem;
+}
+.filter-form select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.filter-form .btn-search {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.5rem 1.1rem; border-radius: 8px; cursor: pointer;
+    font-weight: 600; font-size: 0.85rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+}
+.filter-form .clear { color: var(--text-muted); text-decoration: none; font-size: 0.82rem; }
+
+.table-wrapper { overflow-x: auto; border-radius: var(--radius-md); }
+.data-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md); overflow: hidden;
+}
+.data-table th {
+    background: var(--primary); color: #fff;
+    padding: 0.65rem 0.9rem; text-align: left;
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.data-table td {
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    font-size: 0.85rem; vertical-align: middle;
+}
+.data-table tbody tr:hover { background: rgba(200,169,81,0.04); }
+.data-table tbody tr:last-child td { border-bottom: none; }
+
+.pos-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 42px; height: 30px; padding: 0 0.7rem;
+    font-size: 0.72rem; font-weight: 800;
+    border-radius: 8px;
+    background: rgba(200,169,81,0.2); color: #7a5a10;
+    border: 1px solid rgba(200,169,81,0.3);
+}
+.pos-badge.pos-1st { background: rgba(255,215,0,0.25); color: #7a6000; border-color: rgba(255,215,0,0.5); }
+.pos-badge.pos-2nd { background: rgba(192,192,192,0.25); color: #4a4a4a; border-color: rgba(192,192,192,0.5); }
+.pos-badge.pos-3rd { background: rgba(205,127,50,0.2); color: #7a4010; border-color: rgba(205,127,50,0.4); }
+
+.status-chip {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.7rem; font-weight: 700;
+    padding: 0.2rem 0.7rem; border-radius: 20px;
+}
+.status-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.status-chip.active { background: #e8f2ec; color: #1a3c2e; }
+.status-chip.inactive { background: #f0f0f0; color: #777; }
+
+.row-actions { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+.btn-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; cursor: pointer; font-size: 0.72rem;
+    text-decoration: none; transition: var(--transition); font-family: inherit;
+}
+.btn-icon.edit { background: #f5e9c8; color: #8a6a1a; }
+.btn-icon.edit:hover { background: var(--gold); }
+.btn-icon.del { background: #fdecea; color: #9b2c2c; }
+.btn-icon.del:hover { background: #f5c2bc; }
+
+.empty-state { text-align: center; color: var(--text-muted); padding: 3rem 1rem; }
+.empty-state .icon { font-size: 3rem; display: block; margin-bottom: 0.6rem; }
+.empty-state h3 { color: var(--text-primary); margin: 0.3rem 0 0.4rem; font-size: 1rem; }
+
+.pagination { margin-top: 1rem; text-align: center; display: flex; justify-content: center; gap: 0.3rem; flex-wrap: wrap; }
+.pagination a, .pagination .current {
+    padding: 0.35rem 0.75rem; border-radius: 6px;
+    text-decoration: none; font-size: 0.82rem;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-primary);
+}
+.pagination a:hover { background: var(--gold); border-color: var(--gold); color: #fff; }
+.pagination .current { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 700; }
+
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,42,31,0.55); backdrop-filter: blur(4px);
+    z-index: 9999; justify-content: center; align-items: center; padding: 1rem;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+    background: #fff; border-radius: 20px; max-width: 440px; width: 100%;
+    padding: 2rem 1.75rem 1.75rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25); text-align: center;
+    animation: modalIn 0.25s ease-out;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-icon {
+    width: 64px; height: 64px; margin: 0 auto 1rem;
+    border-radius: 50%; background: #fdecea; color: #9b2c2c;
+    display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+}
+.modal h3 { color: #0F3D2E; margin: 0 0 0.4rem; font-size: 1.15rem; font-weight: 700; }
+.modal p { color: #5A5A5A; font-size: 0.9rem; margin: 0 0 1.25rem; line-height: 1.5; }
+.modal .info-box { background: #f8faf9; border-radius: 10px; padding: 0.85rem 1rem; margin: 0 0 1.25rem; text-align: left; border-left: 3px solid var(--gold); }
+.modal .info-box .field { display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.83rem; gap: 0.5rem; }
+.modal .info-box .field .label { color: #8a9b95; font-weight: 500; }
+.modal .info-box .field .value { color: #0F3D2E; font-weight: 600; text-align: right; }
+.modal-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+.modal-actions .btn {
+    padding: 0.65rem 1.5rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.85rem; cursor: pointer;
+    transition: all 0.2s ease; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.modal-actions .btn-secondary { background: #f0f4f2; color: #0F3D2E; }
+.modal-actions .btn-danger { background: #c0392b; color: #fff; box-shadow: 0 4px 14px rgba(192,57,43,0.25); }
+.modal-actions .btn-danger:hover { background: #9b2c2c; transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+    .page-header { padding: 1.15rem 1.25rem; }
+    .page-header-inner { flex-direction: column; align-items: stretch; }
+    .header-actions { flex-direction: column; }
+    .header-btn { justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .data-table th, .data-table td { font-size: 0.72rem; padding: 0.5rem 0.5rem; }
+    .data-table .hide-sm { display: none; }
+    .modal { padding: 1.5rem 1.25rem; }
+    .modal-actions .btn { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="page-header">
+    <div class="page-header-inner">
+        <div>
+            <span class="page-eyebrow">Academics</span>
+            <h1>🏆 Competition Results</h1>
+            <p>Winners and participants from NAMETS competitions.</p>
+        </div>
+        <div class="header-actions">
+            {% if perms.academics.view_competitionresult %}
+            <a href="{% url 'academics:admin_competition_export' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}" class="header-btn">
+                <i class="fas fa-file-excel"></i> Export
+            </a>
+            {% endif %}
+            {% if perms.academics.add_competitionresult %}
+            <a href="{% url 'academics:admin_competition_upload' %}" class="header-btn">
+                <i class="fas fa-file-import"></i> Import
+            </a>
+            <a href="{% url 'academics:admin_competition_create' %}" class="header-btn header-btn-gold">
+                <i class="fas fa-plus"></i> Add Result
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="filters-bar">
+    <form method="get" class="filter-form">
+        <select name="event">
+            <option value="">All Events</option>
+            {% for e in events %}
+            <option value="{{ e }}" {% if event_filter == e %}selected{% endif %}>{{ e }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-search"><i class="fas fa-search"></i> Filter</button>
+        {% if event_filter %}
+        <a href="{% url 'academics:admin_competition_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Position</th>
+                <th>Participant</th>
+                <th class="hide-sm">Event</th>
+                <th class="hide-sm">Category</th>
+                <th class="hide-sm">Department</th>
+                <th>Points</th>
+                <th>Status</th>
+                <th style="width:100px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in results %}
+            <tr>
+                <td>
+                    <span class="pos-badge
+                        {% if r.position == '1st' %}pos-1st
+                        {% elif r.position == '2nd' %}pos-2nd
+                        {% elif r.position == '3rd' %}pos-3rd{% endif %}">
+                        {{ r.position }}
+                    </span>
+                </td>
+                <td><strong style="color:#0F3D2E;">{{ r.participant_name }}</strong></td>
+                <td class="hide-sm">{{ r.event_name|truncatechars:24 }}</td>
+                <td class="hide-sm">{{ r.category|default:"—" }}</td>
+                <td class="hide-sm">{{ r.department|default:"—"|truncatechars:22 }}</td>
+                <td>{{ r.points|default:"—" }}</td>
+                <td>
+                    {% if r.is_active %}<span class="status-chip active">Active</span>
+                    {% else %}<span class="status-chip inactive">Inactive</span>{% endif %}
+                </td>
+                <td>
+                    <div class="row-actions">
+                        <a href="{% url 'academics:admin_competition_edit' r.pk %}" class="btn-icon edit" title="Edit"><i class="fas fa-pen"></i></a>
+                        <button type="button" class="btn-icon del" title="Delete"
+                                onclick="openDeleteModal('{{ r.pk }}', '{{ r.participant_name|escapejs }}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8">
+                <div class="empty-state">
+                    <span class="icon">🏆</span>
+                    <h3>No competition results yet</h3>
+                    <p>{% if event_filter %}Try adjusting the filters.{% else %}Click "Add Result" or "Bulk Upload" to add results.{% endif %}</p>
+                </div>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹ Prev</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">Next ›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="modal-overlay" id="delModal">
+    <div class="modal">
+        <div class="modal-icon"><i class="fas fa-trash"></i></div>
+        <h3>Delete Result?</h3>
+        <p>This will permanently remove the competition result. Cannot be undone.</p>
+        <div class="info-box">
+            <div class="field"><span class="label">Participant</span><span class="value" id="delName">—</span></div>
+        </div>
+        <form method="post" id="delForm">
+            {% csrf_token %}
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Yes, Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const DELETE_URL = '{% url "academics:admin_competition_delete" 0 %}';
+function openDeleteModal(pk, name) {
+    document.getElementById('delName').textContent = name;
+    document.getElementById('delForm').action = DELETE_URL.replace('/0/', '/' + pk + '/');
+    document.getElementById('delModal').classList.add('active');
+}
+function closeDeleteModal() { document.getElementById('delModal').classList.remove('active'); }
+document.getElementById('delModal').addEventListener('click', function(e) { if (e.target === this) closeDeleteModal(); });
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeDeleteModal(); });
+</script>
+
+{% endblock %}

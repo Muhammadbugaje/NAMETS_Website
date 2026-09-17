@@ -1,0 +1,505 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Messages · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.mbx-wrap { max-width: 1100px; margin: 0 auto; }
+
+/* HERO */
+.mbx-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 14px 40px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.mbx-hero::before {
+    content: "✉️"; font-size: 10rem;
+    position: absolute; bottom: -2.5rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.mbx-hero::after {
+    content: ''; position: absolute;
+    top: -50%; left: -10%;
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(200,169,81,0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+.mbx-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1.25rem;
+}
+.mbx-hero-left { flex: 1; min-width: 240px; }
+.mbx-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.28rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.6rem;
+}
+.mbx-hero h1 {
+    font-size: 1.85rem; font-weight: 800;
+    margin: 0 0 0.4rem; letter-spacing: -0.02em;
+}
+.mbx-hero p {
+    color: rgba(255,255,255,0.82); font-size: 0.9rem;
+    margin: 0; line-height: 1.55; max-width: 520px;
+}
+.mbx-hero-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.75rem 1.5rem; border-radius: 50px;
+    background: #C8A951; color: #0F3D2E;
+    font-weight: 800; font-size: 0.85rem;
+    text-decoration: none; border: none;
+    box-shadow: 0 8px 22px rgba(200,169,81,0.4);
+    transition: all 0.25s ease;
+    font-family: inherit; cursor: pointer;
+}
+.mbx-hero-btn:hover {
+    background: #E0C96E; transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(200,169,81,0.55);
+}
+
+/* TABS */
+.mbx-tabs {
+    display: flex; gap: 0.35rem; margin-bottom: 1.15rem;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    flex-wrap: wrap; padding-bottom: 0;
+}
+.mbx-tab {
+    padding: 0.75rem 1.35rem;
+    font-size: 0.85rem; font-weight: 700;
+    color: #8a9b95; background: transparent;
+    border: none; border-bottom: 3px solid transparent;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    transition: all 0.2s; font-family: inherit;
+}
+.mbx-tab:hover { color: #0F3D2E; }
+.mbx-tab.active { color: #0F3D2E; border-bottom-color: #C8A951; }
+.mbx-tab .cnt {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 20px; padding: 0 0.45rem;
+    background: rgba(15,61,46,0.08); color: #0F3D2E;
+    border-radius: 20px; font-size: 0.65rem; font-weight: 800;
+}
+.mbx-tab.active .cnt { background: #C8A951; color: #0F3D2E; }
+
+/* CARD */
+.mbx-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+/* FILTERS */
+.mbx-filters {
+    display: flex; gap: 0.55rem; align-items: center;
+    padding: 1rem 1.15rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    flex-wrap: wrap;
+}
+.mbx-search {
+    flex: 1; min-width: 180px; position: relative;
+}
+.mbx-search i {
+    position: absolute; left: 0.9rem; top: 50%;
+    transform: translateY(-50%);
+    color: #8a9b95; font-size: 0.85rem; pointer-events: none;
+}
+.mbx-search input {
+    width: 100%; padding: 0.6rem 0.9rem 0.6rem 2.35rem;
+    border: 1px solid #d5dcd9; border-radius: 10px;
+    background: #fff; font-size: 0.85rem; font-family: inherit;
+    color: #0F3D2E; transition: all 0.15s;
+}
+.mbx-search input:focus {
+    border-color: #C8A951; outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.14);
+}
+.mbx-chip {
+    padding: 0.5rem 1rem;
+    font-size: 0.78rem; font-weight: 700;
+    border-radius: 20px; text-decoration: none;
+    color: #4a5568; background: #f0f4f2;
+    white-space: nowrap; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+}
+.mbx-chip:hover { background: #e0e8e5; color: #0F3D2E; }
+.mbx-chip.active { background: #0F3D2E; color: #C8A951; }
+
+/* LIST */
+.mbx-list { display: flex; flex-direction: column; }
+
+/* Row is a wrapper, link covers the clickable area, delete button sits outside */
+.mbx-row {
+    position: relative;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: background 0.2s;
+}
+.mbx-row:last-child { border-bottom: none; }
+.mbx-row:hover {
+    background: rgba(200,169,81,0.05);
+}
+.mbx-row.unread {
+    background: linear-gradient(90deg, rgba(200,169,81,0.09), rgba(200,169,81,0.03));
+}
+.mbx-row.unread:hover {
+    background: linear-gradient(90deg, rgba(200,169,81,0.14), rgba(200,169,81,0.06));
+}
+.mbx-row.unread::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px; background: #C8A951;
+    border-radius: 0 2px 2px 0;
+}
+
+.mbx-row-link {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: 0.9rem; align-items: center;
+    padding: 1.05rem 3.6rem 1.05rem 1.25rem;
+    text-decoration: none;
+    color: inherit;
+    min-width: 0;
+}
+
+.mbx-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; font-weight: 800;
+    flex-shrink: 0;
+    border: 2px solid #C8A951;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+.mbx-row-link:hover .mbx-avatar { transform: scale(1.05); }
+.mbx-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.mbx-body { min-width: 0; }
+.mbx-from {
+    font-size: 0.88rem; font-weight: 800;
+    color: #0F3D2E; margin-bottom: 0.2rem;
+    display: flex; align-items: center; gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.mbx-pin {
+    font-size: 0.65rem; color: #8a6a1a;
+    background: #f5e9c8; padding: 0.1rem 0.55rem;
+    border-radius: 20px; font-weight: 800;
+    display: inline-flex; align-items: center; gap: 0.2rem;
+}
+.mbx-target {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.62rem; font-weight: 700;
+    padding: 0.15rem 0.55rem; border-radius: 20px;
+    background: rgba(15,61,46,0.06); color: #4a5568;
+    text-transform: uppercase; letter-spacing: 0.03em;
+}
+.mbx-subject {
+    font-size: 0.88rem; font-weight: 700;
+    color: #0F3D2E; margin-bottom: 0.2rem;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mbx-row.unread .mbx-subject { font-weight: 800; }
+.mbx-preview {
+    font-size: 0.78rem; color: #8a9b95;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    line-height: 1.45;
+}
+
+.mbx-right {
+    display: flex; flex-direction: column;
+    align-items: flex-end; gap: 0.4rem;
+    flex-shrink: 0;
+}
+.mbx-time {
+    font-size: 0.7rem; color: #8a9b95;
+    white-space: nowrap; font-weight: 600;
+}
+.mbx-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #C8A951;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.25);
+    animation: mbxPulse 2.5s ease-in-out infinite;
+}
+@keyframes mbxPulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(200,169,81,0.25); }
+    50%      { box-shadow: 0 0 0 6px rgba(200,169,81,0.1); }
+}
+
+/* Delete button on each row */
+.mbx-delete-btn {
+    position: absolute;
+    right: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(220,53,69,0.08);
+    color: #dc3545;
+    font-size: 0.82rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: all 0.22s ease;
+    z-index: 2;
+}
+.mbx-row:hover .mbx-delete-btn { opacity: 1; }
+.mbx-delete-btn:hover {
+    background: #dc3545;
+    color: #fff;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 4px 12px rgba(220,53,69,0.35);
+}
+.mbx-delete-btn:active {
+    transform: translateY(-50%) scale(0.98);
+}
+
+/* EMPTY */
+.mbx-empty {
+    padding: 4.5rem 1.5rem; text-align: center;
+}
+.mbx-empty .ic {
+    font-size: 4rem; display: block;
+    margin-bottom: 1rem; opacity: 0.35; color: #0F3D2E;
+}
+.mbx-empty h3 {
+    color: #0F3D2E; margin: 0 0 0.5rem; font-size: 1.2rem;
+    font-weight: 800;
+}
+.mbx-empty p {
+    margin: 0 0 1.5rem; font-size: 0.9rem;
+    color: #8a9b95; max-width: 400px; margin-left: auto; margin-right: auto;
+    line-height: 1.55;
+}
+
+/* PAGINATION */
+.mbx-pag {
+    margin-top: 1.5rem;
+    display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap;
+}
+.mbx-pag a, .mbx-pag .current {
+    min-width: 40px; height: 40px; padding: 0 0.9rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.85rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fff; border: 1px solid rgba(0,0,0,0.08);
+    color: #0F3D2E; transition: all 0.15s;
+}
+.mbx-pag a:hover {
+    background: #0F3D2E; color: #C8A951;
+    border-color: #0F3D2E; transform: translateY(-2px);
+}
+.mbx-pag .current { background: #0F3D2E; color: #C8A951; border-color: #0F3D2E; }
+
+/* MOBILE */
+@media (max-width: 640px) {
+    .mbx-hero { padding: 1.5rem 1.35rem; }
+    .mbx-hero h1 { font-size: 1.35rem; }
+    .mbx-hero-inner { flex-direction: column; align-items: stretch; }
+    .mbx-hero-btn { justify-content: center; }
+    .mbx-row-link {
+        padding: 0.9rem 3.2rem 0.9rem 0.9rem;
+        grid-template-columns: 40px 1fr auto;
+        gap: 0.7rem;
+    }
+    .mbx-avatar { width: 40px; height: 40px; font-size: 0.75rem; }
+    .mbx-target { display: none; }
+    .mbx-preview { display: none; }
+    .mbx-filters { padding: 0.75rem 0.9rem; }
+    /* On touch devices always show the delete button */
+    .mbx-delete-btn { opacity: 1; }
+    .mbx-delete-btn { width: 30px; height: 30px; right: 0.6rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+{# CSRF token — read by JS to submit delete forms #}
+{% csrf_token %}
+
+<div class="mbx-wrap">
+
+    <!-- HERO -->
+    <div class="mbx-hero">
+        <div class="mbx-hero-inner">
+            <div class="mbx-hero-left">
+                <span class="mbx-eyebrow">✉️ NAMETS Messages</span>
+                <h1>Messages</h1>
+                <p>Direct messages from current members, offices, and alumni.</p>
+            </div>
+            <a href="{% url 'dashboards:message_compose' %}" class="mbx-hero-btn">
+                <i class="fas fa-pen"></i> New Message
+            </a>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="mbx-tabs">
+        <a href="{% url 'dashboards:messages' %}" class="mbx-tab active">
+            <i class="fas fa-inbox"></i> Inbox
+            <span class="cnt">{{ total_count }}</span>
+        </a>
+        <a href="{% url 'dashboards:messages_sent' %}" class="mbx-tab">
+            <i class="fas fa-paper-plane"></i> Sent
+            <span class="cnt">{{ sent_count }}</span>
+        </a>
+    </div>
+
+    <!-- CARD -->
+    <div class="mbx-card">
+        <form method="get" class="mbx-filters">
+            <div class="mbx-search">
+                <i class="fas fa-search"></i>
+                <input type="text" name="q" value="{{ q }}"
+                       placeholder="Search by subject, sender, or content…">
+            </div>
+            <a href="?filter=all" class="mbx-chip {% if filter_type == 'all' or not filter_type %}active{% endif %}">
+                <i class="fas fa-layer-group"></i> All
+            </a>
+            <a href="?filter=unread" class="mbx-chip {% if filter_type == 'unread' %}active{% endif %}">
+                <i class="fas fa-circle"></i> Unread
+                {% if unread_count %}· {{ unread_count }}{% endif %}
+            </a>
+        </form>
+
+        <div class="mbx-list">
+            {% for rec in messages %}
+            <div class="mbx-row {% if not rec.is_read %}unread{% endif %}">
+                <a href="{% url 'dashboards:message_detail' rec.message.pk %}"
+                   class="mbx-row-link">
+                    <div class="mbx-avatar">
+                        {% if rec.message.sender.profile_picture %}
+                            <img src="{{ rec.message.sender.profile_picture.url }}" alt="">
+                        {% else %}
+                            {{ rec.message.sender.first_name|first|upper }}{{ rec.message.sender.last_name|first|upper }}
+                        {% endif %}
+                    </div>
+
+                    <div class="mbx-body">
+                        <div class="mbx-from">
+                            <span>{{ rec.message.sender.get_full_name|default:rec.message.sender.email }}</span>
+                            {% if rec.message.is_pinned %}
+                            <span class="mbx-pin">📌 Pinned</span>
+                            {% endif %}
+                            <span class="mbx-target">
+                                <i class="fas {{ rec.message.target_icon }}"></i>
+                                {{ rec.message.target_label|default:rec.message.get_target_type_display|truncatechars:28 }}
+                            </span>
+                        </div>
+                        <div class="mbx-subject">{{ rec.message.subject }}</div>
+                        <div class="mbx-preview">{{ rec.message.body|truncatechars:110 }}</div>
+                    </div>
+
+                    <div class="mbx-right">
+                        <div class="mbx-time">{{ rec.message.sent_at|timesince|truncatewords:2 }} ago</div>
+                        {% if not rec.is_read %}<div class="mbx-dot" title="Unread"></div>{% endif %}
+                    </div>
+                </a>
+
+                <button type="button"
+                        class="mbx-delete-btn js-msg-delete"
+                        data-url="{% url 'dashboards:message_delete' rec.message.pk %}"
+                        data-subject="{{ rec.message.subject|escapejs }}"
+                        data-kind="inbox"
+                        title="Remove from inbox"
+                        aria-label="Remove message">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            {% empty %}
+            <div class="mbx-empty">
+                <i class="fas fa-inbox ic"></i>
+                <h3>Your inbox is empty</h3>
+                <p>
+                    {% if q or filter_type == 'unread' %}
+                        Try adjusting your filters or search — nothing matched.
+                    {% else %}
+                        Messages from current members, offices, and alumni will appear here.
+                    {% endif %}
+                </p>
+                <a href="{% url 'dashboards:message_compose' %}" class="mbx-hero-btn" style="display:inline-flex;">
+                    <i class="fas fa-pen"></i> Send your first message
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if is_paginated %}
+    <div class="mbx-pag">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹</a>
+        {% endif %}
+        <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">›</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+(function() {
+    // Shared delete-flow helper
+    function submitDeleteForm(url) {
+        const tokenEl = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrf = tokenEl ? tokenEl.value
+                             : (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        form.style.display = 'none';
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'csrfmiddlewaretoken';
+        input.value = csrf;
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // Wire up each row's delete button
+    document.querySelectorAll('.js-msg-delete').forEach(function(btn) {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const url = btn.dataset.url;
+            const subject = btn.dataset.subject || 'this message';
+            const kind = btn.dataset.kind;
+
+            const isSent = (kind === 'sent');
+
+            const ok = await window.NAMETS.confirm({
+                title: isSent ? 'Delete for everyone?' : 'Remove from inbox?',
+                message: isSent
+                    ? 'This will permanently delete "' + subject + '" for all recipients. This cannot be undone.'
+                    : 'This will remove "' + subject + '" from your inbox only. The sender will still see it in their Sent folder.',
+                danger: true,
+                confirmText: isSent ? 'Delete for everyone' : 'Remove',
+                cancelText: 'Cancel'
+            });
+
+            if (!ok) return;
+            submitDeleteForm(url);
+        });
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAMETS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        table { border-collapse: collapse; width: 100%; }
+        .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #0F3D2E 0%, #1A5A44 100%);
+            padding: 30px 40px 20px;
+            text-align: center;
+            border-bottom: 4px solid #C8A951;
+        }
+        .email-header .logo-wrapper {
+            display: inline-block;
+            background: #ffffff;
+            border-radius: 50%;
+            padding: 8px;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 10px;
+        }
+        .email-header .logo-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+        .email-header h1 {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        .email-header .tagline {
+            color: #C8A951;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            margin: 4px 0 0;
+        }
+        .email-body {
+            padding: 35px 40px 30px;
+            background-color: #ffffff;
+        }
+        .email-body h2 {
+            color: #0F3D2E;
+            font-size: 22px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        .email-body p {
+            color: #2d3748;
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+        .email-body .content-block {
+            margin: 20px 0;
+            padding: 16px 20px;
+            background-color: #f8faf9;
+            border-left: 4px solid #C8A951;
+            border-radius: 4px;
+        }
+        .email-body .content-block p {
+            margin-bottom: 8px;
+        }
+        .email-body .content-block p:last-child { margin-bottom: 0; }
+        .email-body .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #C8A951 0%, #B8943F 100%);
+            color: #0F3D2E !important;
+            font-weight: 600;
+            font-size: 16px;
+            padding: 12px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            margin: 12px 0 8px;
+            transition: all 0.2s ease;
+        }
+        .email-body .button-primary {
+            background: linear-gradient(135deg, #0F3D2E 0%, #1A5A44 100%);
+            color: #ffffff !important;
+        }
+        .email-footer {
+            background-color: #f8faf9;
+            padding: 24px 40px 30px;
+            border-top: 2px solid #e8edec;
+            text-align: center;
+        }
+        .email-footer p {
+            color: #718096;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 6px;
+        }
+        .email-footer a {
+            color: #0F3D2E;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .email-footer a:hover { text-decoration: underline; }
+        .email-footer .footer-links { margin-top: 12px; }
+        .email-footer .footer-links a {
+            color: #C8A951;
+            font-size: 13px;
+            margin: 0 10px;
+        }
+        .email-footer .footer-divider {
+            width: 40px;
+            height: 2px;
+            background: #C8A951;
+            margin: 14px auto 10px;
+        }
+        .email-footer .footer-brand {
+            color: #0F3D2E;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-header { padding: 20px 20px 15px; }
+            .email-header .logo-wrapper { width: 60px; height: 60px; }
+            .email-header h1 { font-size: 20px; }
+            .email-body { padding: 25px 20px 20px; }
+            .email-body h2 { font-size: 19px; }
+            .email-body .button { display: block; text-align: center; padding: 14px 20px; }
+            .email-footer { padding: 20px 20px 24px; }
+        }
+    </style>
+</head>
+<body>
+    <table align="center" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f7f6; padding: 30px 15px;">
+        <tr>
+            <td align="center">
+                <div class="email-wrapper">
+                    <div class="email-header">
+                        <div class="logo-wrapper">
+                            <img src="{{ logo_url }}" alt="NAMETS Logo" class="logo">
+                        </div>
+                        <h1>NAMETS</h1>
+                        <p class="tagline">Technology for Creative Islamic Life</p>
+                    </div>
+                    <div class="email-body">
+                        {% block content %}{% endblock %}
+                    </div>
+                    <div class="email-footer">
+                        <div class="footer-brand">NAMETS — National Association of Muslim Engineering and Technology Students</div>
+                        <div class="footer-divider"></div>
+                        <p>
+                            Ahmadu Bello University, Zaria<br>
+                            Faculty of Engineering
+                        </p>
+                        <p><a href="mailto:nametsabu@gmail.com">nametsabu@gmail.com</a></p>
+                        <div class="footer-links">
+                            <a href="{{ site_url }}">Visit Website</a>
+                            <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+                        </div>
+                        <p style="font-size: 11px; color: #a0aec0; margin-top: 12px;">
+                            &copy; {% now "Y" %} NAMETS. All rights reserved.
+                        </p>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

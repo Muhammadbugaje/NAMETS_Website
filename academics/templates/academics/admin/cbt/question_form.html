@@ -1,0 +1,551 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · CBT{% endblock %}
+
+{% block extra_css %}
+<style>
+.qf-container { max-width: 900px; margin: 0 auto; }
+
+.qf-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none; font-weight: 600;
+    margin-bottom: 0.85rem; font-size: 0.85rem;
+}
+.qf-back:hover { text-decoration: underline; }
+
+.qf-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 20px; padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 28px rgba(15,61,46,0.2);
+}
+.qf-header::before {
+    content: "❓"; font-size: 4rem;
+    position: absolute; bottom: -0.5rem; right: 1.5rem;
+    opacity: 0.1;
+}
+.qf-header .eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.18);
+    padding: 0.15rem 0.75rem; border-radius: 20px;
+    margin-bottom: 0.35rem;
+}
+.qf-header h2 { font-size: 1.3rem; font-weight: 700; margin: 0 0 0.25rem; position: relative; }
+.qf-header p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; position: relative; }
+
+.qf-grid {
+    display: grid; grid-template-columns: 1.4fr 1fr;
+    gap: 1.25rem;
+}
+@media (max-width: 1000px) {
+    .qf-grid { grid-template-columns: 1fr; }
+}
+
+.form-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.75rem; box-shadow: var(--shadow-sm);
+}
+
+.form-section-title {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a6a1a; margin: 1.4rem 0 0.9rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.form-section-title:first-child { margin-top: 0; }
+.form-section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent);
+}
+.form-section-title i { font-size: 0.85rem; }
+
+.form-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1rem; margin-bottom: 0.9rem;
+}
+.form-row .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label {
+    font-weight: 600; color: var(--text-primary);
+    font-size: 0.8rem; margin-bottom: 0.3rem;
+}
+.form-group label .required { color: #e53e3e; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.6rem 0.85rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.9rem; background: #fff;
+    transition: var(--transition); font-family: inherit;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.form-group .help-text {
+    font-size: 0.72rem; color: var(--text-muted);
+    margin-top: 0.25rem; line-height: 1.4;
+}
+.form-group .error-text {
+    font-size: 0.75rem; color: #e53e3e; margin-top: 0.25rem;
+}
+
+/* Options block */
+.options-block { display: flex; flex-direction: column; gap: 0.75rem; }
+.option-row {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.75rem 0.9rem;
+    background: #f8faf9; border-radius: 10px;
+    border: 2px solid transparent; transition: all 0.2s;
+    cursor: pointer;
+}
+.option-row.correct {
+    background: linear-gradient(135deg, #e8f2ec 0%, #d4edda 100%);
+    border-color: #38a169;
+}
+.option-row.correct .option-letter {
+    background: #38a169; color: #fff;
+}
+.option-letter {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--gold); color: #0F3D2E;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.95rem; flex-shrink: 0;
+    transition: all 0.2s;
+}
+.option-input { flex: 1; }
+.option-input input {
+    width: 100%; padding: 0.5rem 0.75rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.88rem; background: #fff;
+    font-family: inherit;
+}
+.option-input input:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.option-radio {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 0.15rem;
+    padding: 0.3rem 0.5rem;
+    cursor: pointer;
+}
+.option-radio input[type="radio"] {
+    width: 18px; height: 18px; accent-color: #38a169;
+    cursor: pointer;
+}
+.option-radio .radio-label {
+    font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; color: #8a9b95;
+    letter-spacing: 0.04em;
+}
+
+.form-check-group {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.75rem 1rem; background: #f8faf9;
+    border-radius: 10px; border: 1px solid rgba(0,0,0,0.05);
+}
+.form-check-group input[type="checkbox"] {
+    width: 18px; height: 18px; accent-color: var(--gold);
+    cursor: pointer;
+}
+.form-check-group label {
+    font-weight: 600; margin: 0; cursor: pointer;
+    font-size: 0.85rem;
+}
+
+/* Preview column */
+.preview-card {
+    background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 100%);
+    border-radius: var(--radius-md); padding: 1.25rem 1.5rem;
+    position: sticky; top: 1rem;
+    border: 1px solid rgba(200,169,81,0.3);
+}
+.preview-card h4 {
+    margin: 0 0 0.85rem; font-size: 0.72rem;
+    font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #8a6a1a;
+    display: flex; align-items: center; gap: 0.4rem;
+}
+.preview-q {
+    font-size: 0.88rem; font-weight: 700;
+    color: #0F3D2E; margin: 0 0 0.9rem;
+    line-height: 1.45; padding-bottom: 0.75rem;
+    border-bottom: 1px dashed rgba(138,106,26,0.3);
+    min-height: 1em;
+}
+.preview-opts { display: flex; flex-direction: column; gap: 0.45rem; margin-bottom: 0.9rem; }
+.preview-opt {
+    display: flex; align-items: flex-start; gap: 0.55rem;
+    font-size: 0.83rem; color: #4a3a10;
+    padding: 0.45rem 0.7rem; border-radius: 8px;
+    background: rgba(255,255,255,0.6);
+    transition: all 0.2s;
+}
+.preview-opt.correct {
+    background: #38a169; color: #fff;
+    font-weight: 700;
+}
+.preview-opt .letter {
+    font-weight: 800; min-width: 1em; flex-shrink: 0;
+}
+.preview-opt.correct .letter { color: #fff; }
+.preview-badge {
+    display: inline-block; padding: 0.15rem 0.6rem;
+    border-radius: 12px; font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    margin-bottom: 0.7rem;
+}
+.preview-badge.easy { background: #e8f2ec; color: #1a6b3c; }
+.preview-badge.medium { background: #f5e9c8; color: #8a6a1a; }
+.preview-badge.hard { background: #fdecea; color: #9b2c2c; }
+.preview-explanation {
+    background: rgba(255,255,255,0.6);
+    border-left: 3px solid #8a6a1a;
+    border-radius: 8px; padding: 0.6rem 0.8rem;
+    font-size: 0.78rem; color: #4a3a10;
+    line-height: 1.5;
+    margin-top: 0.5rem;
+}
+.preview-explanation .lbl {
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a6a1a; margin-bottom: 0.25rem;
+}
+
+.form-actions {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    margin-top: 1.75rem; padding-top: 1.5rem;
+    border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-primary, .btn-secondary, .btn-outline {
+    padding: 0.7rem 1.75rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.88rem; cursor: pointer;
+    transition: var(--transition); font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    text-decoration: none;
+}
+.btn-primary {
+    background: var(--primary); color: #fff;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.25);
+}
+.btn-primary:hover { background: var(--primary-dark); color: #fff; transform: translateY(-2px); }
+.btn-secondary { background: var(--gold); color: var(--text-primary); }
+.btn-secondary:hover { background: #E0C96E; color: var(--text-primary); transform: translateY(-2px); }
+.btn-outline {
+    background: transparent; color: var(--primary);
+    border: 1.5px solid rgba(15,61,46,0.25);
+}
+.btn-outline:hover {
+    background: var(--primary); color: #fff;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.error-summary {
+    background: #fdecea; border-left: 4px solid #e53e3e;
+    border-radius: 10px; padding: 1rem 1.2rem;
+    margin-bottom: 1.25rem; color: #9b2c2c;
+    font-size: 0.88rem;
+}
+.error-summary strong { display: block; margin-bottom: 0.4rem; }
+.error-summary ul { margin: 0; padding-left: 1.2rem; }
+
+@media (max-width: 768px) {
+    .form-card { padding: 1.25rem; }
+    .form-row { grid-template-columns: 1fr; gap: 0.7rem; }
+    .preview-card { position: static; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn-primary, .form-actions .btn-secondary, .form-actions .btn-outline {
+        width: 100%; justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="qf-container">
+
+    <a href="{% url 'academics:admin_question_list' %}" class="qf-back">
+        <i class="fas fa-arrow-left"></i> Back to Question Bank
+    </a>
+
+    <div class="qf-header">
+        <span class="eyebrow">CBT · Question</span>
+        <h2>{{ title }}</h2>
+        <p>{% if question %}Update this question. All changes are logged.{% else %}Write a new multiple-choice question. Fill in all fields — the live preview on the right updates as you type.{% endif %}</p>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="error-summary">
+        <strong>Please fix the following:</strong>
+        <ul>{% for err in form.non_field_errors %}<li>{{ err }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    <form method="post" class="qf-grid" novalidate id="questionForm">
+        {% csrf_token %}
+
+        <!-- LEFT COLUMN: Form -->
+        <div class="form-card">
+
+            <div class="form-section-title"><i class="fas fa-tag"></i> Classification</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.course.id_for_label }}">Course <span class="required">*</span></label>
+                    {{ form.course }}
+                    {% if form.course.errors %}<div class="error-text">{{ form.course.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.difficulty.id_for_label }}">Difficulty <span class="required">*</span></label>
+                    {{ form.difficulty }}
+                    {% if form.difficulty.errors %}<div class="error-text">{{ form.difficulty.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group full">
+                    <label for="{{ form.topic.id_for_label }}">Topic (optional)</label>
+                    {{ form.topic }}
+                    <div class="help-text">Used for filtering and per-topic breakdown. e.g. "Wudu", "Salah".</div>
+                    {% if form.topic.errors %}<div class="error-text">{{ form.topic.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-section-title"><i class="fas fa-question-circle"></i> Question Body</div>
+
+            <div class="form-row">
+                <div class="form-group full">
+                    <label for="{{ form.question_text.id_for_label }}">Question <span class="required">*</span></label>
+                    {{ form.question_text }}
+                    {% if form.question_text.errors %}<div class="error-text">{{ form.question_text.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-section-title"><i class="fas fa-list-ul"></i> Options & Correct Answer</div>
+            <p style="font-size:0.76rem;color:#8a9b95;margin:-0.5rem 0 0.9rem;">
+                Fill in all four options. Click the radio on the right to mark which one is correct.
+            </p>
+
+            <div class="options-block">
+                <div class="option-row {% if form.correct_option.value == 'a' %}correct{% endif %}" data-option="a">
+                    <span class="option-letter">A</span>
+                    <div class="option-input">
+                        {{ form.option_a }}
+                    </div>
+                    <label class="option-radio">
+                        <input type="radio" name="{{ form.correct_option.name }}" value="a"
+                               {% if form.correct_option.value == 'a' %}checked{% endif %} required>
+                        <span class="radio-label">Correct</span>
+                    </label>
+                </div>
+                {% if form.option_a.errors %}<div class="error-text" style="margin-left:3rem;">{{ form.option_a.errors }}</div>{% endif %}
+
+                <div class="option-row {% if form.correct_option.value == 'b' %}correct{% endif %}" data-option="b">
+                    <span class="option-letter">B</span>
+                    <div class="option-input">
+                        {{ form.option_b }}
+                    </div>
+                    <label class="option-radio">
+                        <input type="radio" name="{{ form.correct_option.name }}" value="b"
+                               {% if form.correct_option.value == 'b' %}checked{% endif %} required>
+                        <span class="radio-label">Correct</span>
+                    </label>
+                </div>
+                {% if form.option_b.errors %}<div class="error-text" style="margin-left:3rem;">{{ form.option_b.errors }}</div>{% endif %}
+
+                <div class="option-row {% if form.correct_option.value == 'c' %}correct{% endif %}" data-option="c">
+                    <span class="option-letter">C</span>
+                    <div class="option-input">
+                        {{ form.option_c }}
+                    </div>
+                    <label class="option-radio">
+                        <input type="radio" name="{{ form.correct_option.name }}" value="c"
+                               {% if form.correct_option.value == 'c' %}checked{% endif %} required>
+                        <span class="radio-label">Correct</span>
+                    </label>
+                </div>
+                {% if form.option_c.errors %}<div class="error-text" style="margin-left:3rem;">{{ form.option_c.errors }}</div>{% endif %}
+
+                <div class="option-row {% if form.correct_option.value == 'd' %}correct{% endif %}" data-option="d">
+                    <span class="option-letter">D</span>
+                    <div class="option-input">
+                        {{ form.option_d }}
+                    </div>
+                    <label class="option-radio">
+                        <input type="radio" name="{{ form.correct_option.name }}" value="d"
+                               {% if form.correct_option.value == 'd' %}checked{% endif %} required>
+                        <span class="radio-label">Correct</span>
+                    </label>
+                </div>
+                {% if form.option_d.errors %}<div class="error-text" style="margin-left:3rem;">{{ form.option_d.errors }}</div>{% endif %}
+            </div>
+
+            {% if form.correct_option.errors %}
+            <div class="error-text" style="margin-top:0.5rem;">{{ form.correct_option.errors }}</div>
+            {% endif %}
+
+            <div class="form-section-title"><i class="fas fa-lightbulb"></i> Explanation (optional)</div>
+
+            <div class="form-row">
+                <div class="form-group full">
+                    <label for="{{ form.explanation.id_for_label }}">Why is this the correct answer?</label>
+                    {{ form.explanation }}
+                    <div class="help-text">Shown to students on the result page if "Show correct answers" is enabled.</div>
+                    {% if form.explanation.errors %}<div class="error-text">{{ form.explanation.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-section-title"><i class="fas fa-toggle-on"></i> Status</div>
+
+            <div class="form-row">
+                <div class="form-group full">
+                    <div class="form-check-group">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}">Active — appears in tests</label>
+                    </div>
+                    {% if form.is_active.errors %}<div class="error-text">{{ form.is_active.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary" name="save" value="1">
+                    <i class="fas fa-save"></i> {{ button_text }}
+                </button>
+                {% if not question %}
+                <button type="submit" class="btn-outline" name="save_and_add" value="1">
+                    <i class="fas fa-plus"></i> Save & Add Another
+                </button>
+                {% endif %}
+                <a href="{% url 'academics:admin_question_list' %}" class="btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Live Preview -->
+        <div class="preview-card">
+            <h4><i class="fas fa-eye"></i> Live Preview</h4>
+
+            <span class="preview-badge medium" id="previewDifficulty">Medium</span>
+
+            <div class="preview-q" id="previewQuestion">
+                Your question will appear here as you type…
+            </div>
+
+            <div class="preview-opts">
+                <div class="preview-opt" data-preview="a">
+                    <span class="letter">A.</span>
+                    <span class="opt-text">Option A</span>
+                </div>
+                <div class="preview-opt" data-preview="b">
+                    <span class="letter">B.</span>
+                    <span class="opt-text">Option B</span>
+                </div>
+                <div class="preview-opt" data-preview="c">
+                    <span class="letter">C.</span>
+                    <span class="opt-text">Option C</span>
+                </div>
+                <div class="preview-opt" data-preview="d">
+                    <span class="letter">D.</span>
+                    <span class="opt-text">Option D</span>
+                </div>
+            </div>
+
+            <div class="preview-explanation" id="previewExplanation" style="display:none;">
+                <div class="lbl">💡 Explanation</div>
+                <div id="previewExplanationText">—</div>
+            </div>
+
+            <div style="font-size:0.68rem;color:#8a6a1a;margin-top:0.9rem;line-height:1.5;opacity:0.85;">
+                <i class="fas fa-info-circle"></i>
+                The correct option is highlighted in green.
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+(function() {
+    const inputQuestion = document.getElementById('{{ form.question_text.id_for_label }}');
+    const inputA = document.getElementById('{{ form.option_a.id_for_label }}');
+    const inputB = document.getElementById('{{ form.option_b.id_for_label }}');
+    const inputC = document.getElementById('{{ form.option_c.id_for_label }}');
+    const inputD = document.getElementById('{{ form.option_d.id_for_label }}');
+    const inputExpl = document.getElementById('{{ form.explanation.id_for_label }}');
+    const inputDiff = document.getElementById('{{ form.difficulty.id_for_label }}');
+
+    const previewQ = document.getElementById('previewQuestion');
+    const previewDiff = document.getElementById('previewDifficulty');
+    const previewExpl = document.getElementById('previewExplanation');
+    const previewExplText = document.getElementById('previewExplanationText');
+
+    const optMap = { a: inputA, b: inputB, c: inputC, d: inputD };
+
+    function syncPreview() {
+        // Question
+        const q = inputQuestion && inputQuestion.value.trim();
+        previewQ.textContent = q || 'Your question will appear here as you type…';
+
+        // Difficulty
+        if (inputDiff) {
+            const diff = inputDiff.value;
+            previewDiff.textContent = diff.charAt(0).toUpperCase() + diff.slice(1);
+            previewDiff.className = 'preview-badge ' + diff;
+        }
+
+        // Options
+        ['a', 'b', 'c', 'd'].forEach(function(k) {
+            const input = optMap[k];
+            const box = document.querySelector(`.preview-opt[data-preview="${k}"]`);
+            if (!input || !box) return;
+            const txt = input.value.trim();
+            box.querySelector('.opt-text').textContent = txt || ('Option ' + k.toUpperCase());
+        });
+
+        // Correct option highlight
+        const checked = document.querySelector('input[name="{{ form.correct_option.name }}"]:checked');
+        document.querySelectorAll('.preview-opt').forEach(function(box) {
+            box.classList.remove('correct');
+        });
+        document.querySelectorAll('.option-row').forEach(function(row) {
+            row.classList.remove('correct');
+        });
+        if (checked) {
+            const val = checked.value;
+            const prev = document.querySelector(`.preview-opt[data-preview="${val}"]`);
+            if (prev) prev.classList.add('correct');
+            const row = document.querySelector(`.option-row[data-option="${val}"]`);
+            if (row) row.classList.add('correct');
+        }
+
+        // Explanation
+        const expl = inputExpl && inputExpl.value.trim();
+        if (expl) {
+            previewExpl.style.display = 'block';
+            previewExplText.textContent = expl;
+        } else {
+            previewExpl.style.display = 'none';
+        }
+    }
+
+    [inputQuestion, inputA, inputB, inputC, inputD, inputExpl, inputDiff].forEach(function(el) {
+        if (el) {
+            el.addEventListener('input', syncPreview);
+            el.addEventListener('change', syncPreview);
+        }
+    });
+    document.querySelectorAll('input[name="{{ form.correct_option.name }}"]').forEach(function(r) {
+        r.addEventListener('change', syncPreview);
+    });
+
+    syncPreview();
+})();
+</script>
+
+{% endblock %}

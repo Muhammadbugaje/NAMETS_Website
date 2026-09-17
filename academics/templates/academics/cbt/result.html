@@ -1,0 +1,989 @@
+{% extends "base.html" %}
+{% load static %}
+{% load cbt_extras %}
+
+{% block title %}Your Result · CBT{% endblock %}
+
+{% block extra_css %}
+<style>
+html, body { overflow-x: hidden !important; }
+
+.cbt-result-page {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    background: #f2f5f4;
+    font-family: 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #0F3D2E;
+    position: relative;
+    box-sizing: border-box;
+}
+.cbt-result-page *,
+.cbt-result-page *::before,
+.cbt-result-page *::after {
+    box-sizing: border-box;
+}
+
+/* Confetti canvas — top level, fixed, above everything */
+#cbtConfettiCanvas {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    pointer-events: none !important;
+    z-index: 99999 !important;
+    display: block !important;
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.cbt-hero {
+    position: relative;
+    width: 100%;
+    padding: 2rem 1.5rem;
+    overflow: hidden;
+    border-radius: 0 0 22px 22px;
+}
+.cbt-hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(160deg, #0F3D2E 0%, #1a5a44 100%);
+}
+.cbt-hero::after {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+        radial-gradient(circle at 15% 25%, rgba(200,169,81,0.22) 0%, transparent 40%),
+        radial-gradient(circle at 85% 75%, rgba(200,169,81,0.15) 0%, transparent 40%);
+}
+.cbt-hero-inner {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 1100px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 2rem;
+    align-items: center;
+}
+
+.cbt-score-circle {
+    width: 130px; height: 130px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 4px solid rgba(200,169,81,0.5);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative;
+    box-shadow: 0 0 40px rgba(200,169,81,0.35);
+    flex-shrink: 0;
+}
+.cbt-score-circle svg {
+    position: absolute; inset: -4px;
+    width: calc(100% + 8px); height: calc(100% + 8px);
+    transform: rotate(-90deg); pointer-events: none;
+}
+.cbt-score-circle svg circle {
+    fill: none; stroke-width: 8; stroke-linecap: round;
+    transition: stroke-dashoffset 1.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.cbt-score-percent { font-size: 2.1rem; font-weight: 900; color: #fff; line-height: 1; letter-spacing: -0.03em; }
+.cbt-score-percent .pct { font-size: 1rem; color: #C8A951; }
+.cbt-score-fraction {
+    font-size: 0.68rem; color: rgba(255,255,255,0.65);
+    margin-top: 0.3rem; font-weight: 700; letter-spacing: 0.05em;
+}
+
+.cbt-hero-text { min-width: 0; }
+.cbt-band-label {
+    font-size: 1.5rem; font-weight: 800;
+    margin: 0 0 0.4rem;
+    display: flex; align-items: center; gap: 0.55rem;
+    color: #C8A951;
+    letter-spacing: -0.02em;
+}
+.cbt-band-label .bi { font-size: 1.35em; line-height: 1; }
+.cbt-band-message {
+    font-size: 0.92rem; color: rgba(255,255,255,0.85);
+    margin: 0 0 1.1rem; line-height: 1.55; max-width: 620px;
+}
+
+.cbt-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+    width: 100%;
+}
+.cbt-stat {
+    text-align: center;
+    padding: 0.6rem 0.4rem;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    min-width: 0;
+}
+.cbt-stat-num {
+    display: block; font-size: 1.1rem; font-weight: 800;
+    color: #C8A951; line-height: 1.1;
+}
+.cbt-stat-lbl {
+    font-size: 0.56rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: rgba(255,255,255,0.62);
+    margin-top: 0.2rem; display: block;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ============================================================
+   BODY
+   ============================================================ */
+.cbt-body {
+    display: block;
+    width: 100%;
+    max-width: 1100px;
+    margin: 1.5rem auto 0;
+    padding: 0 1.25rem;
+}
+
+.cbt-panel {
+    display: block;
+    width: 100%;
+    background: #fff;
+    border-radius: 18px;
+    padding: 1.4rem 1.55rem;
+    box-shadow: 0 6px 22px rgba(15,61,46,0.06);
+    margin: 0 0 1rem 0;
+}
+.cbt-panel:last-child { margin-bottom: 0; }
+.cbt-panel-title {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #8a6a1a;
+    margin: 0 0 1.1rem;
+}
+.cbt-panel-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent);
+}
+
+/* AI PANEL */
+.cbt-ai-panel {
+    background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 100%);
+    border: 1px solid rgba(200,169,81,0.35);
+    border-left: 5px solid #C8A951;
+    display: flex;
+    gap: 1.2rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.cbt-ai-avatar {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem; flex-shrink: 0;
+    box-shadow: 0 6px 18px rgba(15,61,46,0.2);
+}
+.cbt-ai-body { flex: 1 1 200px; min-width: 0; }
+.cbt-ai-title-row {
+    display: flex; align-items: baseline; gap: 0.75rem;
+    margin-bottom: 0.55rem; flex-wrap: wrap;
+}
+.cbt-ai-title { font-size: 0.94rem; font-weight: 800; color: #0F3D2E; }
+.cbt-ai-sub { font-size: 0.66rem; color: #8a6a1a; font-weight: 600; letter-spacing: 0.03em; }
+.cbt-ai-content { font-size: 0.9rem; color: #4a3a10; line-height: 1.7; word-wrap: break-word; }
+.cbt-ai-content p { margin: 0 0 0.6rem; }
+.cbt-ai-content p:last-child { margin-bottom: 0; }
+
+.cbt-ai-loading { display: flex; align-items: center; gap: 0.65rem; }
+.cbt-dot-loader { display: flex; gap: 0.3rem; }
+.cbt-dot-loader span {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #8a6a1a;
+    animation: cbtDotBounce 1.3s ease-in-out infinite;
+}
+.cbt-dot-loader span:nth-child(2) { animation-delay: 0.15s; }
+.cbt-dot-loader span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes cbtDotBounce {
+    0%,80%,100% { transform: translateY(0); opacity: 0.5; }
+    40% { transform: translateY(-6px); opacity: 1; }
+}
+.cbt-ai-loading-text { font-size: 0.85rem; color: #8a6a1a; font-style: italic; font-weight: 500; }
+
+/* BREAKDOWN */
+.cbt-breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; }
+.cbt-breakdown-subtitle {
+    font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #8a9b95;
+    margin-bottom: 0.7rem;
+}
+.cbt-breakdown-list { list-style: none; padding: 0; margin: 0; }
+.cbt-breakdown-item { margin-bottom: 0.7rem; }
+.cbt-breakdown-item:last-child { margin-bottom: 0; }
+.cbt-breakdown-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.3rem; font-size: 0.8rem; gap: 0.5rem;
+}
+.cbt-breakdown-lbl {
+    font-weight: 700; color: #0F3D2E; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cbt-breakdown-val { font-weight: 800; color: #8a6a1a; font-size: 0.78rem; flex-shrink: 0; }
+.cbt-breakdown-bar { height: 7px; background: #f0f4f2; border-radius: 4px; overflow: hidden; }
+.cbt-breakdown-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, #0F3D2E, #38a169);
+}
+.cbt-breakdown-fill.mid { background: linear-gradient(90deg, #d69e2e, #ecc94b); }
+.cbt-breakdown-fill.low { background: linear-gradient(90deg, #c0392b, #e53e3e); }
+
+.cbt-chip {
+    font-size: 0.62rem; font-weight: 700;
+    padding: 0.2rem 0.65rem; border-radius: 10px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    display: inline-block;
+}
+.cbt-chip.easy { background: #e8f2ec; color: #1a6b3c; }
+.cbt-chip.medium { background: #f5e9c8; color: #8a6a1a; }
+.cbt-chip.hard { background: #fdecea; color: #9b2c2c; }
+
+/* REVIEW */
+.cbt-review-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.15rem; flex-wrap: wrap; }
+.cbt-review-tab {
+    padding: 0.5rem 1.1rem; border-radius: 50px;
+    font-size: 0.76rem; font-weight: 700;
+    background: #f0f4f2; color: #8a9b95;
+    border: none; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.cbt-review-tab.active { background: #0F3D2E; color: #fff; }
+.cbt-review-tab .count {
+    background: rgba(200,169,81,0.3); color: inherit;
+    padding: 0.05rem 0.5rem; border-radius: 20px;
+    font-size: 0.66rem; font-weight: 800;
+}
+.cbt-review-tab.active .count { background: rgba(200,169,81,0.4); color: #fff; }
+
+.cbt-review-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 0.9rem;
+    align-items: start;
+}
+
+.cbt-review-item {
+    padding: 1.1rem 1.2rem;
+    background: #fdecea;
+    border-left: 4px solid #c0392b;
+    border-radius: 12px;
+    word-wrap: break-word;
+}
+.cbt-review-item.unanswered { background: #fef9ec; border-left-color: #d69e2e; }
+
+.cbt-review-badge {
+    display: inline-block;
+    font-size: 0.58rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #9b2c2c; background: rgba(192,57,43,0.1);
+    padding: 0.18rem 0.6rem; border-radius: 10px;
+    margin-bottom: 0.6rem;
+}
+.cbt-review-item.unanswered .cbt-review-badge { color: #8a6a1a; background: rgba(200,169,81,0.15); }
+
+.cbt-review-question {
+    font-size: 0.86rem; font-weight: 700;
+    color: #0F3D2E; line-height: 1.5;
+    margin: 0 0 0.7rem;
+}
+.cbt-review-answer {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    padding: 0.6rem 0.75rem; border-radius: 9px;
+    font-size: 0.8rem; line-height: 1.5;
+    background: #e8f2ec; color: #1a3c2e;
+    word-wrap: break-word;
+}
+.cbt-review-answer .row-icon {
+    flex-shrink: 0; font-weight: 800;
+    min-width: 18px; text-align: center; font-size: 0.86rem;
+}
+.cbt-review-answer .row-label {
+    font-weight: 800; text-transform: uppercase;
+    font-size: 0.58rem; letter-spacing: 0.05em;
+    margin-bottom: 0.15rem; opacity: 0.75;
+}
+.cbt-review-explanation {
+    background: #f8faf9;
+    border-left: 3px solid #8a6a1a;
+    border-radius: 9px;
+    padding: 0.6rem 0.8rem;
+    margin-top: 0.6rem;
+    font-size: 0.77rem;
+    color: #4a3a10;
+    line-height: 1.55;
+    word-wrap: break-word;
+}
+.cbt-review-explanation .lbl {
+    font-weight: 800; font-size: 0.6rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: #8a6a1a; margin-bottom: 0.25rem;
+}
+
+.cbt-review-empty { text-align: center; padding: 2rem 1rem; color: #8a9b95; font-size: 0.88rem; }
+.cbt-review-empty .ic { font-size: 2.5rem; display: block; margin-bottom: 0.4rem; opacity: 0.5; }
+.cbt-review-empty h3 { color: #0F3D2E; margin: 0.4rem 0 0.3rem; font-size: 1rem; }
+.cbt-review-empty p { margin: 0; }
+
+/* CLOSING */
+.cbt-closing {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    color: #fff; text-align: center;
+    padding: 1.4rem 1.25rem;
+    border-radius: 18px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 22px rgba(15,61,46,0.2);
+    width: 100%;
+}
+.cbt-closing::before {
+    content: '🤲'; position: absolute; bottom: -1rem; right: 1rem;
+    font-size: 5rem; opacity: 0.08;
+}
+.cbt-closing-arabic {
+    font-family: 'Amiri', serif;
+    font-size: 1.15rem; color: #C8A951;
+    line-height: 1.5; margin: 0 0 0.35rem;
+    position: relative;
+}
+.cbt-closing-translation {
+    font-size: 0.78rem; color: rgba(255,255,255,0.85);
+    font-style: italic; margin: 0; position: relative;
+}
+
+/* ACTIONS */
+.cbt-actions {
+    display: flex; gap: 0.65rem; flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+}
+.cbt-btn {
+    padding: 0.85rem 1.6rem; border-radius: 50px;
+    font-weight: 800; font-size: 0.85rem;
+    text-decoration: none; border: none; cursor: pointer;
+    font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    transition: all 0.22s ease;
+}
+.cbt-btn-primary {
+    background: #0F3D2E; color: #fff;
+    box-shadow: 0 6px 18px rgba(15,61,46,0.28);
+}
+.cbt-btn-ghost {
+    background: transparent; color: #0F3D2E;
+    border: 1.5px solid rgba(15,61,46,0.25);
+}
+@media (hover: hover) {
+    .cbt-btn-primary:hover { background: #1a5a44; color: #fff; transform: translateY(-2px); }
+    .cbt-btn-ghost:hover { background: #0F3D2E; color: #fff; border-color: #0F3D2E; }
+}
+
+/* MOBILE */
+@media (max-width: 780px) {
+    .cbt-hero-inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 1.1rem;
+    }
+    .cbt-score-circle { margin: 0 auto; }
+    .cbt-band-label { justify-content: center; }
+    .cbt-band-message { margin-left: auto; margin-right: auto; }
+}
+@media (max-width: 640px) {
+    .cbt-hero { padding: 1.25rem 0.9rem 1.4rem; border-radius: 0 0 18px 18px; }
+    .cbt-score-circle { width: 106px; height: 106px; border-width: 3px; }
+    .cbt-score-circle svg circle { stroke-width: 7; }
+    .cbt-score-percent { font-size: 1.75rem; }
+    .cbt-score-percent .pct { font-size: 0.85rem; }
+    .cbt-score-fraction { font-size: 0.62rem; }
+    .cbt-band-label { font-size: 1.15rem; gap: 0.4rem; }
+    .cbt-band-label .bi { font-size: 1.2em; }
+    .cbt-band-message { font-size: 0.82rem; margin-bottom: 1rem; }
+    .cbt-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+    .cbt-stat { padding: 0.55rem 0.4rem; border-radius: 10px; }
+    .cbt-stat-num { font-size: 1rem; }
+    .cbt-stat-lbl { font-size: 0.54rem; letter-spacing: 0.04em; }
+    .cbt-body {
+        max-width: 100%;
+        margin: 1rem 0 0;
+        padding: 0 0.75rem;
+        padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    }
+    .cbt-panel { padding: 1.15rem 1rem; border-radius: 14px; margin-bottom: 0.85rem; }
+    .cbt-panel-title { font-size: 0.68rem; margin-bottom: 0.9rem; letter-spacing: 0.08em; }
+    .cbt-ai-panel { flex-direction: column; gap: 0.85rem; padding: 1.15rem 1rem; }
+    .cbt-ai-avatar { width: 44px; height: 44px; border-radius: 12px; font-size: 1.15rem; }
+    .cbt-ai-title-row { flex-direction: column; align-items: flex-start; gap: 0.1rem; margin-bottom: 0.6rem; }
+    .cbt-ai-title { font-size: 0.9rem; }
+    .cbt-ai-sub { font-size: 0.62rem; }
+    .cbt-ai-content { font-size: 0.86rem; line-height: 1.65; }
+    .cbt-breakdown-grid { grid-template-columns: 1fr; gap: 1.1rem; }
+    .cbt-breakdown-subtitle { font-size: 0.62rem; margin-bottom: 0.55rem; }
+    .cbt-breakdown-head { font-size: 0.78rem; margin-bottom: 0.28rem; }
+    .cbt-breakdown-val { font-size: 0.76rem; }
+    .cbt-breakdown-item { margin-bottom: 0.6rem; }
+    .cbt-review-tabs { gap: 0.4rem; margin-bottom: 0.9rem; }
+    .cbt-review-tab { padding: 0.42rem 0.9rem; font-size: 0.72rem; }
+    .cbt-review-tab .count { font-size: 0.62rem; }
+    .cbt-review-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+    .cbt-review-item { padding: 1rem 1.05rem; border-radius: 12px; border-left-width: 3px; }
+    .cbt-review-badge { font-size: 0.56rem; margin-bottom: 0.5rem; }
+    .cbt-review-question { font-size: 0.85rem; margin-bottom: 0.65rem; }
+    .cbt-review-answer { font-size: 0.79rem; padding: 0.55rem 0.7rem; }
+    .cbt-review-answer .row-icon { font-size: 0.84rem; min-width: 16px; }
+    .cbt-review-answer .row-label { font-size: 0.56rem; }
+    .cbt-review-explanation { padding: 0.55rem 0.7rem; font-size: 0.76rem; margin-top: 0.55rem; }
+    .cbt-review-explanation .lbl { font-size: 0.56rem; }
+    .cbt-closing { padding: 1.15rem 1rem; border-radius: 14px; }
+    .cbt-closing::before { font-size: 3.5rem; bottom: -0.75rem; right: 0.75rem; }
+    .cbt-closing-arabic { font-size: 1rem; }
+    .cbt-closing-translation { font-size: 0.74rem; }
+    .cbt-actions {
+        position: fixed;
+        left: 0; right: 0; bottom: 0;
+        margin: 0;
+        background: #fff;
+        padding: 0.55rem 0.7rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -8px 24px rgba(15,61,46,0.14);
+        z-index: 500;
+        flex-wrap: nowrap;
+        gap: 0.45rem;
+        border-radius: 14px 14px 0 0;
+    }
+    .cbt-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        flex-direction: column;
+        gap: 0.18rem;
+        padding: 0.55rem 0.3rem;
+        border-radius: 11px;
+        font-size: 0.6rem;
+        white-space: nowrap;
+        justify-content: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .cbt-btn i { font-size: 1.05rem; }
+    .cbt-btn-ghost { border: none; background: #f0f4f2; }
+}
+@media (max-width: 380px) {
+    .cbt-score-circle { width: 96px; height: 96px; }
+    .cbt-score-percent { font-size: 1.5rem; }
+    .cbt-band-label { font-size: 1.05rem; }
+    .cbt-band-message { font-size: 0.78rem; }
+    .cbt-stat-num { font-size: 0.92rem; }
+    .cbt-stat-lbl { font-size: 0.5rem; }
+    .cbt-panel { padding: 1rem 0.85rem; }
+    .cbt-ai-avatar { width: 40px; height: 40px; font-size: 1.05rem; }
+    .cbt-review-item { padding: 0.85rem 0.85rem; }
+    .cbt-review-question { font-size: 0.82rem; }
+    .cbt-btn { font-size: 0.56rem; padding: 0.5rem 0.2rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Confetti canvas at top level so it can't be squeezed by any parent -->
+<canvas id="cbtConfettiCanvas"></canvas>
+
+<!-- CSRF form for AI report POST -->
+<form id="cbtCsrfForm" style="display:none;" aria-hidden="true">{% csrf_token %}</form>
+
+<div class="cbt-result-page" id="cbtResultPage">
+
+<!-- HERO -->
+<div class="cbt-hero">
+    <div class="cbt-hero-inner">
+
+        <div class="cbt-score-circle">
+            <svg viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="94" stroke="rgba(200,169,81,0.15)"
+                        stroke-dasharray="590.6" stroke-dashoffset="0"></circle>
+                <circle cx="100" cy="100" r="94" stroke="{{ band_meta.color }}"
+                        stroke-dasharray="590.6" stroke-dashoffset="590.6"
+                        id="cbtScoreRing"></circle>
+            </svg>
+            <div class="cbt-score-percent">
+                <span id="cbtScoreNum">0</span><span class="pct">%</span>
+            </div>
+            <div class="cbt-score-fraction">{{ result.score }}/{{ result.total }}</div>
+        </div>
+
+        <div class="cbt-hero-text">
+            <h1 class="cbt-band-label">
+                <span class="bi">{{ band_meta.icon }}</span>
+                <span style="color: {{ band_meta.color }};">{{ band_meta.label }}</span>
+            </h1>
+            <p class="cbt-band-message">{{ band_meta.message }}</p>
+
+            <div class="cbt-stats-grid">
+                <div class="cbt-stat"><span class="cbt-stat-num">{{ result.total }}</span><span class="cbt-stat-lbl">Questions</span></div>
+                <div class="cbt-stat"><span class="cbt-stat-num">{{ result.score }}</span><span class="cbt-stat-lbl">Correct</span></div>
+                <div class="cbt-stat"><span class="cbt-stat-num">{{ result.wrong_ids|length }}</span><span class="cbt-stat-lbl">Wrong</span></div>
+                <div class="cbt-stat"><span class="cbt-stat-num">{{ result.time_taken_seconds|floatformat:0 }}</span><span class="cbt-stat-lbl">Sec</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BODY -->
+<div class="cbt-body">
+
+    {% if ai_report_enabled %}
+    <div class="cbt-panel cbt-ai-panel">
+        <div class="cbt-ai-avatar">🤖</div>
+        <div class="cbt-ai-body">
+            <div class="cbt-ai-title-row">
+                <span class="cbt-ai-title">Your Personalized Report</span>
+                <span class="cbt-ai-sub">AI · based on your performance</span>
+            </div>
+            <div class="cbt-ai-content" id="cbtAiContent">
+                <div class="cbt-ai-loading">
+                    <div class="cbt-dot-loader"><span></span><span></span><span></span></div>
+                    <div class="cbt-ai-loading-text" id="cbtAiLoadingText">Analyzing your answers…</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if result.per_difficulty or result.per_topic %}
+    <div class="cbt-panel">
+        <h3 class="cbt-panel-title"><i class="fas fa-chart-bar"></i> Performance Breakdown</h3>
+        <div class="cbt-breakdown-grid">
+            {% if result.per_difficulty %}
+            <div>
+                <div class="cbt-breakdown-subtitle">By Difficulty</div>
+                <ul class="cbt-breakdown-list">
+                    {% for diff, d in result.per_difficulty.items %}
+                    {% if d.total > 0 %}
+                    <li class="cbt-breakdown-item">
+                        <div class="cbt-breakdown-head">
+                            <span class="cbt-breakdown-lbl"><span class="cbt-chip {{ diff }}">{{ diff|title }}</span></span>
+                            <span class="cbt-breakdown-val">{{ d.correct }}/{{ d.total }}</span>
+                        </div>
+                        {% widthratio d.correct d.total 100 as pct %}
+                        <div class="cbt-breakdown-bar">
+                            <div class="cbt-breakdown-fill {% if pct < 50 %}low{% elif pct < 75 %}mid{% endif %}"
+                                 style="width: {{ pct }}%;"></div>
+                        </div>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            {% if result.per_topic %}
+            <div>
+                <div class="cbt-breakdown-subtitle">By Topic</div>
+                <ul class="cbt-breakdown-list">
+                    {% for topic, d in result.per_topic.items %}
+                    {% if d.total > 0 %}
+                    <li class="cbt-breakdown-item">
+                        <div class="cbt-breakdown-head">
+                            <span class="cbt-breakdown-lbl">{{ topic|truncatechars:24 }}</span>
+                            <span class="cbt-breakdown-val">{{ d.correct }}/{{ d.total }}</span>
+                        </div>
+                        {% widthratio d.correct d.total 100 as pct %}
+                        <div class="cbt-breakdown-bar">
+                            <div class="cbt-breakdown-fill {% if pct < 50 %}low{% elif pct < 75 %}mid{% endif %}"
+                                 style="width: {{ pct }}%;"></div>
+                        </div>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if show_answers %}
+        {% if wrong_questions or unanswered_questions %}
+        <div class="cbt-panel">
+            <h3 class="cbt-panel-title"><i class="fas fa-search"></i> Review Your Answers</h3>
+
+            <div class="cbt-review-tabs">
+                {% if wrong_questions %}
+                <button type="button" class="cbt-review-tab active" data-target="wrong">
+                    <i class="fas fa-times-circle"></i> Wrong
+                    <span class="count">{{ wrong_questions|length }}</span>
+                </button>
+                {% endif %}
+                {% if unanswered_questions %}
+                <button type="button" class="cbt-review-tab {% if not wrong_questions %}active{% endif %}" data-target="unanswered">
+                    <i class="fas fa-minus-circle"></i> Unanswered
+                    <span class="count">{{ unanswered_questions|length }}</span>
+                </button>
+                {% endif %}
+            </div>
+
+            {% if wrong_questions %}
+            <div id="cbtPanelWrong">
+                <div class="cbt-review-grid">
+                    {% for q in wrong_questions %}
+                    <div class="cbt-review-item">
+                        <div class="cbt-review-badge">Wrong · {{ q.difficulty|title }}</div>
+                        <div class="cbt-review-question">{{ q.question_text }}</div>
+                        <div class="cbt-review-answer">
+                            <span class="row-icon">✓</span>
+                            <div>
+                                <div class="row-label">Correct</div>
+                                <strong>{{ q.correct_option|upper }}.</strong> {{ q|get_option_text:q.correct_option }}
+                            </div>
+                        </div>
+                        {% if q.explanation %}
+                        <div class="cbt-review-explanation">
+                            <div class="lbl">💡 Why</div>
+                            {{ q.explanation }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if unanswered_questions %}
+            <div id="cbtPanelUnanswered" {% if wrong_questions %}style="display:none;"{% endif %}>
+                <div class="cbt-review-grid">
+                    {% for q in unanswered_questions %}
+                    <div class="cbt-review-item unanswered">
+                        <div class="cbt-review-badge">Unanswered · {{ q.difficulty|title }}</div>
+                        <div class="cbt-review-question">{{ q.question_text }}</div>
+                        <div class="cbt-review-answer">
+                            <span class="row-icon">✓</span>
+                            <div>
+                                <div class="row-label">Correct</div>
+                                <strong>{{ q.correct_option|upper }}.</strong> {{ q|get_option_text:q.correct_option }}
+                            </div>
+                        </div>
+                        {% if q.explanation %}
+                        <div class="cbt-review-explanation">
+                            <div class="lbl">💡 Why</div>
+                            {{ q.explanation }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="cbt-panel">
+            <h3 class="cbt-panel-title"><i class="fas fa-star"></i> Review</h3>
+            <div class="cbt-review-empty">
+                <span class="ic">🎉</span>
+                <h3>Perfect Score!</h3>
+                <p>You answered every question correctly. MashaAllah!</p>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <div class="cbt-closing">
+        <div class="cbt-closing-arabic">وَقُل رَّبِّ زِدْنِي عِلْمًا</div>
+        <p class="cbt-closing-translation">"My Lord, increase me in knowledge." — Ta-Ha 20:114</p>
+    </div>
+
+    <div class="cbt-actions">
+        {% if allow_retake %}
+        <a href="{% url 'academics:cbt_retake' %}" class="cbt-btn cbt-btn-primary">
+            <i class="fas fa-redo"></i> Take Another Test
+        </a>
+        {% endif %}
+        <a href="{% url 'academics:cbt_home' %}" class="cbt-btn cbt-btn-ghost">
+            <i class="fas fa-home"></i> CBT Home
+        </a>
+    </div>
+</div>
+
+</div>
+
+<script>
+// ============================================================
+//  ESCAPE PARENT CONTAINER
+// ============================================================
+(function() {
+    const page = document.getElementById('cbtResultPage');
+    if (!page) return;
+    function escape() {
+        const vw = document.documentElement.clientWidth;
+        let p = page.parentElement, safety = 0;
+        while (p && p !== document.body && safety < 15) {
+            const w = p.getBoundingClientRect().width;
+            if (w < vw * 0.96) {
+                p.style.setProperty('max-width', 'none', 'important');
+                p.style.setProperty('width', 'auto', 'important');
+                p.style.setProperty('margin-left', '0', 'important');
+                p.style.setProperty('margin-right', '0', 'important');
+                const ps = window.getComputedStyle(p);
+                if (parseFloat(ps.paddingLeft) > 4) {
+                    p.style.setProperty('padding-left', '0', 'important');
+                    p.style.setProperty('padding-right', '0', 'important');
+                }
+            }
+            p = p.parentElement;
+            safety++;
+        }
+        page.style.setProperty('width', vw + 'px', 'important');
+        page.style.setProperty('max-width', vw + 'px', 'important');
+        const rect = page.getBoundingClientRect();
+        if (rect.left > 0.5 || rect.left < -0.5) {
+            page.style.setProperty('margin-left', (-rect.left) + 'px', 'important');
+            page.style.setProperty('margin-right', '0', 'important');
+        }
+    }
+    requestAnimationFrame(escape);
+    setTimeout(escape, 60);
+    setTimeout(escape, 250);
+    setTimeout(escape, 700);
+    let rt;
+    window.addEventListener('resize', function() {
+        clearTimeout(rt);
+        rt = setTimeout(escape, 80);
+    });
+})();
+
+function getCSRFToken() {
+    const inp = document.querySelector('#cbtCsrfForm input[name="csrfmiddlewaretoken"]');
+    if (inp && inp.value) return inp.value;
+    const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+}
+
+// ============================================================
+//  SCORE ANIMATION
+// ============================================================
+(function() {
+    const targetPct = {{ result.percentage }};
+    const scoreNum = document.getElementById('cbtScoreNum');
+    const ring = document.getElementById('cbtScoreRing');
+    if (!scoreNum || !ring) return;
+    const CIRC = 590.6;
+    const startTime = performance.now();
+    function tick(now) {
+        const progress = Math.min((now - startTime) / 1400, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        scoreNum.textContent = Math.round(targetPct * eased);
+        if (progress < 1) requestAnimationFrame(tick);
+        else scoreNum.textContent = Math.round(targetPct);
+    }
+    requestAnimationFrame(tick);
+    setTimeout(function() {
+        ring.style.strokeDashoffset = CIRC - (CIRC * targetPct / 100);
+    }, 200);
+})();
+
+// ============================================================
+//  CONFETTI — exactly 4 seconds
+// ============================================================
+(function() {
+    const band = '{{ result.band }}';
+    // Show for excellent, good, and passed bands
+    if (!(band === 'excellent' || band === 'good')) return;
+
+    const canvas = document.getElementById('cbtConfettiCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W = window.innerWidth, H = window.innerHeight;
+    canvas.width = W; canvas.height = H;
+
+    window.addEventListener('resize', function() {
+        W = window.innerWidth; H = window.innerHeight;
+        canvas.width = W; canvas.height = H;
+    });
+
+    const colors = ['#C8A951', '#E0C96E', '#0F3D2E', '#38a169', '#2D7D5A', '#f5e9c8', '#a78bfa'];
+
+    const DURATION = 4000;                 // ← exactly 4 seconds
+    const TOTAL_PARTICLES = 320;
+
+    const particles = [];
+
+    function spawn(spawnTop) {
+        const str = Math.random() > 0.6;
+        return {
+            x: Math.random() * W,
+            y: spawnTop ? -20 - Math.random() * H * 0.5 : H + 20,
+            w: str ? 4 + Math.random() * 3 : 6 + Math.random() * 8,
+            h: str ? 16 + Math.random() * 14 : 8 + Math.random() * 8,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            vy: spawnTop ? 2 + Math.random() * 3 : -(6 + Math.random() * 6),
+            vx: -1.5 + Math.random() * 3,
+            rot: Math.random() * Math.PI * 2,
+            rotSpeed: -0.25 + Math.random() * 0.5,
+            shape: str ? 'streamer' : (Math.random() > 0.5 ? 'rect' : 'circle'),
+        };
+    }
+
+    // Initial burst: 60% from top, 40% burst from bottom
+    for (let i = 0; i < TOTAL_PARTICLES; i++) {
+        particles.push(spawn(i < TOTAL_PARTICLES * 0.6));
+    }
+
+    const start = performance.now();
+    const stop = start + DURATION;
+    let rafId = null;
+    let finished = false;
+
+    function finish() {
+        if (finished) return;
+        finished = true;
+        if (rafId) cancelAnimationFrame(rafId);
+        ctx.clearRect(0, 0, W, H);
+        canvas.width = 1; canvas.height = 1;
+        canvas.style.display = 'none';
+    }
+
+    function draw(now) {
+        if (finished) return;
+        if (now > stop) { finish(); return; }
+
+        ctx.clearRect(0, 0, W, H);
+
+        // Fade out over the last 900ms
+        const remaining = stop - now;
+        ctx.globalAlpha = Math.min(1, remaining / 900);
+
+        // Top-up new confetti during the first 60% of the animation
+        if (now - start < DURATION * 0.6 && Math.random() < 0.35) {
+            particles.push(spawn(true));
+        }
+
+        particles.forEach(function(c) {
+            c.x += c.vx;
+            c.y += c.vy;
+            c.rot += c.rotSpeed;
+            c.vy += 0.06;   // gravity
+            c.vx *= 0.995;  // drag
+
+            // Skip if far off-screen
+            if (c.y > H + 40 || c.y < -80) return;
+            if (c.x > W + 40 || c.x < -40) return;
+
+            ctx.save();
+            ctx.translate(c.x, c.y);
+            ctx.rotate(c.rot);
+            ctx.fillStyle = c.color;
+
+            if (c.shape === 'rect') {
+                ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
+            } else if (c.shape === 'streamer') {
+                ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h * 0.35);
+            } else {
+                ctx.beginPath();
+                ctx.arc(0, 0, c.w / 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        });
+
+        ctx.globalAlpha = 1;
+        rafId = requestAnimationFrame(draw);
+    }
+    rafId = requestAnimationFrame(draw);
+
+    // Failsafe — stop at exactly 4000ms + a tiny grace period
+    setTimeout(finish, DURATION + 200);
+})();
+
+// ============================================================
+//  AI REPORT
+// ============================================================
+{% if ai_report_enabled %}
+(function() {
+    const content = document.getElementById('cbtAiContent');
+    const loadingText = document.getElementById('cbtAiLoadingText');
+    if (!content) return;
+
+    const SERVER_DATA = {
+        percentage: {{ result.percentage }},
+        score: {{ result.score }},
+        total: {{ result.total }},
+        studentName: "{{ test.student_name|escapejs }}",
+    };
+
+    const messages = ['Analyzing your answers…','Preparing your personalized feedback…','Bismillah — generating your report…','Looking at your strengths…','Almost there…'];
+    let mi = 0;
+    const msgTimer = setInterval(() => {
+        mi = (mi + 1) % messages.length;
+        if (loadingText) loadingText.textContent = messages[mi];
+    }, 2000);
+
+    function escapeHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function renderReport(text) {
+        const paras = String(text).split(/\n\n+/).filter(Boolean);
+        content.innerHTML = paras.map(p => '<p>' + escapeHtml(p) + '</p>').join('');
+    }
+    function buildClientFallback() {
+        const { percentage: pct, score, total, studentName } = SERVER_DATA;
+        const pre = studentName ? studentName + ', ' : '';
+        let intro, closing;
+        if (pct >= 90) { intro = `${pre}MashaAllah — an excellent result.`; closing = "Help a friend or junior with this topic — teaching cements understanding."; }
+        else if (pct >= 75) { intro = `${pre}Great work — a strong performance.`; closing = "Review the questions you missed and try similar ones."; }
+        else if (pct >= 60) { intro = `${pre}Good effort — you're on the right track.`; closing = "Focus on the topics where you lost the most marks, then retake in a few days."; }
+        else if (pct >= 40) { intro = `${pre}Not bad — a bit more practice and you'll improve quickly.`; closing = "Pick the two weakest topics and study them properly this week."; }
+        else { intro = `${pre}Don't be discouraged — every attempt is a step forward.`; closing = "Start with the basics — read through your notes, then try again."; }
+        return `${intro}\n\nYou scored ${score}/${total} (${pct.toFixed(0)}%).\n\n${closing}`;
+    }
+
+    const token = getCSRFToken();
+    if (!token) { clearInterval(msgTimer); renderReport(buildClientFallback()); return; }
+
+    fetch('{% url "academics:cbt_ai_report" %}', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'X-CSRFToken': token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+    })
+    .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+    .catch(() => null)
+    .then(data => {
+        clearInterval(msgTimer);
+        let text = '';
+        if (typeof data === 'string') text = data;
+        else if (data) text = data.report || data.fallback || data.text || data.message || data.content || '';
+        if (!text || !String(text).trim()) text = buildClientFallback();
+        renderReport(text);
+    })
+    .catch(() => { clearInterval(msgTimer); renderReport(buildClientFallback()); });
+})();
+{% endif %}
+
+// ============================================================
+//  REVIEW TABS
+// ============================================================
+(function() {
+    const tabs = document.querySelectorAll('.cbt-review-tab');
+    const panels = {
+        wrong: document.getElementById('cbtPanelWrong'),
+        unanswered: document.getElementById('cbtPanelUnanswered'),
+    };
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const target = tab.dataset.target;
+            Object.keys(panels).forEach(k => {
+                if (panels[k]) panels[k].style.display = (k === target) ? 'block' : 'none';
+            });
+        });
+    });
+})();
+</script>
+
+{% endblock %}

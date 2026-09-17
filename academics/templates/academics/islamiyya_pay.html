@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Complete Payment · Islamiyya{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/global.css' %}">
+<style>
+.pay-page {
+    max-width: 720px; margin: 0 auto; padding: 24px 16px;
+}
+
+.pay-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px; padding: 2rem 1.75rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 12px 36px rgba(15,61,46,0.25);
+    color: #fff; text-align: center;
+}
+.pay-hero::before {
+    content: "💳"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1rem;
+    opacity: 0.08;
+}
+.pay-hero .eyebrow {
+    display: inline-block; font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.9rem; border-radius: 20px; margin-bottom: 0.6rem;
+    letter-spacing: 0.08em;
+}
+.pay-hero h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.35rem; }
+.pay-hero p { font-size: 0.88rem; color: rgba(255,255,255,0.8); margin: 0; }
+
+.pay-amount {
+    display: inline-block; margin-top: 1rem;
+    background: rgba(200,169,81,0.2);
+    border: 2px solid rgba(200,169,81,0.5);
+    padding: 0.6rem 1.5rem; border-radius: 50px;
+    font-size: 1.4rem; font-weight: 800; color: #E0C96E;
+    letter-spacing: -0.02em;
+}
+
+.summary-card {
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(200,169,81,0.25);
+    border-radius: 18px; padding: 1.35rem 1.5rem;
+    margin-bottom: 1.25rem;
+}
+.summary-card h3 {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a6a1a; font-weight: 700; margin: 0 0 0.85rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.summary-card h3::after {
+    content: ''; flex: 1; height: 1px; background: rgba(200,169,81,0.3);
+}
+.summary-row {
+    display: flex; justify-content: space-between;
+    padding: 0.45rem 0; font-size: 0.88rem;
+    border-bottom: 1px dashed rgba(0,0,0,0.05);
+}
+.summary-row:last-child { border-bottom: none; }
+.summary-row .lbl { color: #8a9b95; font-weight: 500; }
+.summary-row .val { color: #0F3D2E; font-weight: 600; text-align: right; word-break: break-word; }
+.summary-row.total { border-top: 2px solid rgba(200,169,81,0.3); padding-top: 0.75rem; margin-top: 0.5rem; }
+.summary-row.total .lbl { font-weight: 700; color: #0F3D2E; font-size: 0.95rem; }
+.summary-row.total .val { font-size: 1.1rem; font-weight: 800; }
+
+/* Payment option cards */
+.pay-options {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;
+}
+.pay-option {
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(200,169,81,0.25);
+    border-radius: 18px; padding: 1.5rem 1.25rem;
+    text-align: center; cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+}
+.pay-option:hover {
+    border-color: var(--gold, #C8A951);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(15,61,46,0.12);
+}
+.pay-option .opt-icon {
+    width: 56px; height: 56px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; margin-bottom: 0.3rem;
+}
+.pay-option.paystack .opt-icon { background: #e6f0fb; color: #185fa5; }
+.pay-option.manual .opt-icon { background: #fef3e8; color: #a8671a; }
+.pay-option .opt-title { font-size: 0.95rem; font-weight: 700; color: #0F3D2E; }
+.pay-option .opt-sub { font-size: 0.78rem; color: #5A5A5A; line-height: 1.5; }
+.pay-option .opt-btn {
+    margin-top: 0.5rem; padding: 0.55rem 1.5rem;
+    border-radius: 50px; font-weight: 700; font-size: 0.82rem;
+    border: none; cursor: pointer; font-family: inherit;
+    transition: all 0.2s;
+}
+.pay-option.paystack .opt-btn { background: var(--gold, #C8A951); color: #0F3D2E; }
+.pay-option.paystack .opt-btn:hover { background: #E0C96E; transform: translateY(-1px); }
+.pay-option.manual .opt-btn {
+    background: #fff; color: #a8671a;
+    border: 1.5px solid rgba(168,103,26,0.35);
+}
+.pay-option.manual .opt-btn:hover { background: #fef3e8; }
+
+.secure-note {
+    text-align: center; font-size: 0.75rem; color: #8a9b95;
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.4rem; margin-top: 1rem;
+}
+.secure-note i { color: #C8A951; }
+
+@media (max-width: 640px) {
+    .pay-options { grid-template-columns: 1fr; }
+    .pay-hero h1 { font-size: 1.25rem; }
+    .pay-amount { font-size: 1.2rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pay-page">
+
+    <div class="pay-hero">
+        <span class="eyebrow">Islamiyya Registration</span>
+        <h1>Complete Your Payment</h1>
+        <p>Choose how you'd like to pay the registration fee.</p>
+        <div class="pay-amount">₦{{ amount_display }}</div>
+    </div>
+
+    <div class="summary-card">
+        <h3>Registration Summary</h3>
+        <div class="summary-row">
+            <span class="lbl">Student</span>
+            <span class="val">{{ registration.name }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="lbl">Application ID</span>
+            <span class="val">{{ registration.application_id }}</span>
+        </div>
+        {% if settings %}
+        <div class="summary-row">
+            <span class="lbl">Session</span>
+            <span class="val">{{ settings.academic_session }}</span>
+        </div>
+        {% endif %}
+        <div class="summary-row total">
+            <span class="lbl">Amount Due</span>
+            <span class="val">₦{{ amount_display }}</span>
+        </div>
+    </div>
+
+    <div class="pay-options">
+        <!-- Online / Paystack -->
+        <div class="pay-option paystack">
+            <div class="opt-icon">💳</div>
+            <div class="opt-title">Pay Online</div>
+            <div class="opt-sub">
+                Instant verification. Pay with card, bank transfer, or USSD via Paystack.
+            </div>
+            <button type="button" class="opt-btn" onclick="payWithPaystack()">
+                <i class="fas fa-lock"></i> Pay ₦{{ amount_display }}
+            </button>
+        </div>
+
+        <!-- Manual / Mosque -->
+        <div class="pay-option manual">
+            <div class="opt-icon">🕌</div>
+            <div class="opt-title">Pay at Mosque</div>
+            <div class="opt-sub">
+                Visit the Imam's Office with your slip. Pay cash, get verified on the spot.
+            </div>
+            <form method="post" action="{% url 'academics:islamiyya_payment_manual' registration.application_id %}" style="display:block;">
+                {% csrf_token %}
+                <button type="submit" class="opt-btn">
+                    <i class="fas fa-arrow-right"></i> Show Mosque Instructions
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="secure-note">
+        <i class="fas fa-shield-alt"></i> Online payments are secured by Paystack
+    </div>
+</div>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+function payWithPaystack() {
+    var handler = PaystackPop.setup({
+        key: '{{ paystack_public_key }}',
+        email: '{{ registration.email }}',
+        amount: {{ amount }},
+        currency: 'NGN',
+        ref: '{{ reference }}',
+        metadata: {
+            custom_fields: [
+                { display_name: "Student Name", variable_name: "student_name", value: "{{ registration.name|escapejs }}" },
+                { display_name: "Application ID", variable_name: "app_id", value: "{{ registration.application_id }}" }
+            ]
+        },
+        callback: function(response) {
+            window.location.href = '{{ callback_url }}?reference=' + response.reference;
+        },
+        onClose: function() {
+            // Just silently close; the user can retry
+        }
+    });
+    handler.openIframe();
+}
+</script>
+{% endblock %}

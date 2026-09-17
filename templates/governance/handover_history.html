@@ -1,0 +1,266 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Handover History · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.history-wrap { max-width: 900px; margin: 0 auto; }
+
+.history-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.history-back:hover { text-decoration: underline; }
+
+.history-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22);
+}
+.history-head::before {
+    content: "📖"; font-size: 6rem;
+    position: absolute; bottom: -1.2rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.history-head-inner { position: relative; z-index: 1; }
+.history-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.history-head h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.3rem; }
+.history-head p { color: rgba(255,255,255,0.75); font-size: 0.88rem; margin: 0; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 2.5rem; }
+.timeline::before {
+    content: ''; position: absolute;
+    left: 0.95rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px;
+    background: linear-gradient(180deg, #C8A951 0%, rgba(200,169,81,0.2) 100%);
+}
+
+.tl-item {
+    position: relative;
+    margin-bottom: 1.75rem;
+}
+.tl-item:last-child { margin-bottom: 0; }
+
+.tl-dot {
+    position: absolute;
+    left: -1.85rem; top: 0.35rem;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    border: 3px solid #C8A951;
+    box-shadow: 0 0 0 4px rgba(200,169,81,0.15);
+    display: flex; align-items: center; justify-content: center;
+}
+.tl-dot::after {
+    content: ''; width: 6px; height: 6px;
+    border-radius: 50%; background: #C8A951;
+}
+
+.tl-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 1.35rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s;
+}
+.tl-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: rgba(200,169,81,0.4);
+    transform: translateX(4px);
+}
+
+.tl-head {
+    display: flex; justify-content: space-between;
+    align-items: flex-start; gap: 1rem;
+    margin-bottom: 0.85rem; flex-wrap: wrap;
+}
+.tl-date {
+    font-size: 0.88rem; font-weight: 800;
+    color: #0F3D2E;
+    display: flex; align-items: center; gap: 0.4rem;
+}
+.tl-date i { color: #C8A951; }
+.tl-user {
+    font-size: 0.75rem; color: #8a9b95;
+    margin-top: 0.15rem;
+}
+
+.tl-sessions {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+}
+.session-tag {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.3rem 0.85rem;
+    border-radius: 50px;
+    font-size: 0.72rem; font-weight: 700;
+    background: #f0f4f2;
+    color: #4a5568;
+}
+.session-tag.ending { background: #fdecea; color: #9b2c2c; }
+.session-tag.starting { background: #e8f2ec; color: #1a6b3c; }
+
+.tl-stats {
+    display: flex; gap: 1.5rem; flex-wrap: wrap;
+    padding: 0.75rem 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.tl-stat {
+    display: flex; align-items: center; gap: 0.55rem;
+}
+.tl-stat .num {
+    font-size: 1.35rem; font-weight: 800;
+    line-height: 1;
+}
+.tl-stat.dissolved .num { color: #c0392b; }
+.tl-stat.protected .num { color: #185fa5; }
+.tl-stat .lbl {
+    font-size: 0.72rem; color: #8a9b95;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    font-weight: 700;
+}
+
+.tl-notes {
+    font-size: 0.82rem; color: #5A5A5A;
+    line-height: 1.55; margin: 0.75rem 0 0;
+    padding: 0.7rem 1rem;
+    background: #f8faf9;
+    border-radius: 10px;
+    border-left: 3px solid #C8A951;
+    font-style: italic;
+}
+
+.empty-state {
+    text-align: center; padding: 5rem 1.5rem;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 2px dashed rgba(200,169,81,0.35);
+    border-radius: 20px;
+}
+.empty-state .ic { font-size: 4rem; display: block; margin-bottom: 0.85rem; opacity: 0.5; }
+.empty-state h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1.1rem; }
+.empty-state p { color: #8a9b95; font-size: 0.88rem; margin: 0; max-width: 400px; margin: 0 auto; }
+
+.pagination { margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap; }
+.pagination a, .pagination .current {
+    min-width: 38px; height: 38px; padding: 0 0.8rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.82rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: #0F3D2E;
+}
+.pagination a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pagination .current { background: var(--primary); color: #C8A951; border-color: var(--primary); }
+
+@media (max-width: 640px) {
+    .history-head { padding: 1.35rem 1.35rem 1.25rem; }
+    .history-head h1 { font-size: 1.25rem; }
+    .timeline { padding-left: 2rem; }
+    .tl-card { padding: 1.15rem 1.25rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="history-wrap">
+
+    <a href="{% url 'governance:dashboard' %}" class="history-back">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <div class="history-head">
+        <div class="history-head-inner">
+            <span class="history-eyebrow">Governance · Handover</span>
+            <h1>Handover History</h1>
+            <p>Every EXCO dissolve that has ever been executed, in order.</p>
+        </div>
+    </div>
+
+    {% if logs %}
+    <div class="timeline">
+        {% for log in logs %}
+        <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+                <div class="tl-head">
+                    <div>
+                        <div class="tl-date">
+                            <i class="far fa-calendar-alt"></i>
+                            {{ log.timestamp|date:"l, F j, Y" }}
+                        </div>
+                        <div class="tl-user">
+                            <i class="fas fa-user-tie"></i>
+                            Initiated by {{ log.initiated_by.get_full_name|default:log.initiated_by.username|default:"System" }}
+                            · {{ log.timestamp|date:"H:i" }}
+                        </div>
+                    </div>
+                </div>
+
+                {% if log.session_ending or log.session_starting %}
+                <div class="tl-sessions">
+                    {% if log.session_ending %}
+                    <span class="session-tag ending">
+                        <i class="fas fa-flag-checkered"></i> Ended {{ log.session_ending }}
+                    </span>
+                    {% endif %}
+                    {% if log.session_starting %}
+                    <span class="session-tag starting">
+                        <i class="fas fa-play-circle"></i> Started {{ log.session_starting }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="tl-stats">
+                    <div class="tl-stat dissolved">
+                        <div class="num">{{ log.dissolved_count }}</div>
+                        <div class="lbl">Dissolved</div>
+                    </div>
+                    <div class="tl-stat protected">
+                        <div class="num">{{ log.protected_skipped }}</div>
+                        <div class="lbl">Protected</div>
+                    </div>
+                </div>
+
+                {% if log.notes %}
+                <div class="tl-notes">{{ log.notes }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="ic">📖</span>
+        <h3>No handovers yet</h3>
+        <p>When you execute an EXCO handover, the record will appear here as a timeline.</p>
+    </div>
+    {% endif %}
+
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">‹</a>
+        {% endif %}
+        <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">›</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

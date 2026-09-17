@@ -1,0 +1,327 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Edit {{ profile.display_name }} · NAMETS Alumni{% endblock %}
+
+{% block extra_css %}
+<style>
+.edit-wrap { max-width: 800px; margin: 0 auto; }
+.edit-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.edit-back:hover { text-decoration: underline; }
+
+.edit-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 20px;
+    padding: 1.75rem 1.9rem;
+    margin-bottom: 1.25rem;
+    color: #fff;
+    position: relative; overflow: hidden;
+}
+.edit-head::before {
+    content: "✏️"; font-size: 6rem;
+    position: absolute; right: 1.5rem; top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.1; pointer-events: none;
+}
+.edit-head h1 { margin: 0 0 0.35rem; font-size: 1.35rem; font-weight: 800; }
+.edit-head p { margin: 0; font-size: 0.85rem; color: rgba(255,255,255,0.82); }
+
+.edit-form { display: flex; flex-direction: column; gap: 1.15rem; }
+
+.form-section {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 1.4rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+.form-section h2 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--gold);
+    margin: 0 0 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.form-section h2::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.35), transparent);
+}
+.form-section .hint {
+    font-size: 0.75rem; color: #8a9b95;
+    margin: -0.5rem 0 0.9rem;
+}
+
+.field { margin-bottom: 1rem; }
+.field:last-child { margin-bottom: 0; }
+.field label {
+    display: block;
+    font-size: 0.78rem; font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.35rem;
+}
+.field label .req { color: #dc3545; margin-left: 2px; }
+.field input[type="text"],
+.field input[type="email"],
+.field input[type="tel"],
+.field input[type="url"],
+.field input[type="number"],
+.field textarea,
+.field select {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+.field textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
+.field input:focus, .field textarea:focus, .field select:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.15);
+}
+.field .helper {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.35rem;
+}
+
+/* Two-column rows */
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+@media (max-width: 640px) { .field-row { grid-template-columns: 1fr; } }
+
+/* Photo upload */
+.photo-row {
+    display: flex; align-items: center; gap: 1.1rem;
+    flex-wrap: wrap;
+}
+.photo-preview {
+    width: 90px; height: 90px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.9rem; font-weight: 800;
+    border: 3px solid #C8A951;
+    overflow: hidden; flex-shrink: 0;
+    box-shadow: 0 8px 20px rgba(15,61,46,0.18);
+}
+.photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.photo-input { flex: 1; min-width: 200px; }
+.photo-input input[type="file"] {
+    font-size: 0.82rem;
+    padding: 0.5rem;
+    border: 1px dashed #c0c9c6;
+    border-radius: 10px;
+    width: 100%;
+    background: #fafbfb;
+    cursor: pointer;
+}
+.photo-input input[type="file"]::file-selector-button {
+    background: #0F3D2E; color: #fff;
+    border: none; padding: 0.4rem 0.9rem;
+    border-radius: 6px; font-size: 0.78rem;
+    font-weight: 600; cursor: pointer;
+    margin-right: 0.6rem;
+    font-family: inherit;
+}
+.photo-input .helper { margin-top: 0.35rem; }
+
+/* Social grid */
+.social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+@media (max-width: 640px) { .social-grid { grid-template-columns: 1fr; } }
+.social-field { position: relative; }
+.social-field i {
+    position: absolute; left: 0.85rem; top: 50%;
+    transform: translateY(-50%);
+    color: #8a9b95; font-size: 0.85rem; pointer-events: none;
+}
+.social-field input { padding-left: 2.4rem; }
+
+/* Actions */
+.form-actions {
+    display: flex; justify-content: flex-end; gap: 0.6rem;
+    padding-top: 0.5rem; flex-wrap: wrap;
+}
+.btn-cancel, .btn-save {
+    padding: 0.7rem 1.5rem; border-radius: 50px;
+    font-size: 0.85rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    border: none; transition: all 0.25s ease;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.btn-cancel {
+    background: transparent;
+    color: #8a9b95;
+    border: 1px solid #d0d9d6;
+}
+.btn-cancel:hover { background: #f0f3f2; color: var(--text-primary); }
+.btn-save {
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(15,61,46,0.2);
+}
+.btn-save:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(15,61,46,0.28); }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="edit-wrap">
+
+    <a href="{% url 'governance:graduation_detail' profile.pk %}" class="edit-back">
+        <i class="fas fa-arrow-left"></i> Back to Profile
+    </a>
+
+    <div class="edit-head">
+        <h1>{% if is_self %}Edit My Alumni Profile{% else %}Edit {{ profile.display_name }}'s Profile{% endif %}</h1>
+        <p>Keep your story current so future NAMETS members know who you were and where you are now.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="edit-form">
+        {% csrf_token %}
+
+        <!-- PHOTO -->
+        <div class="form-section">
+            <h2><i class="fas fa-camera"></i> Profile Photo</h2>
+            <div class="photo-row">
+                <div class="photo-preview">
+                    {% if profile.profile_photo %}
+                        <img src="{{ profile.profile_photo.url }}" alt="{{ profile.display_name }}">
+                    {% else %}
+                        {{ profile.initials }}
+                    {% endif %}
+                </div>
+                <div class="photo-input">
+                    <input type="file" name="profile_photo" accept="image/*">
+                    <div class="helper">Square image works best. Leave blank to keep the current photo.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERSONAL -->
+        <div class="form-section">
+            <h2><i class="fas fa-user"></i> Personal Details</h2>
+            <div class="field">
+                <label>Current Occupation</label>
+                <input type="text" name="current_occupation"
+                       value="{{ profile.current_occupation }}"
+                       placeholder="e.g. Software Engineer at XYZ, MSc Student at ABU">
+            </div>
+            <div class="field">
+                <label>Current Location</label>
+                <input type="text" name="current_location"
+                       value="{{ profile.current_location }}"
+                       placeholder="e.g. Kaduna, Nigeria">
+            </div>
+        </div>
+
+        <!-- CONTACT -->
+        <div class="form-section">
+            <h2><i class="fas fa-address-card"></i> Contact Information</h2>
+            <div class="field-row">
+                <div class="field">
+                    <label>Email</label>
+                    <input type="email" name="email" value="{{ profile.email }}"
+                           placeholder="you@example.com">
+                    {% if is_self %}
+                    <div class="helper">Updating this also changes your login email.</div>
+                    {% endif %}
+                </div>
+                <div class="field">
+                    <label>Phone Number</label>
+                    <input type="tel" name="phone_number" value="{{ profile.phone_number }}"
+                           placeholder="08012345678">
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN-ONLY -->
+        {% if is_admin %}
+        <div class="form-section">
+            <h2><i class="fas fa-shield-alt"></i> Admin Fields</h2>
+            <div class="field-row">
+                <div class="field">
+                    <label>Graduation Year</label>
+                    <input type="number" name="graduation_year"
+                           value="{{ profile.graduation_year }}"
+                           min="1990" max="2100">
+                </div>
+                <div class="field">
+                    <label>Department</label>
+                    <input type="text" name="department_name"
+                           value="{{ profile.department_name }}"
+                           placeholder="e.g. Computer Science">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- FINAL MESSAGE -->
+        <div class="form-section">
+            <h2><i class="fas fa-comment-dots"></i> Final Message</h2>
+            <p class="hint">Write something to future NAMETS members — advice, memories, gratitude, or a challenge.</p>
+            <div class="field">
+                <textarea name="final_message"
+                          placeholder="Dear future NAMETS members…">{{ profile.final_message }}</textarea>
+            </div>
+        </div>
+
+        <!-- SOCIAL LINKS -->
+        <div class="form-section">
+            <h2><i class="fas fa-share-alt"></i> Social Links</h2>
+            <p class="hint">All optional. Fill only what you want visible on your profile.</p>
+            <div class="social-grid">
+                <div class="field social-field">
+                    <i class="fab fa-linkedin"></i>
+                    <input type="url" name="linkedin"
+                           value="{{ profile.social_links.linkedin|default:'' }}"
+                           placeholder="LinkedIn URL">
+                </div>
+                <div class="field social-field">
+                    <i class="fab fa-twitter"></i>
+                    <input type="text" name="twitter"
+                           value="{{ profile.social_links.twitter|default:'' }}"
+                           placeholder="@handle">
+                </div>
+                <div class="field social-field">
+                    <i class="fab fa-instagram"></i>
+                    <input type="text" name="instagram"
+                           value="{{ profile.social_links.instagram|default:'' }}"
+                           placeholder="@handle">
+                </div>
+                <div class="field social-field">
+                    <i class="fab fa-facebook"></i>
+                    <input type="url" name="facebook"
+                           value="{{ profile.social_links.facebook|default:'' }}"
+                           placeholder="Facebook URL">
+                </div>
+                <div class="field social-field">
+                    <i class="fab fa-github"></i>
+                    <input type="url" name="github"
+                           value="{{ profile.social_links.github|default:'' }}"
+                           placeholder="GitHub URL">
+                </div>
+                <div class="field social-field">
+                    <i class="fab fa-whatsapp"></i>
+                    <input type="tel" name="whatsapp"
+                           value="{{ profile.social_links.whatsapp|default:'' }}"
+                           placeholder="WhatsApp number">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'governance:graduation_detail' profile.pk %}" class="btn-cancel">
+                Cancel
+            </a>
+            <button type="submit" class="btn-save">
+                <i class="fas fa-save"></i> Save Profile
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

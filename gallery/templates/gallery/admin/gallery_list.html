@@ -1,0 +1,337 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Galleries · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.gallery-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.gallery-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.gallery-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.gallery-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.gallery-header-text h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 0.3rem;
+}
+.gallery-header-text p {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.88rem;
+    margin: 0;
+}
+.gallery-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.gallery-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+}
+.gallery-btn-primary {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.gallery-btn-primary:hover { background: rgba(255,255,255,0.2); color: #fff; transform: translateY(-2px); }
+
+.gallery-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+.filter-form input {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 200px;
+}
+.filter-form .btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.filter-form .clear {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+.gallery-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: var(--transition);
+    cursor: pointer;
+}
+.gallery-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--gold);
+}
+.gallery-card .card-image {
+    height: 180px;
+    overflow: hidden;
+    background: #f0f4f2;
+    position: relative;
+}
+.gallery-card .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+.gallery-card:hover .card-image img {
+    transform: scale(1.05);
+}
+.gallery-card .card-image .image-count {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    backdrop-filter: blur(4px);
+}
+.gallery-card .card-body {
+    padding: 1rem 1.25rem 1.25rem;
+}
+.gallery-card .card-body .title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.2rem;
+}
+.gallery-card .card-body .title a {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+.gallery-card .card-body .title a:hover { color: var(--gold); }
+.gallery-card .card-body .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0.2rem 0 0.3rem;
+}
+.gallery-card .card-body .meta i { width: 1rem; }
+.gallery-card .card-body .desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0.3rem 0 0.6rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.gallery-card .card-body .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.gallery-card .card-body .footer .btn-sm {
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+
+.empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 3rem 2rem; }
+.empty .empty-icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
+
+.pagination { margin-top: 1.5rem; text-align: center; }
+.pagination .step-links a {
+    color: var(--gold);
+    text-decoration: none;
+    margin: 0 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+}
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.5rem; }
+
+@media (max-width: 768px) {
+    .gallery-header { padding: 1.4rem 1.25rem; border-radius: 18px; }
+    .gallery-header-content { flex-direction: column; align-items: stretch; }
+    .gallery-header-text h1 { font-size: 1.35rem; }
+    .gallery-header-actions { flex-direction: column; }
+    .gallery-btn { width: 100%; justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .gallery-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="gallery-header">
+    <div class="gallery-header-glow" aria-hidden="true"></div>
+    <div class="gallery-header-content">
+        <div class="gallery-header-text">
+            <span class="gallery-eyebrow">Media</span>
+            <h1>🖼️ Galleries</h1>
+            <p>Manage photo galleries for events and activities.</p>
+        </div>
+        <div class="gallery-header-actions">
+            {% if perms.gallery.add_gallery %}
+            <a href="{% url 'gallery:admin_gallery_create' %}" class="gallery-btn gallery-btn-primary">
+                <i class="fas fa-plus-circle"></i> New Gallery
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="gallery-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search galleries by title or description..." value="{{ query }}">
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query %}
+        <a href="{% url 'gallery:admin_gallery_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="gallery-grid">
+    {% for gallery in galleries %}
+    <div class="gallery-card" onclick="window.location.href='{% url 'gallery:admin_gallery_edit' gallery.pk %}'">
+        <div class="card-image">
+            {% if gallery.cover_image %}
+                <img src="{{ gallery.cover_image.url }}" alt="{{ gallery.title }}" loading="lazy">
+            {% else %}
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f0f4f2;font-size:3rem;color:#c0c8c5;">🖼️</div>
+            {% endif %}
+            <span class="image-count">{{ gallery.images.count }} image{{ gallery.images.count|pluralize }}</span>
+        </div>
+        <div class="card-body">
+            <div class="title">
+                <a href="{% url 'gallery:admin_gallery_edit' gallery.pk %}" onclick="event.stopPropagation();">
+                    {{ gallery.title }}
+                </a>
+            </div>
+            <div class="meta">
+                <span><i class="far fa-calendar-alt"></i> {{ gallery.date|date:"M d, Y" }}</span>
+                <span><i class="far fa-clock"></i> {{ gallery.created_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="desc">{{ gallery.description|truncatechars:80 }}</div>
+            <div class="footer">
+                <span style="font-size:0.7rem; color:var(--text-muted);">
+                    <i class="fas fa-images"></i> {{ gallery.images.count }} photos
+                </span>
+                <div style="display:flex; gap:0.3rem;">
+                    <a href="{% url 'gallery:admin_gallery_edit' gallery.pk %}" class="btn-sm btn-sm-gold" onclick="event.stopPropagation();">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'gallery:admin_gallery_delete' gallery.pk %}" class="btn-sm btn-sm-danger" onclick="event.stopPropagation();">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+        <span class="empty-icon">📭</span>
+        <h3>No galleries found</h3>
+        <p>Create your first gallery to showcase NAMETS events.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% if query %}&q={{ query }}{% endif %}">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">previous</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+{% endblock %}

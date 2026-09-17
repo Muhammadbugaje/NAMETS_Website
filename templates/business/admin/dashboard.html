@@ -1,0 +1,328 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Business Dashboard · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.dash-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.dash-hero::before {
+    content: "📊";
+    font-size: 4rem;
+    position: absolute;
+    bottom: -0.5rem;
+    right: 1.5rem;
+    opacity: 0.08;
+    pointer-events: none;
+}
+.dash-hero-left h1 {
+    font-size: 1.6rem;
+    color: #fff;
+    margin: 0 0 0.2rem;
+    font-weight: 700;
+}
+.dash-hero-left p {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.9rem;
+    margin: 0;
+}
+.dash-hero-left .badge {
+    display: inline-block;
+    background: rgba(200,169,81,0.2);
+    color: var(--gold-light);
+    padding: 0.15rem 1rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 0.3rem;
+}
+.dash-clock {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 0.6rem 1.2rem;
+    text-align: center;
+    min-width: 130px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.dash-clock .lbl { font-size: 0.6rem; color: #C8A951; text-transform: uppercase; }
+.dash-clock .val { font-size: 1.2rem; font-weight: 700; color: #fff; line-height: 1.3; }
+.dash-clock .sub { font-size: 0.6rem; color: rgba(255,255,255,0.7); }
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+}
+.stat-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    padding: 0.8rem 1rem;
+    text-decoration: none;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    box-shadow: var(--shadow-sm);
+}
+.stat-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--gold);
+    box-shadow: var(--shadow-md);
+}
+.stat-card .icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.stat-card .icon.green { background: #e8f2ec; color: #1a3c2e; }
+.stat-card .icon.gold { background: #f5e9c8; color: #8a6a1a; }
+.stat-card .icon.blue { background: #e6f0fb; color: #185fa5; }
+.stat-card .icon.red { background: #fdecea; color: #9b2c2c; }
+.stat-card .icon.purple { background: #f0eafb; color: #6b21a8; }
+.stat-card .icon.teal { background: #e0f7f4; color: #0d7a6b; }
+.stat-card .icon.orange { background: #fef3e8; color: #a8671a; }
+.stat-card .number { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+.stat-card .label { font-size: 0.65rem; color: var(--text-muted); font-weight: 500; display: block; }
+
+.section-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+.section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+}
+.section-card .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+.section-card .header h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+.section-card .header a {
+    font-size: 0.75rem;
+    color: var(--gold);
+    text-decoration: none;
+}
+.section-card .header a:hover { text-decoration: underline; }
+.activity-list { list-style: none; padding: 0; margin: 0; }
+.activity-list li {
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    gap: 0.5rem;
+}
+.activity-list li:last-child { border-bottom: none; }
+.activity-list .time { font-size: 0.65rem; color: var(--text-muted); white-space: nowrap; }
+.activity-list .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 0.4rem;
+}
+.dot.green { background: #38a169; }
+.dot.gold { background: #C8A951; }
+.dot.red { background: #e53e3e; }
+.dot.blue { background: #3182ce; }
+
+.bank-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    font-size: 0.85rem;
+}
+.bank-row:last-child { border-bottom: none; }
+.bank-row .name { color: var(--text-primary); font-weight: 500; }
+.bank-row .balance { font-weight: 600; color: var(--text-primary); }
+
+@media (max-width: 768px) {
+    .dash-hero { padding: 1.25rem; }
+    .dash-hero::before { font-size: 3rem; }
+    .section-row { grid-template-columns: 1fr; gap: 1rem; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+    .stat-card { padding: 0.5rem 0.75rem; }
+    .stat-card .number { font-size: 1rem; }
+    .stat-card .icon { width: 32px; height: 32px; font-size: 0.9rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- Hero -->
+<div class="dash-hero">
+    <div class="dash-hero-left">
+        <h1>🏢 Business & Finance</h1>
+        <p>Manage NAMETS finances, equipment, shop, and bookings.</p>
+        <span class="badge">Business Office Dashboard</span>
+    </div>
+    <div class="dash-clock">
+        <div class="lbl">🕐 Current Time</div>
+        <div class="val" id="heroClock">--:--:--</div>
+        <div class="sub" id="heroDate">Loading…</div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+    <a href="{% url 'business:admin_bank_account_list' %}" class="stat-card">
+        <div class="icon gold">🏦</div>
+        <div><span class="number">{{ total_balance|floatformat:2|default:"0.00" }}</span><span class="label">Total Balance</span></div>
+    </a>
+    <a href="{% url 'business:admin_transaction_list' %}" class="stat-card">
+        <div class="icon green">📈</div>
+        <div><span class="number">{{ total_income|floatformat:2|default:"0.00" }}</span><span class="label">Income</span></div>
+    </a>
+    <a href="{% url 'business:admin_transaction_list' %}" class="stat-card">
+        <div class="icon red">📉</div>
+        <div><span class="number">{{ total_expenses|floatformat:2|default:"0.00" }}</span><span class="label">Expenses</span></div>
+    </a>
+    <a href="{% url 'business:admin_equipment_list' %}" class="stat-card">
+        <div class="icon blue">📦</div>
+        <div><span class="number">{{ total_items|default:0 }}</span><span class="label">Equipment Items</span></div>
+    </a>
+    <a href="{% url 'business:admin_equipment_borrow_list' %}?status=overdue" class="stat-card">
+        <div class="icon red">⏰</div>
+        <div><span class="number">{{ overdue_items|default:0 }}</span><span class="label">Overdue</span></div>
+    </a>
+    <a href="{% url 'business:admin_shop_order_list' %}?status=pending" class="stat-card">
+        <div class="icon orange">🛒</div>
+        <div><span class="number">{{ pending_shop_orders|default:0 }}</span><span class="label">Pending Orders</span></div>
+    </a>
+    <a href="{% url 'business:admin_booking_list' %}?status=pending" class="stat-card">
+        <div class="icon purple">🎟️</div>
+        <div><span class="number">{{ pending_bookings|default:0 }}</span><span class="label">Pending Bookings</span></div>
+    </a>
+    <a href="{% url 'business:admin_free_claim_list' %}?status=pending" class="stat-card">
+        <div class="icon teal">🎁</div>
+        <div><span class="number">{{ pending_free_claims|default:0 }}</span><span class="label">Pending Free Claims</span></div>
+    </a>
+</div>
+
+<!-- ===== REVENUE AT A GLANCE ===== -->
+<div class="section-card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, #f0f7f4 0%, #e8f2ec 100%); border-left: 4px solid var(--gold);">
+    <div class="header">
+        <h3><i class="fas fa-chart-pie" style="color:var(--gold);"></i> Revenue — Last 30 Days</h3>
+        <div style="display:flex; gap:0.5rem;">
+            <a href="{% url 'business:admin_expense_create' %}" class="btn" style="background:#c0392b; color:#fff; padding:0.4rem 1rem; border-radius:50px; font-size:0.75rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:0.35rem;">
+                <i class="fas fa-minus-circle"></i> Record Expense
+            </a>
+            <a href="{% url 'business:admin_revenue_report' %}">Full report →</a>
+        </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.85rem; margin-top: 0.5rem;">
+        <div style="background:#fff; border-radius:12px; padding:0.9rem 1rem; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#8a9b95; margin-bottom:0.3rem;">Total</div>
+            <div style="font-size:1.25rem; font-weight:800; color:#0F3D2E; line-height:1.2;">₦{{ revenue_total|floatformat:2 }}</div>
+            <div style="font-size:0.68rem; color:#8a9b95; margin-top:0.15rem;">All-time: ₦{{ all_time_revenue|floatformat:2 }}</div>
+        </div>
+        <div style="background:#fff; border-radius:12px; padding:0.9rem 1rem; box-shadow:0 2px 8px rgba(0,0,0,0.04); border-top:3px solid #38a169;">
+            <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#8a9b95; margin-bottom:0.3rem;">🛒 Shop</div>
+            <div style="font-size:1.15rem; font-weight:800; color:#1a3c2e; line-height:1.2;">₦{{ revenue_shop|floatformat:2 }}</div>
+        </div>
+        <div style="background:#fff; border-radius:12px; padding:0.9rem 1rem; box-shadow:0 2px 8px rgba(0,0,0,0.04); border-top:3px solid #6b21a8;">
+            <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#8a9b95; margin-bottom:0.3rem;">🎟️ Bookings</div>
+            <div style="font-size:1.15rem; font-weight:800; color:#6b21a8; line-height:1.2;">₦{{ revenue_bookings|floatformat:2 }}</div>
+        </div>
+        <div style="background:#fff; border-radius:12px; padding:0.9rem 1rem; box-shadow:0 2px 8px rgba(0,0,0,0.04); border-top:3px solid #185fa5;">
+            <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#8a9b95; margin-bottom:0.3rem;">📄 Forms</div>
+            <div style="font-size:1.15rem; font-weight:800; color:#185fa5; line-height:1.2;">₦{{ revenue_forms|floatformat:2 }}</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Recent Activity & Bank Accounts -->
+<div class="section-row">
+    <div class="section-card">
+        <div class="header">
+            <h3><i class="fas fa-clock" style="color:var(--gold);"></i> Recent Activity</h3>
+            <a href="{% url 'business:admin_transaction_list' %}">View all →</a>
+        </div>
+        <ul class="activity-list">
+            {% for tx in recent_transactions %}
+            <li>
+                <span>
+                    <span class="dot {% if tx.is_income %}green{% else %}red{% endif %}"></span>
+                    <strong>{{ tx.get_category_display }}</strong>
+                    {{ tx.description|truncatechars:25 }}
+                </span>
+                <span class="time">₦{{ tx.amount|floatformat:2 }}</span>
+            </li>
+            {% empty %}
+            <li style="color:var(--text-muted); justify-content:center;">No recent transactions</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="section-card">
+        <div class="header">
+            <h3><i class="fas fa-university" style="color:var(--gold);"></i> Bank Accounts</h3>
+            <a href="{% url 'business:admin_bank_account_list' %}">Manage →</a>
+        </div>
+        {% for acc in bank_accounts %}
+        <div class="bank-row">
+            <span class="name">{{ acc.name }}</span>
+            <span class="balance">₦{{ acc.current_balance|floatformat:2 }}</span>
+        </div>
+        {% empty %}
+        <div style="color:var(--text-muted); text-align:center; padding:0.5rem 0;">No accounts set up</div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+(function() {
+    function updateClock() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString();
+        const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+        const clock = document.getElementById('heroClock');
+        const dateEl = document.getElementById('heroDate');
+        if (clock) clock.textContent = timeStr;
+        if (dateEl) dateEl.textContent = dateStr;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+})();
+</script>
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+    <h2>📅 {{ event.title }}</h2>
+    
+    <p>Assalamu Alaikum,</p>
+    
+    <p>A new NAMETS event has been announced:</p>
+    
+    <div class="content-block">
+        <p><strong>📅 Date:</strong> {{ event.start_datetime|date:"l, F j, Y" }}</p>
+        <p><strong>🕐 Time:</strong> {{ event.start_datetime|date:"g:i A" }} — {{ event.end_datetime|date:"g:i A" }}</p>
+        <p><strong>📍 Location:</strong> {{ event.location }}</p>
+        {% if event.description %}
+            <p><strong>📝 Description:</strong> {{ event.description|safe }}</p>
+        {% endif %}
+    </div>
+    
+    <p style="margin-top: 20px;">
+        <a href="{{ site_url }}{{ event_url }}" class="button">View Event</a>
+        <a href="{{ site_url }}{{ calendar_url }}" class="button button-primary">Add to Calendar</a>
+    </p>
+    
+    <p style="color: #718096; font-size: 14px; margin-top: 20px;">
+        You're receiving this because you subscribed to NAMETS event notifications.
+    </p>
+{% endblock %}

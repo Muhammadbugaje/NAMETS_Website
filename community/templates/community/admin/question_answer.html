@@ -1,0 +1,102 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Answer Question · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.answer-container { max-width: 700px; margin: 0 auto; }
+.answer-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.answer-header-content { position: relative; color: #fff; }
+.answer-eyebrow { display: inline-block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #C8A951; background: rgba(200,169,81,0.15); padding: 0.2rem 0.8rem; border-radius: 20px; margin-bottom: 0.5rem; }
+.answer-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.3rem; }
+.answer-header p { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+
+.question-box {
+    background: #f8faf9;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.question-box .q-label { font-weight: 600; color: var(--text-primary); }
+.question-box .q-text { font-size: 1.05rem; color: var(--text-secondary); margin: 0.25rem 0 0.3rem; }
+.question-box .q-meta { font-size: 0.85rem; color: var(--text-muted); }
+
+.form-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+}
+.form-group label { display: flex; align-items: center; gap: 0.3rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; font-size: 0.9rem; }
+.form-group textarea { width: 100%; padding: 0.6rem 1rem; border: 1px solid #d0d9d6; border-radius: 8px; font-size: 0.95rem; background: var(--card-bg); }
+.form-group textarea:focus { border-color: var(--gold); outline: none; }
+.form-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.05); }
+.btn-primary { background: var(--primary); color: #fff; padding: 0.6rem 2rem; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; transition: var(--transition); }
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-secondary { background: var(--gold); color: var(--text-primary); padding: 0.6rem 2rem; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; text-decoration: none; text-align: center; transition: var(--transition); }
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="answer-container">
+    <div class="answer-header">
+        <div class="answer-header-content">
+            <span class="answer-eyebrow">Community Engagement</span>
+            <h1>❓ Answer Question</h1>
+            <p>Provide a public answer to this question.</p>
+        </div>
+    </div>
+
+    <div class="question-box">
+        <div class="q-label">Question from {{ question.name }}</div>
+        <div class="q-text">{{ question.question_text }}</div>
+        <div class="q-meta">
+            Category: {{ question.category|default:"Uncategorized" }} &bull;
+            Submitted: {{ question.submitted_at|date:"M d, Y" }}
+            {% if question.email %}&bull; Email: {{ question.email }}{% endif %}
+        </div>
+        {% if answer %}
+        <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid rgba(0,0,0,0.05);">
+            <strong style="color:var(--text-primary);">Existing Answer:</strong>
+            <p style="color:var(--text-secondary); margin:0.25rem 0 0;">{{ answer.answer_text }}</p>
+            <div class="q-meta">Answered by {{ answer.responded_by.get_full_name|default:answer.responded_by.username }} on {{ answer.responded_at|date:"M d, Y" }}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <form method="post" class="form-card">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="id_answer_text">Your Answer <span class="required">*</span></label>
+            {{ form.answer_text }}
+            {% if form.answer_text.errors %}<div class="error-text">{{ form.answer_text.errors }}</div>{% endif %}
+            <div class="help-text">This answer will be displayed publicly.</div>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="form-group">
+            {% for error in form.non_field_errors %}
+            <div class="error-text" style="background:#fdecea; padding:0.8rem 1rem; border-radius:8px; border-left:4px solid #e53e3e;">{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">{% if answer %}Update Answer{% else %}Submit Answer{% endif %}</button>
+            <a href="{% url 'community:admin_question_list' %}" class="btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

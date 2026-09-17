@@ -1,0 +1,1679 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ course.name }} · CBT Test{% endblock %}
+
+{% block extra_css %}
+<style>
+body { overflow-x: hidden; background: #f2f5f4; }
+body.cbt-locked * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+body.cbt-locked input,
+body.cbt-locked textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+.take-page { min-height: 100vh; padding-bottom: 5.5rem; }
+
+/* ============ TOP BAR ============ */
+.take-topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(15,61,46,0.98);
+    backdrop-filter: blur(12px);
+    padding: 0.75rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.take-topbar-left {
+    display: flex; align-items: center; gap: 0.75rem;
+    color: #fff; min-width: 0;
+}
+.take-course-badge {
+    background: rgba(200,169,81,0.18);
+    color: #C8A951;
+    padding: 0.3rem 0.9rem; border-radius: 20px;
+    font-size: 0.72rem; font-weight: 800;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+.take-topbar-left .take-title {
+    font-size: 0.9rem; font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; max-width: 200px;
+}
+.take-topbar-right { display: flex; align-items: center; gap: 0.75rem; }
+
+/* ============ TIMER ============ */
+.timer-pill {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.1rem; border-radius: 50px;
+    font-weight: 800; font-size: 0.95rem;
+    background: rgba(56,161,105,0.25);
+    color: #b7f0c8;
+    border: 1px solid rgba(56,161,105,0.5);
+    transition: all 0.4s ease;
+    min-width: 110px; justify-content: center;
+    letter-spacing: 0.04em;
+    position: relative;
+}
+.timer-pill i { transition: transform 0.3s ease; }
+.timer-pill.warn {
+    background: rgba(200,169,81,0.28);
+    color: #f5e9c8;
+    border-color: rgba(200,169,81,0.7);
+    animation: timerWarn 1.5s ease-in-out infinite;
+}
+.timer-pill.warn i { color: #E0C96E; }
+.timer-pill.danger {
+    background: rgba(192,57,43,0.35);
+    color: #fdd;
+    border-color: rgba(192,57,43,0.85);
+    animation: timerDanger 0.85s ease-in-out infinite;
+}
+.timer-pill.danger i { color: #fbb; }
+.timer-pill.critical {
+    background: rgba(192,57,43,0.6);
+    color: #fff;
+    border-color: #ff6b6b;
+    animation: timerCritical 0.6s ease-in-out infinite;
+    box-shadow: 0 0 0 0 rgba(192,57,43,0.7);
+}
+@keyframes timerWarn {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+}
+@keyframes timerDanger {
+    0%,100% { transform: scale(1); box-shadow: 0 0 0 rgba(192,57,43,0); }
+    50% { transform: scale(1.06); box-shadow: 0 0 24px rgba(192,57,43,0.6); }
+}
+@keyframes timerCritical {
+    0%,100% { transform: scale(1) rotate(0); box-shadow: 0 0 0 0 rgba(192,57,43,0.7); }
+    25% { transform: scale(1.08) rotate(-1.5deg); }
+    50% { transform: scale(1.1) rotate(0); box-shadow: 0 0 30px rgba(192,57,43,0.9); }
+    75% { transform: scale(1.08) rotate(1.5deg); }
+}
+
+.time-warning-flash {
+    position: fixed; inset: 0;
+    background: rgba(192,57,43,0.15);
+    z-index: 9998;
+    pointer-events: none;
+    animation: timeFlash 1.2s ease-out;
+}
+@keyframes timeFlash {
+    0% { opacity: 0; }
+    30% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Strike counter */
+.strike-display {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.4rem 0.85rem; border-radius: 50px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    font-size: 0.72rem; font-weight: 700;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 0.04em;
+    transition: all 0.3s ease;
+}
+.strike-display.has-strikes {
+    background: rgba(200,169,81,0.2);
+    border-color: rgba(200,169,81,0.5);
+    color: #E0C96E;
+}
+.strike-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+}
+.strike-dot.hit {
+    background: #dc3545;
+    box-shadow: 0 0 8px rgba(220,53,69,0.8);
+}
+
+.exit-btn {
+    background: rgba(255,255,255,0.1); color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 0.4rem 0.9rem; border-radius: 50px;
+    font-size: 0.75rem; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.exit-btn:hover { background: rgba(192,57,43,0.3); border-color: rgba(192,57,43,0.5); }
+
+/* ============ PROGRESS ============ */
+.progress-wrap {
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(8px);
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.progress-inner {
+    max-width: 900px; margin: 0 auto;
+    display: flex; align-items: center; gap: 1rem;
+}
+.progress-bar-track {
+    flex: 1; height: 8px; background: #e8edec;
+    border-radius: 4px; overflow: hidden;
+}
+.progress-bar-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, #0F3D2E, #38a169);
+    transition: width 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 0 12px rgba(56,161,105,0.4);
+}
+.progress-label {
+    font-size: 0.8rem; font-weight: 800;
+    color: #0F3D2E; white-space: nowrap;
+    min-width: 80px; text-align: right;
+}
+.progress-label .num { color: #C8A951; font-size: 1rem; }
+
+/* ============ QUESTION CARD ============ */
+.take-main {
+    max-width: 820px; margin: 1.75rem auto 2rem;
+    padding: 0 1.25rem;
+}
+
+.question-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 2.25rem 2rem 2rem;
+    box-shadow: 0 12px 40px rgba(15,61,46,0.08);
+    position: relative;
+    overflow: hidden;
+    min-height: 420px;
+    display: flex; flex-direction: column;
+}
+.question-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #0F3D2E, #C8A951, #0F3D2E);
+    background-size: 200% 100%;
+    animation: cardShimmer 4s linear infinite;
+}
+@keyframes cardShimmer {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+}
+
+.q-card-head {
+    display: flex; justify-content: space-between;
+    align-items: center; gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.q-num-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #C8A951;
+    padding: 0.4rem 1rem; border-radius: 50px;
+    font-size: 0.75rem; font-weight: 800;
+    letter-spacing: 0.06em;
+}
+.q-meta-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.q-meta-chip {
+    font-size: 0.62rem; font-weight: 700;
+    padding: 0.2rem 0.65rem; border-radius: 12px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+.q-meta-chip.easy { background: #e8f2ec; color: #1a6b3c; }
+.q-meta-chip.medium { background: #f5e9c8; color: #8a6a1a; }
+.q-meta-chip.hard { background: #fdecea; color: #9b2c2c; }
+.q-meta-chip.topic { background: #e6f0fb; color: #185fa5; }
+
+.q-text {
+    font-size: 1.15rem; font-weight: 700;
+    color: #0F3D2E; line-height: 1.55;
+    margin-bottom: 1.75rem;
+    animation: qSlideIn 0.4s ease-out;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+.q-text.shrink-1 { font-size: 1.02rem; line-height: 1.5; }
+.q-text.shrink-2 { font-size: 0.92rem; line-height: 1.5; }
+.q-text.shrink-3 { font-size: 0.84rem; line-height: 1.48; }
+
+@keyframes qSlideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* ============ OPTIONS ============ */
+.options-list {
+    display: flex; flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+}
+.option-btn {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1.05rem 1.25rem;
+    background: #f8faf9;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: #2d3748;
+    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    animation: optSlideIn 0.35s ease-out backwards;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    min-width: 0;
+}
+.option-btn:nth-child(1) { animation-delay: 0.05s; }
+.option-btn:nth-child(2) { animation-delay: 0.10s; }
+.option-btn:nth-child(3) { animation-delay: 0.15s; }
+.option-btn:nth-child(4) { animation-delay: 0.20s; }
+@keyframes optSlideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.option-btn:hover {
+    background: #fef9ec;
+    border-color: rgba(200,169,81,0.4);
+    transform: translateX(6px);
+}
+.option-btn .opt-letter {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: #fff; border: 2px solid #e0e8e5;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1rem;
+    color: #0F3D2E; flex-shrink: 0;
+    transition: all 0.25s ease;
+    margin-top: 2px;
+}
+.option-btn .opt-body {
+    flex: 1;
+    line-height: 1.5;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    font-size: 0.95rem;
+    transition: font-size 0.2s ease;
+}
+
+.opt-body.shrink-1 { font-size: 0.88rem; line-height: 1.48; }
+.opt-body.shrink-2 { font-size: 0.8rem; line-height: 1.45; }
+.opt-body.shrink-3 { font-size: 0.74rem; line-height: 1.42; }
+
+.option-btn.selected {
+    background: linear-gradient(135deg, #e8f2ec, #f0faf4);
+    border-color: #0F3D2E;
+    box-shadow: 0 8px 24px rgba(15,61,46,0.15);
+    transform: translateX(6px);
+}
+.option-btn.selected .opt-letter {
+    background: #0F3D2E; color: #C8A951;
+    border-color: #0F3D2E;
+    transform: scale(1.1);
+}
+.option-btn.selected .opt-body {
+    font-weight: 700;
+    color: #0F3D2E;
+}
+
+.flag-btn {
+    position: absolute;
+    top: 1.25rem; right: 1.25rem;
+    background: #f0f4f2; color: #8a9b95;
+    border: 1px solid rgba(0,0,0,0.05);
+    padding: 0.35rem 0.85rem; border-radius: 50px;
+    font-size: 0.7rem; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    transition: all 0.2s;
+    z-index: 2;
+}
+.flag-btn:hover { background: #fef3e8; color: #a8671a; border-color: rgba(168,103,26,0.3); }
+.flag-btn.flagged {
+    background: linear-gradient(135deg, #C8A951, #E0C96E);
+    color: #0F3D2E; border-color: #C8A951;
+    box-shadow: 0 4px 12px rgba(200,169,81,0.35);
+}
+
+/* ============ NAVIGATION ============ */
+.take-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    padding: 0.85rem 1.25rem;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.06);
+    z-index: 50;
+}
+.take-nav-inner {
+    max-width: 820px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 0.75rem;
+}
+.nav-btn {
+    padding: 0.75rem 1.5rem; border-radius: 50px;
+    border: none; cursor: pointer; font-family: inherit;
+    font-weight: 800; font-size: 0.88rem;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+.nav-btn-prev {
+    background: #f0f4f2; color: #0F3D2E;
+}
+.nav-btn-prev:hover:not(:disabled) {
+    background: #e0e8e5; transform: translateY(-2px);
+}
+.nav-btn-prev:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.nav-btn-next {
+    background: #0F3D2E; color: #fff;
+    box-shadow: 0 6px 18px rgba(15,61,46,0.25);
+}
+.nav-btn-next:hover {
+    background: #1a5a44; transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(15,61,46,0.35);
+    color: #fff;
+}
+.nav-btn-submit {
+    background: linear-gradient(135deg, #C8A951, #E0C96E);
+    color: #0F3D2E;
+    box-shadow: 0 6px 18px rgba(200,169,81,0.4);
+    animation: submitPulse 2s ease-in-out infinite;
+}
+@keyframes submitPulse {
+    0%,100% { box-shadow: 0 6px 18px rgba(200,169,81,0.4); }
+    50% { box-shadow: 0 6px 30px rgba(200,169,81,0.7); }
+}
+.nav-btn-submit:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 32px rgba(200,169,81,0.7);
+}
+
+.q-dots {
+    display: flex; gap: 0.3rem; flex-wrap: wrap;
+    justify-content: center;
+    max-width: 100%; overflow-x: auto;
+    flex: 1;
+    min-width: 0;
+}
+.q-dot {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #f0f4f2; color: #8a9b95;
+    border: none; cursor: pointer;
+    font-size: 0.62rem; font-weight: 800;
+    font-family: inherit;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.2s; flex-shrink: 0;
+}
+.q-dot:hover { background: #e0e8e5; transform: scale(1.15); }
+.q-dot.answered { background: #38a169; color: #fff; }
+.q-dot.flagged { background: #C8A951; color: #0F3D2E; }
+.q-dot.current {
+    background: #0F3D2E; color: #C8A951;
+    transform: scale(1.2);
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.35);
+}
+
+/* ============================================================
+   SUBMITTING OVERLAY (fullscreen, non-dismissible)
+   ============================================================ */
+.cbt-submitting-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    z-index: 999999;
+    justify-content: center; align-items: center;
+    padding: 2rem 1.5rem;
+    color: #fff;
+    animation: submitFadeIn 0.3s ease;
+}
+.cbt-submitting-overlay.active { display: flex; }
+@keyframes submitFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.cbt-submitting-card {
+    max-width: 420px; width: 100%;
+    text-align: center;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 26px;
+    padding: 2.75rem 2rem 2.25rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+}
+.cbt-submitting-spinner {
+    width: 68px; height: 68px;
+    margin: 0 auto 1.5rem;
+    position: relative;
+}
+.cbt-submitting-spinner::before,
+.cbt-submitting-spinner::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 4px solid transparent;
+}
+.cbt-submitting-spinner::before {
+    border-top-color: #C8A951;
+    border-right-color: #C8A951;
+    animation: submitSpin 0.9s linear infinite;
+}
+.cbt-submitting-spinner::after {
+    inset: 10px;
+    border-bottom-color: rgba(255,255,255,0.5);
+    border-left-color: rgba(255,255,255,0.5);
+    animation: submitSpin 1.4s linear infinite reverse;
+}
+@keyframes submitSpin {
+    to { transform: rotate(360deg); }
+}
+.cbt-submitting-card h2 {
+    font-size: 1.4rem; font-weight: 800;
+    margin: 0 0 0.5rem;
+    color: #fff;
+    letter-spacing: -0.02em;
+}
+.cbt-submitting-card p {
+    font-size: 0.92rem;
+    color: rgba(255,255,255,0.82);
+    margin: 0;
+    line-height: 1.6;
+}
+.cbt-submitting-dots {
+    display: inline-flex; gap: 0.3rem;
+    margin-top: 1rem;
+}
+.cbt-submitting-dots span {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #C8A951;
+    animation: submitDot 1.3s ease-in-out infinite;
+}
+.cbt-submitting-dots span:nth-child(2) { animation-delay: 0.15s; }
+.cbt-submitting-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes submitDot {
+    0%,80%,100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-8px); opacity: 1; }
+}
+
+/* ============================================================
+   CONFIRM MODAL
+   ============================================================ */
+.cbt-confirm-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(10,42,31,0.72);
+    backdrop-filter: blur(6px);
+    z-index: 99999;
+    justify-content: center; align-items: center;
+    padding: 1rem;
+    animation: cbtConfirmFade 0.22s ease;
+}
+.cbt-confirm-overlay.active { display: flex; }
+@keyframes cbtConfirmFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.cbt-confirm-modal {
+    background: #fff;
+    border-radius: 22px;
+    max-width: 440px; width: 100%;
+    padding: 2rem 1.75rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+    animation: cbtConfirmPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes cbtConfirmPop {
+    from { opacity: 0; transform: scale(0.94) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.cbt-confirm-icon {
+    width: 60px; height: 60px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: #f5e9c8; color: #8a6a1a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; font-weight: 800;
+}
+.cbt-confirm-icon.danger { background: #fdecea; color: #dc3545; }
+
+.cbt-confirm-modal h3 {
+    color: #0F3D2E;
+    font-size: 1.15rem; font-weight: 800;
+    margin: 0 0 0.5rem;
+}
+.cbt-confirm-modal p {
+    color: #5A5A5A; font-size: 0.9rem;
+    line-height: 1.55; margin: 0 0 1.5rem;
+}
+
+.cbt-confirm-actions {
+    display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;
+}
+.cbt-confirm-btn {
+    padding: 0.7rem 1.6rem;
+    border-radius: 50px;
+    border: none;
+    font-family: inherit;
+    font-weight: 700; font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 110px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+}
+.cbt-confirm-btn.cancel {
+    background: #f0f4f2; color: #0F3D2E;
+}
+.cbt-confirm-btn.cancel:hover {
+    background: #e0e8e5;
+    transform: translateY(-1px);
+}
+.cbt-confirm-btn.ok {
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.25);
+}
+.cbt-confirm-btn.ok:hover {
+    background: #1a5a44;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15,61,46,0.35);
+}
+.cbt-confirm-btn.ok.danger {
+    background: #c0392b;
+    box-shadow: 0 4px 14px rgba(192,57,43,0.25);
+}
+.cbt-confirm-btn.ok.danger:hover {
+    background: #9b2c2c;
+    box-shadow: 0 8px 20px rgba(192,57,43,0.35);
+}
+
+/* ============================================================
+   START GATE
+   ============================================================ */
+.cbt-start-gate {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    z-index: 99998;
+    display: flex; justify-content: center; align-items: center;
+    padding: 2rem 1.5rem;
+    color: #fff;
+    overflow-y: auto;
+}
+.cbt-start-gate.hidden { display: none; }
+
+.cbt-start-inner {
+    max-width: 540px; width: 100%;
+    text-align: center;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 26px;
+    padding: 2.5rem 2rem 2rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+}
+.cbt-start-icon {
+    width: 76px; height: 76px;
+    margin: 0 auto 1.25rem;
+    border-radius: 50%;
+    background: rgba(200,169,81,0.2);
+    border: 2px solid rgba(200,169,81,0.5);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    animation: gatePulse 2.5s ease-in-out infinite;
+}
+@keyframes gatePulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(200,169,81,0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 16px rgba(200,169,81,0); }
+}
+.cbt-start-inner h2 {
+    font-size: 1.65rem; font-weight: 800;
+    margin: 0 0 0.75rem;
+    color: #fff;
+    letter-spacing: -0.02em;
+}
+.cbt-start-inner > p {
+    font-size: 0.92rem; line-height: 1.6;
+    color: rgba(255,255,255,0.82);
+    margin: 0 0 1.5rem;
+}
+.cbt-start-rules {
+    list-style: none;
+    padding: 1.15rem 1.35rem;
+    margin: 0 0 1.75rem;
+    background: rgba(255,255,255,0.06);
+    border-radius: 14px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+.cbt-start-rules li {
+    display: flex; align-items: center; gap: 0.7rem;
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.92);
+    font-weight: 600;
+}
+.cbt-start-rules li i {
+    width: 20px; text-align: center;
+    font-size: 0.95rem;
+}
+.cbt-start-rules li i.fa-check { color: #4ade80; }
+.cbt-start-rules li i.fa-exclamation-triangle { color: #C8A951; }
+.cbt-start-rules li.warn-line {
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin-top: 0.2rem;
+    color: #fbb;
+}
+
+.cbt-start-btn {
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    border: none;
+    background: #C8A951;
+    color: #0F3D2E;
+    font-family: inherit;
+    font-weight: 800; font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 12px 30px rgba(200,169,81,0.4);
+    display: inline-flex; align-items: center; gap: 0.6rem;
+}
+.cbt-start-btn:hover {
+    background: #E0C96E;
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(200,169,81,0.55);
+}
+.cbt-start-hint {
+    font-size: 0.75rem !important;
+    color: rgba(255,255,255,0.55) !important;
+    margin-top: 1rem !important;
+    margin-bottom: 0 !important;
+}
+
+/* ============================================================
+   WARNING MODAL
+   ============================================================ */
+.cbt-guard-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(10,42,31,0.78);
+    backdrop-filter: blur(8px);
+    z-index: 99999;
+    justify-content: center; align-items: center;
+    padding: 1rem;
+    animation: guardFade 0.25s ease;
+}
+.cbt-guard-overlay.active { display: flex; }
+@keyframes guardFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.cbt-guard-modal {
+    background: #fff;
+    border-radius: 22px;
+    max-width: 440px; width: 100%;
+    padding: 2rem 1.75rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+    animation: guardPop 0.32s cubic-bezier(0.34,1.56,0.64,1);
+    border-top: 6px solid #dc3545;
+}
+@keyframes guardPop {
+    from { opacity: 0; transform: scale(0.94) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.cbt-guard-icon {
+    width: 68px; height: 68px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: #fdecea; color: #dc3545;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.9rem;
+    animation: guardPulse 1.6s ease-in-out infinite;
+}
+@keyframes guardPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220,53,69,0.4); }
+    50%      { box-shadow: 0 0 0 12px rgba(220,53,69,0); }
+}
+.cbt-guard-modal h3 {
+    color: #0F3D2E;
+    font-size: 1.25rem; font-weight: 800;
+    margin: 0 0 0.5rem;
+}
+.cbt-guard-modal p {
+    color: #5A5A5A; font-size: 0.92rem;
+    line-height: 1.55; margin: 0 0 1.35rem;
+}
+
+.cbt-guard-counter {
+    display: flex; gap: 0.75rem; justify-content: center;
+    margin-bottom: 1.35rem;
+}
+.cbt-guard-strike {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    border: 3px solid #e0e8e5;
+    background: #f8faf9;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+}
+.cbt-guard-strike::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: #dc3545;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.cbt-guard-strike.hit { border-color: #dc3545; }
+.cbt-guard-strike.hit::after { opacity: 1; transform: scale(1); }
+.cbt-guard-strike.hit::before {
+    content: '×';
+    position: relative; z-index: 1;
+    color: #fff; font-size: 1.6rem;
+    font-weight: 800; line-height: 1;
+}
+
+.cbt-guard-actions {
+    display: flex; justify-content: center;
+}
+.cbt-guard-btn {
+    padding: 0.75rem 2rem;
+    border-radius: 50px;
+    border: none;
+    font-weight: 800; font-size: 0.9rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.cbt-guard-btn.primary {
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(15,61,46,0.28);
+}
+.cbt-guard-btn.primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(15,61,46,0.4);
+}
+.cbt-guard-btn.primary:disabled {
+    opacity: 0.6; cursor: wait;
+}
+
+.cbt-guard-note {
+    font-size: 0.75rem; color: #8a9b95;
+    margin: 1rem 0 0 !important;
+}
+
+#submitForm { display: none; }
+
+@media (max-width: 640px) {
+    .take-topbar { padding: 0.6rem 0.9rem; gap: 0.6rem; }
+    .take-topbar-left .take-title { max-width: 100px; font-size: 0.75rem; }
+    .take-course-badge { font-size: 0.62rem; padding: 0.2rem 0.6rem; }
+    .timer-pill { font-size: 0.82rem; padding: 0.4rem 0.8rem; min-width: 88px; }
+    .strike-display { padding: 0.3rem 0.6rem; font-size: 0.62rem; }
+    .exit-btn { padding: 0.35rem 0.7rem; font-size: 0.7rem; }
+
+    .take-main { margin: 1rem auto 2rem; padding: 0 0.85rem; }
+    .question-card {
+        padding: 1.5rem 1.15rem 1.25rem;
+        border-radius: 20px;
+        min-height: 340px;
+    }
+    .q-num-badge { font-size: 0.68rem; padding: 0.3rem 0.8rem; }
+    .q-text { font-size: 1rem; margin-bottom: 1.25rem; }
+    .q-text.shrink-1 { font-size: 0.92rem; }
+    .q-text.shrink-2 { font-size: 0.85rem; }
+    .q-text.shrink-3 { font-size: 0.78rem; }
+    .flag-btn { top: 0.85rem; right: 0.85rem; font-size: 0.65rem; padding: 0.28rem 0.65rem; }
+
+    .option-btn {
+        padding: 0.85rem 0.9rem;
+        gap: 0.6rem;
+        border-radius: 14px;
+    }
+    .option-btn .opt-letter {
+        width: 32px; height: 32px;
+        font-size: 0.82rem;
+    }
+    .option-btn .opt-body { font-size: 0.87rem; }
+    .opt-body.shrink-1 { font-size: 0.8rem; }
+    .opt-body.shrink-2 { font-size: 0.74rem; }
+    .opt-body.shrink-3 { font-size: 0.68rem; }
+
+    .nav-btn { padding: 0.6rem 1rem; font-size: 0.78rem; }
+    .take-nav { padding: 0.7rem 0.85rem; }
+    .q-dot { width: 22px; height: 22px; font-size: 0.55rem; }
+
+    .cbt-start-inner { padding: 2rem 1.35rem 1.5rem; }
+    .cbt-start-inner h2 { font-size: 1.35rem; }
+    .cbt-confirm-actions { flex-direction: column-reverse; }
+    .cbt-confirm-btn { width: 100%; }
+    .cbt-guard-counter { gap: 0.5rem; }
+    .cbt-guard-strike { width: 40px; height: 40px; }
+    .cbt-guard-strike.hit::before { font-size: 1.35rem; }
+    .cbt-submitting-card { padding: 2rem 1.5rem 1.75rem; }
+    .cbt-submitting-card h2 { font-size: 1.2rem; }
+    .cbt-submitting-card p { font-size: 0.85rem; }
+    .cbt-submitting-spinner { width: 56px; height: 56px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="take-page">
+
+    <!-- ============ TOP BAR ============ -->
+    <div class="take-topbar">
+        <div class="take-topbar-left">
+            <span class="take-course-badge">{{ course.icon|default:"📘" }} {{ course.name|truncatechars:24 }}</span>
+            <span class="take-title">{{ test.student_name }}</span>
+        </div>
+        <div class="take-topbar-right">
+            <div class="strike-display" id="strikeDisplay">
+                <span class="strike-dot" id="strikeDot1"></span>
+                <span class="strike-dot" id="strikeDot2"></span>
+                <span class="strike-dot" id="strikeDot3"></span>
+                <span style="margin-left:0.3rem;">0/3</span>
+            </div>
+            <div class="timer-pill" id="timerPill">
+                <i class="fas fa-clock"></i>
+                <span id="timerText">--:--</span>
+            </div>
+            <button type="button" class="exit-btn" onclick="confirmExit()">
+                <i class="fas fa-sign-out-alt"></i> Exit
+            </button>
+        </div>
+    </div>
+
+    <!-- ============ PROGRESS ============ -->
+    <div class="progress-wrap">
+        <div class="progress-inner">
+            <div class="progress-bar-track">
+                <div class="progress-bar-fill" id="progressFill" style="width: 0%;"></div>
+            </div>
+            <div class="progress-label">
+                <span class="num" id="currentQ">1</span>
+                <span style="color:#8a9b95;">/</span>
+                <span id="totalQ">{{ total_questions }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MAIN ============ -->
+    <div class="take-main">
+        <div class="question-card" id="questionCard">
+            <button type="button" class="flag-btn" id="flagBtn" onclick="toggleFlag()">
+                <i class="fas fa-flag"></i> <span id="flagText">Flag</span>
+            </button>
+
+            <div class="q-card-head">
+                <span class="q-num-badge">
+                    <i class="fas fa-question-circle"></i>
+                    Question <span id="qNumBadge">1</span>
+                </span>
+                <div class="q-meta-chips" id="metaChips"></div>
+            </div>
+
+            <div class="q-text" id="questionText">Loading…</div>
+
+            <div class="options-list" id="optionsList"></div>
+        </div>
+    </div>
+
+    <!-- ============ NAV ============ -->
+    <div class="take-nav">
+        <div class="take-nav-inner">
+            <button type="button" class="nav-btn nav-btn-prev" id="prevBtn" onclick="goPrev()">
+                <i class="fas fa-chevron-left"></i> Prev
+            </button>
+
+            <div class="q-dots" id="qDots"></div>
+
+            <button type="button" class="nav-btn nav-btn-next" id="nextBtn" onclick="goNext()">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+
+            <button type="button" class="nav-btn nav-btn-submit" id="submitBtn" onclick="confirmSubmit()" style="display:none;">
+                <i class="fas fa-paper-plane"></i> Submit
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CONFIRM MODAL                                                 -->
+<!-- ============================================================ -->
+<div class="cbt-confirm-overlay" id="cbtConfirmOverlay" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="cbt-confirm-modal">
+        <div class="cbt-confirm-icon" id="cbtConfirmIcon">?</div>
+        <h3 id="cbtConfirmTitle">Confirm</h3>
+        <p id="cbtConfirmText">Are you sure?</p>
+        <div class="cbt-confirm-actions">
+            <button type="button" class="cbt-confirm-btn cancel" id="cbtConfirmCancel">Cancel</button>
+            <button type="button" class="cbt-confirm-btn ok" id="cbtConfirmOk">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SUBMITTING OVERLAY (fullscreen, non-dismissible)              -->
+<!-- ============================================================ -->
+<div class="cbt-submitting-overlay" id="cbtSubmittingOverlay" aria-hidden="true">
+    <div class="cbt-submitting-card">
+        <div class="cbt-submitting-spinner"></div>
+        <h2>Submitting Your Test…</h2>
+        <p>Please wait — your answers are being saved. Do not close this page.</p>
+        <div class="cbt-submitting-dots">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ANTI-CHEATING: FULLSCREEN START GATE                          -->
+<!-- ============================================================ -->
+<div class="cbt-start-gate" id="cbtStartGate">
+    <div class="cbt-start-inner">
+        <div class="cbt-start-icon"><i class="fas fa-shield-alt"></i></div>
+        <h2>Anti-Cheating Enabled</h2>
+        <p>
+            This test runs in <strong>fullscreen mode</strong> and monitors for tab switching,
+            copy attempts, and other behaviours that violate the test rules.
+        </p>
+        <ul class="cbt-start-rules">
+            <li><i class="fas fa-check"></i> Stay in fullscreen</li>
+            <li><i class="fas fa-check"></i> Do not switch tabs</li>
+            <li><i class="fas fa-check"></i> Do not copy or paste</li>
+            <li><i class="fas fa-check"></i> Right-click is disabled</li>
+            <li class="warn-line">
+                <i class="fas fa-exclamation-triangle"></i>
+                3 violations = automatic submit
+            </li>
+        </ul>
+        <button type="button" class="cbt-start-btn" id="cbtStartBtn">
+            <i class="fas fa-play"></i> Start Test in Fullscreen
+        </button>
+        <p class="cbt-start-hint">
+            By starting, you agree to the rules above.
+        </p>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ANTI-CHEATING: WARNING MODAL                                  -->
+<!-- ============================================================ -->
+<div class="cbt-guard-overlay" id="cbtGuardOverlay" aria-hidden="true">
+    <div class="cbt-guard-modal">
+        <div class="cbt-guard-icon" id="cbtGuardIcon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 id="cbtGuardTitle">Warning</h3>
+        <p id="cbtGuardText">Tab switching is not allowed during this test.</p>
+
+        <div class="cbt-guard-counter">
+            <div class="cbt-guard-strike" id="cbtStrike1"></div>
+            <div class="cbt-guard-strike" id="cbtStrike2"></div>
+            <div class="cbt-guard-strike" id="cbtStrike3"></div>
+        </div>
+
+        <div class="cbt-guard-actions">
+            <button type="button" class="cbt-guard-btn primary" id="cbtGuardOk">
+                Resume Test
+            </button>
+        </div>
+
+        <p class="cbt-guard-note" id="cbtGuardNote">
+            3 violations will auto-submit your test.
+        </p>
+    </div>
+</div>
+
+<!-- Hidden submit form -->
+<form method="post" action="{% url 'academics:cbt_submit' %}" id="submitForm">
+    {% csrf_token %}
+</form>
+
+<script>
+// ============================================================
+//  STATE
+// ============================================================
+const QUESTIONS = {{ questions_json|safe }};
+const TOTAL = QUESTIONS.length;
+const TIME_LIMIT = {{ time_left_seconds }};
+const COURSE_ID = {{ course.id|default:"null" }};
+const LOG_URL = "{% url 'academics:cbt_log_violation' %}";
+
+let currentIndex = 0;
+let answers = {};
+let flagged = new Set();
+let timeLeft = TIME_LIMIT;
+let timerInterval = null;
+let testStarted = false;
+let submitting = false;
+
+const TIME_WARN_SECONDS = 300;
+const TIME_DANGER_SECONDS = 120;
+const TIME_CRITICAL_SECONDS = 60;
+let timeWarnFired = false;
+let timeDangerFired = false;
+
+const ATTEMPT_KEY = 'namets_cbt_attempt_' + (COURSE_ID || 'default');
+let attemptId = sessionStorage.getItem(ATTEMPT_KEY);
+if (!attemptId) {
+    attemptId = 'cbt-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    sessionStorage.setItem(ATTEMPT_KEY, attemptId);
+}
+
+const COUNT_KEY = 'namets_cbt_violations_' + (COURSE_ID || 'default');
+let violationCount = parseInt(sessionStorage.getItem(COUNT_KEY) || '0', 10);
+const MAX_VIOLATIONS = 3;
+
+QUESTIONS.forEach(function(q) {
+    if (q.saved_answer) answers[q.id] = q.saved_answer;
+    if (q.flagged) flagged.add(q.id);
+});
+
+const csrfInput = document.querySelector('#submitForm input[name="csrfmiddlewaretoken"]');
+const CSRF = csrfInput ? csrfInput.value : '';
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function esc(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+function formatTime(seconds) {
+    if (seconds < 0) seconds = 0;
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+function fitText(el, tierLengths) {
+    el.classList.remove('shrink-1', 'shrink-2', 'shrink-3');
+    const len = (el.textContent || '').length;
+    if (len >= tierLengths[2]) el.classList.add('shrink-3');
+    else if (len >= tierLengths[1]) el.classList.add('shrink-2');
+    else if (len >= tierLengths[0]) el.classList.add('shrink-1');
+}
+function fitQuestionText(el) { fitText(el, [160, 240, 340]); }
+function fitOptionTexts() {
+    document.querySelectorAll('.opt-body').forEach(function(el) {
+        fitText(el, [70, 130, 220]);
+    });
+}
+
+// ============================================================
+//  CONFIRM MODAL
+// ============================================================
+let cbtConfirmResolve = null;
+
+function showConfirm({ title, message, confirmText, cancelText, danger }) {
+    return new Promise(function(resolve) {
+        cbtConfirmResolve = resolve;
+        const iconEl = document.getElementById('cbtConfirmIcon');
+        const okBtn = document.getElementById('cbtConfirmOk');
+        document.getElementById('cbtConfirmTitle').textContent = title || 'Confirm';
+        document.getElementById('cbtConfirmText').textContent = message || 'Are you sure?';
+        okBtn.textContent = confirmText || 'Confirm';
+        document.getElementById('cbtConfirmCancel').textContent = cancelText || 'Cancel';
+        if (danger) {
+            iconEl.className = 'cbt-confirm-icon danger';
+            iconEl.textContent = '!';
+            okBtn.className = 'cbt-confirm-btn ok danger';
+        } else {
+            iconEl.className = 'cbt-confirm-icon';
+            iconEl.textContent = '?';
+            okBtn.className = 'cbt-confirm-btn ok';
+        }
+        document.getElementById('cbtConfirmOverlay').classList.add('active');
+        document.getElementById('cbtConfirmOverlay').setAttribute('aria-hidden', 'false');
+    });
+}
+function closeConfirm(result) {
+    document.getElementById('cbtConfirmOverlay').classList.remove('active');
+    document.getElementById('cbtConfirmOverlay').setAttribute('aria-hidden', 'true');
+    if (cbtConfirmResolve) {
+        cbtConfirmResolve(result);
+        cbtConfirmResolve = null;
+    }
+}
+document.getElementById('cbtConfirmOk').addEventListener('click', function() { closeConfirm(true); });
+document.getElementById('cbtConfirmCancel').addEventListener('click', function() { closeConfirm(false); });
+document.getElementById('cbtConfirmOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeConfirm(false);
+});
+
+// ============================================================
+//  RENDER
+// ============================================================
+function renderQuestion() {
+    const q = QUESTIONS[currentIndex];
+    if (!q) return;
+
+    document.getElementById('currentQ').textContent = currentIndex + 1;
+    document.getElementById('qNumBadge').textContent = currentIndex + 1;
+
+    const chips = document.getElementById('metaChips');
+    let chipHtml = `<span class="q-meta-chip ${esc(q.difficulty)}">${esc(q.difficulty)}</span>`;
+    if (q.topic) chipHtml += `<span class="q-meta-chip topic">${esc(q.topic)}</span>`;
+    chips.innerHTML = chipHtml;
+
+    const qTextEl = document.getElementById('questionText');
+    qTextEl.textContent = q.text;
+    fitQuestionText(qTextEl);
+
+    const optList = document.getElementById('optionsList');
+    optList.innerHTML = '';
+    const letters = ['a', 'b', 'c', 'd'];
+    const currentAnswer = answers[q.id];
+    letters.forEach(function(letter) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'option-btn';
+        if (currentAnswer === letter) btn.classList.add('selected');
+        btn.innerHTML = `
+            <span class="opt-letter">${letter.toUpperCase()}</span>
+            <span class="opt-body">${esc(q.options[letter])}</span>
+        `;
+        btn.onclick = function() { selectAnswer(letter); };
+        optList.appendChild(btn);
+    });
+    fitOptionTexts();
+
+    const flagBtn = document.getElementById('flagBtn');
+    const flagText = document.getElementById('flagText');
+    if (flagged.has(q.id)) {
+        flagBtn.classList.add('flagged');
+        flagText.textContent = 'Flagged';
+    } else {
+        flagBtn.classList.remove('flagged');
+        flagText.textContent = 'Flag';
+    }
+
+    document.getElementById('prevBtn').disabled = currentIndex === 0;
+    const isLast = currentIndex === TOTAL - 1;
+    document.getElementById('nextBtn').style.display = isLast ? 'none' : 'inline-flex';
+    document.getElementById('submitBtn').style.display = isLast ? 'inline-flex' : 'none';
+
+    const pct = ((currentIndex + 1) / TOTAL) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+
+    updateDots();
+
+    qTextEl.style.animation = 'none';
+    void qTextEl.offsetWidth;
+    qTextEl.style.animation = 'qSlideIn 0.4s ease-out';
+}
+
+function selectAnswer(letter) {
+    const q = QUESTIONS[currentIndex];
+    answers[q.id] = letter;
+    document.querySelectorAll('.option-btn').forEach(function(btn, i) {
+        const letters = ['a', 'b', 'c', 'd'];
+        if (letters[i] === letter) btn.classList.add('selected');
+        else btn.classList.remove('selected');
+    });
+    updateDots();
+}
+
+function goPrev() { if (currentIndex > 0) { currentIndex--; renderQuestion(); } }
+function goNext() { if (currentIndex < TOTAL - 1) { currentIndex++; renderQuestion(); } }
+function jumpTo(index) {
+    if (index >= 0 && index < TOTAL) { currentIndex = index; renderQuestion(); }
+}
+function toggleFlag() {
+    const q = QUESTIONS[currentIndex];
+    if (flagged.has(q.id)) flagged.delete(q.id);
+    else flagged.add(q.id);
+    renderQuestion();
+}
+function updateDots() {
+    const container = document.getElementById('qDots');
+    container.innerHTML = '';
+    QUESTIONS.forEach(function(q, i) {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'q-dot';
+        if (i === currentIndex) dot.classList.add('current');
+        if (answers[q.id]) dot.classList.add('answered');
+        if (flagged.has(q.id)) dot.classList.add('flagged');
+        dot.textContent = i + 1;
+        dot.title = 'Question ' + (i + 1);
+        dot.onclick = function() { jumpTo(i); };
+        container.appendChild(dot);
+    });
+}
+
+// ============================================================
+//  TIMER
+// ============================================================
+function startTimer() {
+    const pill = document.getElementById('timerPill');
+    const text = document.getElementById('timerText');
+
+    function tick() {
+        text.textContent = formatTime(timeLeft);
+
+        if (timeLeft <= TIME_CRITICAL_SECONDS) {
+            pill.className = 'timer-pill critical';
+        } else if (timeLeft <= TIME_DANGER_SECONDS) {
+            pill.className = 'timer-pill danger';
+        } else if (timeLeft <= TIME_WARN_SECONDS) {
+            pill.className = 'timer-pill warn';
+        } else {
+            pill.className = 'timer-pill';
+        }
+
+        if (!timeWarnFired && timeLeft <= TIME_WARN_SECONDS && timeLeft > TIME_DANGER_SECONDS) {
+            timeWarnFired = true;
+            flashScreen();
+            showGuardModal({
+                title: '⏰ 5 Minutes Remaining',
+                message: 'You have 5 minutes left. Pace yourself — make sure every remaining question is answered.',
+                submit: false,
+                autoDismiss: 3500,
+            });
+        }
+
+        if (!timeDangerFired && timeLeft <= TIME_DANGER_SECONDS) {
+            timeDangerFired = true;
+            flashScreen();
+            showGuardModal({
+                title: '⚠️ 2 Minutes Remaining',
+                message: 'Only 2 minutes left! The test will auto-submit when time runs out.',
+                submit: false,
+                autoDismiss: 3000,
+            });
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            triggerTimeExpired();
+            return;
+        }
+        timeLeft--;
+    }
+
+    tick();
+    timerInterval = setInterval(tick, 1000);
+}
+
+function flashScreen() {
+    const flash = document.createElement('div');
+    flash.className = 'time-warning-flash';
+    document.body.appendChild(flash);
+    setTimeout(function() { flash.remove(); }, 1300);
+}
+
+function triggerTimeExpired() {
+    showGuardModal({
+        title: "⏰ Time's Up",
+        message: 'The test time has ended. Submitting your answers now…',
+        submit: true,
+    });
+    setTimeout(function() { submitTest(true, 'time_expired'); }, 900);
+}
+
+// ============================================================
+//  SUBMIT
+// ============================================================
+async function confirmSubmit() {
+    const answered = Object.keys(answers).length;
+    const unanswered = TOTAL - answered;
+    const flaggedCount = flagged.size;
+
+    let msg = `You've answered ${answered} of ${TOTAL} questions.`;
+    if (unanswered > 0) msg += ` ${unanswered} unanswered.`;
+    if (flaggedCount > 0) msg += ` ${flaggedCount} flagged for review.`;
+    msg += ' Once submitted, you cannot go back.';
+
+    const ok = await showConfirm({
+        title: 'Submit Test?',
+        message: msg,
+        confirmText: 'Yes, Submit',
+        cancelText: 'Not Yet',
+        danger: false,
+    });
+    if (ok) submitTest(false);
+}
+
+function submitTest(auto, reason) {
+    submitting = true;
+
+    if (timerInterval) clearInterval(timerInterval);
+
+    // ── Show the fullscreen submitting overlay ──
+    const overlay = document.getElementById('cbtSubmittingOverlay');
+    if (overlay) {
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
+    }
+
+    // Exit fullscreen so the overlay is fully visible
+    try {
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(function() {});
+        }
+    } catch (e) {}
+
+    // Build the form payload
+    const form = document.getElementById('submitForm');
+    form.querySelectorAll('input[name^="answers"]').forEach(i => i.remove());
+
+    QUESTIONS.forEach(function(q) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = `answers[${q.id}]`;
+        input.value = answers[q.id] || '';
+        form.appendChild(input);
+    });
+
+    if (auto) {
+        const af = document.createElement('input');
+        af.type = 'hidden';
+        af.name = 'auto_submitted';
+        af.value = '1';
+        form.appendChild(af);
+
+        const rf = document.createElement('input');
+        rf.type = 'hidden';
+        rf.name = 'auto_submit_reason';
+        rf.value = reason || 'violation';
+        form.appendChild(rf);
+    }
+
+    // Small delay so the overlay actually paints before navigation
+    setTimeout(function() {
+        form.submit();
+    }, 400);
+}
+
+async function confirmExit() {
+    const ok = await showConfirm({
+        title: 'Exit Test?',
+        message: 'Are you sure you want to exit? Your test progress will be lost.',
+        confirmText: 'Yes, Exit',
+        cancelText: 'Stay',
+        danger: true,
+    });
+    if (ok) {
+        submitting = true;
+        window.location.href = '{% url "academics:cbt_home" %}';
+    }
+}
+
+// ============================================================
+//  ANTI-CHEATING
+// ============================================================
+const guardOverlay = document.getElementById('cbtGuardOverlay');
+const guardTitle   = document.getElementById('cbtGuardTitle');
+const guardText    = document.getElementById('cbtGuardText');
+const guardIcon    = document.getElementById('cbtGuardIcon');
+const guardOk      = document.getElementById('cbtGuardOk');
+const guardNote    = document.getElementById('cbtGuardNote');
+const strikeEls    = [
+    document.getElementById('cbtStrike1'),
+    document.getElementById('cbtStrike2'),
+    document.getElementById('cbtStrike3'),
+];
+const strikeDots   = [
+    document.getElementById('strikeDot1'),
+    document.getElementById('strikeDot2'),
+    document.getElementById('strikeDot3'),
+];
+const strikeDisplay = document.getElementById('strikeDisplay');
+const startGate = document.getElementById('cbtStartGate');
+const startBtn  = document.getElementById('cbtStartBtn');
+
+let guardAutoDismissTimer = null;
+
+function updateStrikeUI() {
+    strikeEls.forEach((el, i) => { if (el) el.classList.toggle('hit', i < violationCount); });
+    strikeDots.forEach((el, i) => { if (el) el.classList.toggle('hit', i < violationCount); });
+    if (strikeDisplay) strikeDisplay.classList.toggle('has-strikes', violationCount > 0);
+}
+
+function violationMessage(vtype) {
+    return {
+        'tab_switch':       'You switched away from the test tab. Stay focused on the test.',
+        'fullscreen_exit':  'You exited fullscreen mode. The test must remain fullscreen.',
+        'copy_attempt':     'Copying is not allowed during the test.',
+        'paste_attempt':    'Pasting is not allowed during the test.',
+        'right_click':      'Right-clicking is disabled during the test.',
+        'devtools':         'Browser developer tools are not allowed during the test.',
+    }[vtype] || 'A test rule was violated.';
+}
+
+function showGuardModal({ title, message, submit, autoDismiss }) {
+    clearTimeout(guardAutoDismissTimer);
+    guardTitle.textContent = title;
+    guardText.textContent = message;
+    guardIcon.innerHTML = submit
+        ? '<i class="fas fa-times-circle"></i>'
+        : '<i class="fas fa-exclamation-triangle"></i>';
+    guardIcon.style.background = submit ? '#fdecea' : '#fef3e8';
+    guardIcon.style.color      = submit ? '#dc3545' : '#a8671a';
+    guardOk.textContent = submit ? 'Submitting…' : 'Resume Test';
+    guardOk.disabled = !!submit;
+    guardNote.textContent = submit
+        ? 'Your test is being submitted now.'
+        : `Violation ${violationCount} of ${MAX_VIOLATIONS}. ${MAX_VIOLATIONS - violationCount} remaining before auto-submit.`;
+    updateStrikeUI();
+    guardOverlay.classList.add('active');
+    guardOverlay.setAttribute('aria-hidden', 'false');
+    if (autoDismiss) {
+        guardAutoDismissTimer = setTimeout(function() {
+            hideGuardModal();
+            requestFullscreen();
+        }, autoDismiss);
+    }
+}
+
+function hideGuardModal() {
+    clearTimeout(guardAutoDismissTimer);
+    guardOverlay.classList.remove('active');
+    guardOverlay.setAttribute('aria-hidden', 'true');
+}
+
+guardOk.addEventListener('click', function() {
+    if (guardOk.disabled) return;
+    hideGuardModal();
+    requestFullscreen();
+});
+
+async function logViolation(vtype, metadata) {
+    if (!testStarted) return;
+    if (submitting) return;
+
+    violationCount += 1;
+    sessionStorage.setItem(COUNT_KEY, violationCount);
+
+    try {
+        const res = await fetch(LOG_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRF,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({
+                attempt_id: attemptId,
+                course_id: COURSE_ID,
+                violation_type: vtype,
+                metadata: metadata || {},
+            }),
+        });
+        const data = await res.json();
+        if (data && data.total) {
+            violationCount = data.total;
+            sessionStorage.setItem(COUNT_KEY, violationCount);
+        }
+    } catch (err) {
+        console.warn('Violation log failed:', err);
+    }
+
+    if (violationCount >= MAX_VIOLATIONS) {
+        triggerAutoSubmit(vtype);
+    } else {
+        showGuardModal({
+            title: 'Violation Detected',
+            message: violationMessage(vtype),
+            submit: false,
+        });
+    }
+}
+
+function triggerAutoSubmit(lastType) {
+    showGuardModal({
+        title: 'Test Auto-Submitted',
+        message: 'You have reached 3 violations. Your test is being submitted automatically.',
+        submit: true,
+    });
+    setTimeout(function() { submitTest(true, lastType); }, 800);
+}
+
+function requestFullscreen() {
+    const el = document.documentElement;
+    const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+    if (fn) {
+        try { fn.call(el); } catch (e) {}
+    }
+}
+
+document.addEventListener('fullscreenchange', function() {
+    if (!testStarted) return;
+    if (submitting) return;
+    if (!document.fullscreenElement) {
+        logViolation('fullscreen_exit', { when: 'during test' });
+    }
+});
+
+document.addEventListener('visibilitychange', function() {
+    if (!testStarted) return;
+    if (submitting) return;
+    if (document.hidden) {
+        logViolation('tab_switch', { when: new Date().toISOString() });
+    }
+});
+
+['copy', 'cut'].forEach(function(evt) {
+    document.addEventListener(evt, function(e) {
+        if (!testStarted) return;
+        if (submitting) return;
+        e.preventDefault();
+        logViolation('copy_attempt', { event: evt });
+    }, true);
+});
+document.addEventListener('paste', function(e) {
+    if (!testStarted) return;
+    if (submitting) return;
+    e.preventDefault();
+    logViolation('paste_attempt', {});
+}, true);
+
+document.addEventListener('contextmenu', function(e) {
+    if (!testStarted) return;
+    if (submitting) return;
+    e.preventDefault();
+    logViolation('right_click', { x: e.clientX, y: e.clientY });
+});
+
+document.addEventListener('keydown', function(e) {
+    if (!testStarted) return;
+
+    if (guardOverlay.classList.contains('active')) {
+        if (e.key === 'Enter' || e.key === 'Escape') {
+            e.preventDefault();
+            if (!guardOk.disabled) {
+                hideGuardModal();
+                requestFullscreen();
+            }
+        }
+        return;
+    }
+    if (document.getElementById('cbtConfirmOverlay').classList.contains('active')) {
+        if (e.key === 'Escape') closeConfirm(false);
+        if (e.key === 'Enter')  closeConfirm(true);
+        return;
+    }
+
+    const key = e.key ? e.key.toLowerCase() : '';
+
+    if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'x'].includes(key)) {
+        e.preventDefault();
+        logViolation('copy_attempt', { shortcut: (e.ctrlKey ? 'ctrl+' : 'cmd+') + key });
+        return;
+    }
+    if ((e.ctrlKey || e.metaKey) && ['a', 'p', 's'].includes(key)) {
+        e.preventDefault();
+        return;
+    }
+    if (e.key === 'F12'
+        || ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i', 'j', 'c'].includes(key))) {
+        e.preventDefault();
+        logViolation('devtools', {});
+        return;
+    }
+
+    if (e.key === 'ArrowLeft') goPrev();
+    else if (e.key === 'ArrowRight') goNext();
+    else if (['a', '1'].includes(key)) selectAnswer('a');
+    else if (['b', '2'].includes(key)) selectAnswer('b');
+    else if (['c', '3'].includes(key)) selectAnswer('c');
+    else if (['d', '4'].includes(key)) selectAnswer('d');
+    else if (key === 'f') toggleFlag();
+});
+
+startBtn.addEventListener('click', async function() {
+    requestFullscreen();
+    await new Promise(r => setTimeout(r, 300));
+    testStarted = true;
+    document.body.classList.add('cbt-locked');
+    startGate.classList.add('hidden');
+    updateStrikeUI();
+});
+
+window.addEventListener('beforeunload', function(e) {
+    if (submitting) return;
+    if (testStarted && timerInterval) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+renderQuestion();
+startTimer();
+updateStrikeUI();
+</script>
+
+{% endblock %}

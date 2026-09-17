@@ -1,0 +1,324 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Oath Acknowledgments · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.gov-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.6rem 2rem; margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.gov-head::before {
+    content: "🤝"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.gov-head-inner {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.gov-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.85rem; border-radius: 20px; margin-bottom: 0.35rem;
+}
+.gov-head h1 { font-size: 1.4rem; font-weight: 800; margin: 0; }
+.gov-head p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+.gov-head-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.25rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem; text-decoration: none;
+    border: 1px solid transparent; transition: all 0.25s;
+    cursor: pointer; font-family: inherit;
+}
+.hbtn-gold { background: #C8A951; color: #0F3D2E; border-color: #C8A951; }
+.hbtn-gold:hover { background: #E0C96E; color: #0F3D2E; transform: translateY(-2px); }
+.hbtn-outline { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2); }
+.hbtn-outline:hover { background: rgba(255,255,255,0.22); color: #fff; transform: translateY(-2px); }
+
+/* Oath cards */
+.oath-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+.oath-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 1.5rem 1.5rem 1.35rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+.oath-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #0F3D2E, #C8A951);
+    opacity: 0.85;
+}
+.oath-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(200,169,81,0.4);
+}
+
+.oath-avatar {
+    width: 68px; height: 68px; border-radius: 50%;
+    margin: 0 auto 0.9rem;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; font-weight: 800;
+    border: 3px solid #C8A951;
+    box-shadow: 0 6px 20px rgba(15,61,46,0.2);
+}
+
+.oath-name {
+    font-size: 1rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.3rem;
+    letter-spacing: -0.01em;
+}
+.oath-session {
+    display: inline-block;
+    font-size: 0.68rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a6a1a;
+    background: rgba(200,169,81,0.15);
+    padding: 0.25rem 0.75rem; border-radius: 20px;
+    margin-bottom: 0.75rem;
+}
+.oath-date {
+    font-size: 0.78rem; color: #8a9b95;
+    margin: 0.6rem 0 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.oath-date i { color: #C8A951; }
+.oath-notes {
+    font-size: 0.78rem; color: #5A5A5A;
+    margin: 0.6rem 0 0; line-height: 1.5;
+    font-style: italic;
+}
+
+.empty-state {
+    text-align: center; padding: 4rem 1.5rem;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 2px dashed rgba(200,169,81,0.35);
+    border-radius: 18px;
+    grid-column: 1 / -1;
+}
+.empty-state .ic { font-size: 3.5rem; display: block; margin-bottom: 0.75rem; }
+.empty-state h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1.05rem; }
+.empty-state p { color: #8a9b95; font-size: 0.85rem; margin: 0 0 1rem; }
+
+/* Record oath modal */
+.modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(10,42,31,0.6);
+    backdrop-filter: blur(6px);
+    z-index: 9999;
+    justify-content: center; align-items: center;
+    padding: 1rem;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+    background: #fff;
+    border-radius: 22px;
+    max-width: 520px; width: 100%;
+    padding: 2rem 1.85rem 1.5rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    max-height: 90vh; overflow-y: auto;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-head {
+    text-align: center; margin-bottom: 1.5rem;
+}
+.modal-icon {
+    width: 64px; height: 64px; margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.75rem;
+}
+.modal-head h3 {
+    font-size: 1.2rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.35rem;
+}
+.modal-head p {
+    font-size: 0.85rem; color: #8a9b95;
+    margin: 0; line-height: 1.5;
+}
+.modal-form-group {
+    display: flex; flex-direction: column;
+    margin-bottom: 1rem;
+}
+.modal-form-group label {
+    font-weight: 700; color: #0F3D2E;
+    font-size: 0.8rem; margin-bottom: 0.35rem;
+}
+.modal-form-group select, .modal-form-group input, .modal-form-group textarea {
+    width: 100%; padding: 0.65rem 0.9rem;
+    border: 1px solid #d0d9d6; border-radius: 10px;
+    font-size: 0.9rem; background: #fff;
+    font-family: inherit; transition: all 0.2s;
+}
+.modal-form-group select:focus, .modal-form-group input:focus, .modal-form-group textarea:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 4px rgba(200,169,81,0.15);
+}
+.modal-actions {
+    display: flex; gap: 0.6rem; justify-content: center;
+    flex-wrap: wrap; margin-top: 1.5rem;
+}
+.modal-btn {
+    padding: 0.75rem 1.75rem;
+    border-radius: 50px; border: none;
+    font-weight: 700; font-size: 0.88rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+    min-width: 120px; justify-content: center;
+}
+.modal-btn.primary {
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(15,61,46,0.25);
+}
+.modal-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(15,61,46,0.35); }
+.modal-btn.secondary {
+    background: #f0f4f2; color: #0F3D2E;
+}
+.modal-btn.secondary:hover { background: #e0e8e5; transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+    .gov-head-inner { flex-direction: column; align-items: stretch; }
+    .gov-head-actions { flex-direction: column; }
+    .hbtn { justify-content: center; width: 100%; }
+    .oath-grid { grid-template-columns: 1fr; }
+    .modal-actions { flex-direction: column; }
+    .modal-btn { width: 100%; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="gov-head">
+    <div class="gov-head-inner">
+        <div>
+            <span class="gov-eyebrow">Governance · Shura</span>
+            <h1>Oath Acknowledgments</h1>
+            <p>Timestamped record of handover-day oaths of allegiance.</p>
+        </div>
+        <div class="gov-head-actions">
+            <button type="button" class="hbtn hbtn-gold" onclick="openOathModal()">
+                <i class="fas fa-plus"></i> Record New Oath
+            </button>
+            <a href="{% url 'governance:dashboard' %}" class="hbtn hbtn-outline">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="oath-grid">
+    {% for a in acknowledgments %}
+    <div class="oath-card">
+        <div class="oath-avatar">
+            {{ a.user.first_name|first|upper }}{{ a.user.last_name|first|upper }}
+        </div>
+        <h3 class="oath-name">{{ a.user.get_full_name|default:a.user.username }}</h3>
+        <span class="oath-session">{{ a.session_label }}</span>
+        {% if a.notes %}
+        <p class="oath-notes">{{ a.notes }}</p>
+        {% endif %}
+        <div class="oath-date">
+            <i class="far fa-clock"></i> {{ a.acknowledged_at|date:"M d, Y · H:i" }}
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <span class="ic">🤝</span>
+        <h3>No oaths recorded yet</h3>
+        <p>After each handover, record who took the oath of allegiance.</p>
+        <button type="button" class="hbtn hbtn-gold" onclick="openOathModal()" style="display:inline-flex;">
+            <i class="fas fa-plus"></i> Record first oath
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div style="margin-top:1.5rem;display:flex;justify-content:center;gap:0.35rem;flex-wrap:wrap;">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" style="min-width:38px;height:38px;padding:0 0.8rem;border-radius:10px;text-decoration:none;font-size:0.82rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;background:var(--card-bg);border:1px solid var(--card-border);color:#0F3D2E;">‹</a>
+    {% endif %}
+    <span style="min-width:38px;height:38px;padding:0 0.8rem;border-radius:10px;font-size:0.82rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;background:var(--primary);color:#C8A951;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" style="min-width:38px;height:38px;padding:0 0.8rem;border-radius:10px;text-decoration:none;font-size:0.82rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;background:var(--card-bg);border:1px solid var(--card-border);color:#0F3D2E;">›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Record Oath Modal -->
+<div class="modal-overlay" id="oathModal">
+    <div class="modal-box">
+        <div class="modal-head">
+            <div class="modal-icon"><i class="fas fa-handshake"></i></div>
+            <h3>Record Oath Acknowledgment</h3>
+            <p>Log that a new EXCO member took the oath of allegiance.</p>
+        </div>
+        <form method="post" action="{% url 'governance:oath_record' %}">
+            {% csrf_token %}
+            <div class="modal-form-group">
+                <label for="oath-user">Member <span style="color:#e53e3e;">*</span></label>
+                <select name="user" id="oath-user" required>
+                    <option value="">— Select member —</option>
+                    {% for u in all_users %}
+                    <option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }} ({{ u.email }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="modal-form-group">
+                <label for="oath-session">Session <span style="color:#e53e3e;">*</span></label>
+                <input type="text" name="session_label" id="oath-session" placeholder="e.g. 2025/2026" required>
+            </div>
+            <div class="modal-form-group">
+                <label for="oath-notes">Notes (optional)</label>
+                <textarea name="notes" id="oath-notes" rows="2" placeholder="Any additional context…"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn secondary" onclick="closeOathModal()">Cancel</button>
+                <button type="submit" class="modal-btn primary">
+                    <i class="fas fa-save"></i> Record Oath
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openOathModal() { document.getElementById('oathModal').classList.add('active'); }
+function closeOathModal() { document.getElementById('oathModal').classList.remove('active'); }
+document.getElementById('oathModal').addEventListener('click', function(e) {
+    if (e.target === this) closeOathModal();
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeOathModal();
+});
+</script>
+
+{% endblock %}

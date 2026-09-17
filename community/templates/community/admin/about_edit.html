@@ -1,0 +1,153 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}About Page · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.about-container { max-width: 700px; margin: 0 auto; }
+.about-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.about-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.about-header-content {
+    position: relative;
+    color: #fff;
+}
+.about-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.about-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.3rem; color:#fff; }
+.about-header p { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+
+.form-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+.form-group label .required { color: #e53e3e; font-size: 1.1rem; }
+.form-group textarea {
+    width: 100%; padding: 0.6rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.95rem; background: var(--card-bg);
+}
+.form-group textarea:focus { border-color: var(--gold); outline: none; }
+.form-group .help-text { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+.form-group .error-text { font-size: 0.8rem; color: #e53e3e; margin-top: 0.2rem; }
+.form-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.05); }
+.btn-primary {
+    background: var(--primary); color: #fff;
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; transition: var(--transition);
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; text-decoration: none; text-align: center;
+    transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+@media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="about-container">
+    <div class="about-header">
+        <div class="about-header-glow" aria-hidden="true"></div>
+        <div class="about-header-content">
+            <span class="about-eyebrow">Content Management</span>
+            <h1>📖 About Page</h1>
+            <p>Update the mission, vision, and history of NAMETS.</p>
+        </div>
+    </div>
+
+    <form method="post" class="form-card">
+        {% csrf_token %}
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_mission_statement">Mission Statement <span class="required">*</span></label>
+                {{ form.mission_statement }}
+                {% if form.mission_statement.errors %}<div class="error-text">{{ form.mission_statement.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_vision_statement">Vision Statement <span class="required">*</span></label>
+                {{ form.vision_statement }}
+                {% if form.vision_statement.errors %}<div class="error-text">{{ form.vision_statement.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_history">History</label>
+                {{ form.history }}
+                {% if form.history.errors %}<div class="error-text">{{ form.history.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_established_year">Established Year</label>
+                {{ form.established_year }}
+                {% if form.established_year.errors %}<div class="error-text">{{ form.established_year.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="form-row">
+            <div class="form-group full">
+                {% for error in form.non_field_errors %}
+                <div class="error-text" style="background:#fdecea; padding:0.8rem 1rem; border-radius:8px; border-left:4px solid #e53e3e;">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Update About Page</button>
+            <a href="{% url 'community:about' %}" target="_blank" class="btn-secondary">Preview Public Page</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

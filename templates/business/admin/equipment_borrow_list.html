@@ -1,0 +1,548 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Equipment Borrows · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.eb-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.eb-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #fff;
+}
+.eb-eyebrow {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.3rem;
+}
+.eb-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.eb-header p { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+.eb-header-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.eb-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-decoration: none;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.25s;
+}
+.eb-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); color:#fff; }
+.eb-btn-gold { background: var(--gold); color: var(--text-primary); border-color: var(--gold); }
+.eb-btn-gold:hover { background: var(--gold-light); color: var(--text-primary); }
+
+.eb-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1.2rem;
+    margin-bottom: 1rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form input, .filter-form select {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 120px;
+    font-size: 0.85rem;
+}
+.filter-form .btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.filter-form .clear { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.bulk-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0.5rem 0;
+    padding: 0.5rem 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.bulk-actions select { padding: 0.3rem 0.8rem; border: 1px solid #d0d9d6; border-radius: 6px; background: var(--card-bg); }
+.bulk-actions .btn-sm {
+    padding: 0.3rem 1rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--primary);
+    color: #fff;
+}
+.bulk-actions .btn-sm:hover { background: var(--primary-dark); }
+
+.eb-table-wrapper { overflow-x: auto; }
+.eb-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.eb-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+}
+.eb-table td { padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 0.85rem; vertical-align: middle; }
+.eb-table tr:hover { background: rgba(200,169,81,0.04); }
+.badge-sm {
+    font-size: 0.6rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 10px;
+    font-weight: 600;
+}
+.badge-sm.borrowed { background: #e0f7f4; color: #0d7a6b; }
+.badge-sm.returned { background: #e8f2ec; color: #1a3c2e; }
+.badge-sm.overdue { background: #fdecea; color: #9b2c2c; }
+.btn-sm {
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-primary { background: var(--primary); color: #fff; }
+.btn-sm-primary:hover { background: var(--primary-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.btn-sm-success { background: #e8f2ec; color: #1a3c2e; }
+.btn-sm-success:hover { background: #c8e0d4; }
+.btn-sm-warning { background: #fef3e8; color: #a8671a; }
+.btn-sm-warning:hover { background: #fce4d4; }
+.empty { text-align: center; color: var(--text-muted); padding: 2rem; }
+.pagination { margin-top: 1rem; text-align: center; }
+.pagination .step-links a { color: var(--gold); text-decoration: none; margin: 0 0.2rem; padding: 0.2rem 0.5rem; border-radius: 4px; }
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.3rem; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,42,31,0.55);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+    background: #fff;
+    border: 1px solid rgba(200,169,81,0.2);
+    border-radius: var(--radius-md);
+    max-width: 460px;
+    width: 100%;
+    padding: 2rem 1.75rem 1.75rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+    text-align: center;
+    animation: modalIn 0.25s ease-out;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal .modal-icon {
+    width: 64px; height: 64px; margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+}
+.modal .modal-icon.success { background: #e8f2ec; color: #1a3c2e; }
+.modal .modal-icon.danger  { background: #fdecea; color: #9b2c2c; }
+.modal .modal-icon.warning { background: #fef3e8; color: #a8671a; }
+.modal h3 { color: var(--text-primary); margin: 0 0 0.35rem; font-size: 1.2rem; font-weight: 700; }
+.modal p { color: var(--text-muted); font-size: 0.88rem; margin: 0 0 1.25rem; line-height: 1.5; }
+.modal .info-box {
+    background: #f8faf9;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    margin: 0 0 1.25rem;
+    text-align: left;
+    border-left: 3px solid var(--gold);
+}
+.modal .info-box .field {
+    display: flex; justify-content: space-between;
+    padding: 0.25rem 0; font-size: 0.83rem; gap: 0.5rem;
+}
+.modal .info-box .field .label { color: var(--text-muted); font-weight: 500; }
+.modal .info-box .field .value { color: var(--text-primary); font-weight: 600; text-align: right; word-break: break-word; }
+.modal-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+.modal-actions .btn {
+    padding: 0.65rem 1.6rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.modal-actions .btn-secondary {
+    background: #f0f4f2; color: var(--text-primary);
+}
+.modal-actions .btn-secondary:hover { background: #e0e8e5; }
+.modal-actions .btn-success {
+    background: var(--primary); color: #fff;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.25);
+}
+.modal-actions .btn-success:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.modal-actions .btn-danger {
+    background: #c0392b; color: #fff;
+    box-shadow: 0 4px 14px rgba(192,57,43,0.25);
+}
+.modal-actions .btn-danger:hover { background: #9b2c2c; transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+    .eb-header { padding: 1rem 1.25rem; }
+    .eb-header-content { flex-direction: column; align-items: stretch; }
+    .eb-btn { justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .bulk-actions { flex-direction: column; align-items: stretch; }
+    .eb-table th, .eb-table td { font-size: 0.7rem; padding: 0.3rem 0.4rem; }
+    .modal { padding: 1.5rem 1.25rem; }
+    .modal-actions .btn { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="eb-header">
+    <div class="eb-header-content">
+        <div>
+            <span class="eb-eyebrow">Equipment Officer</span>
+            <h1>📖 Equipment Borrows</h1>
+            <p>Track who borrowed what and when.</p>
+        </div>
+        <div class="eb-header-actions">
+            {% if perms.business.add_equipmentborrow %}
+            <a href="{% url 'business:admin_equipment_borrow_create' %}" class="eb-btn eb-btn-gold">
+                <i class="fas fa-plus-circle"></i> New Borrow
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="eb-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search borrower, item..." value="{{ query }}">
+        <select name="status">
+            <option value="">All Status</option>
+            <option value="borrowed" {% if status_filter == 'borrowed' %}selected{% endif %}>Borrowed</option>
+            <option value="returned" {% if status_filter == 'returned' %}selected{% endif %}>Returned</option>
+            <option value="overdue" {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option>
+        </select>
+        <select name="item">
+            <option value="">All Items</option>
+            {% for item in items %}
+            <option value="{{ item.id }}" {% if item_filter == item.id|stringformat:"s" %}selected{% endif %}>{{ item.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query or status_filter or item_filter %}
+        <a href="{% url 'business:admin_equipment_borrow_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<form method="post" id="bulkForm">
+    {% csrf_token %}
+    <div class="bulk-actions">
+        <span style="font-weight:600; font-size:0.75rem;">Bulk Actions:</span>
+        <select name="bulk_action">
+            <option value="">— Select —</option>
+            <option value="mark_returned">✅ Mark Returned</option>
+            <option value="delete">🗑️ Delete Selected</option>
+        </select>
+        <button type="button" class="btn-sm" id="bulkApplyBtn">Apply</button>
+        <span style="font-size:0.7rem; color:var(--text-muted); margin-left:auto;">
+            <a href="#" onclick="toggleSelectAll(); return false;">Select All</a> / <a href="#" onclick="deselectAll(); return false;">Deselect All</a>
+        </span>
+    </div>
+
+    <div class="eb-table-wrapper">
+        <table class="eb-table">
+            <thead>
+                <tr>
+                    <th style="width:36px;"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"></th>
+                    <th>Item</th>
+                    <th>Borrower</th>
+                    <th>Phone</th>
+                    <th>Borrowed</th>
+                    <th>Expected Return</th>
+                    <th>Status</th>
+                    <th style="width:100px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td><input type="checkbox" name="selected_ids" value="{{ record.id }}" class="row-checkbox"></td>
+                    <td><strong>{{ record.item.name }}</strong></td>
+                    <td>{{ record.borrower_name }}</td>
+                    <td>{{ record.borrower_phone }}</td>
+                    <td>{{ record.borrowed_at|date:"M d, Y" }}</td>
+                    <td>{{ record.expected_return_date|date:"M d, Y" }}</td>
+                    <td>
+                        <span class="badge-sm {{ record.status }}">
+                            {{ record.get_status_display }}
+                            {% if record.is_overdue and record.status != 'returned' %}
+                            <span style="color:#e53e3e;">🔴</span>
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:0.2rem; flex-wrap:wrap;">
+                            {% if record.status != 'returned' %}
+                            <button type="button" class="btn-sm btn-sm-success" title="Mark Returned"
+                                    onclick="openReturnModal(
+                                        '{{ record.pk }}',
+                                        '{{ record.item.name|escapejs }}',
+                                        '{{ record.borrower_name|escapejs }}',
+                                        '{{ record.borrowed_at|date:"M d, Y" }}',
+                                        '{{ record.expected_return_date|date:"M d, Y" }}'
+                                    )">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            {% endif %}
+                            <a href="{% url 'business:admin_equipment_borrow_edit' record.pk %}" class="btn-sm btn-sm-gold" title="Edit"><i class="fas fa-edit"></i></a>
+                            <button type="button" class="btn-sm btn-sm-danger" title="Delete"
+                                    onclick="openDeleteModal(
+                                        '{{ record.pk }}',
+                                        '{{ record.item.name|escapejs }}',
+                                        '{{ record.borrower_name|escapejs }}'
+                                    )">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="empty">
+                    <span style="font-size:2.5rem; display:block; margin-bottom:0.3rem;">📭</span>
+                    No borrow records found.
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">‹ Prev</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next ›</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+<!-- ===== MARK RETURNED MODAL ===== -->
+<div class="modal-overlay" id="returnModal">
+    <div class="modal">
+        <div class="modal-icon success"><i class="fas fa-check"></i></div>
+        <h3>Mark as Returned</h3>
+        <p>Confirm that this item has been returned. Available stock will increase by 1.</p>
+        <div class="info-box">
+            <div class="field"><span class="label">Item</span><span class="value" id="retItem">—</span></div>
+            <div class="field"><span class="label">Borrower</span><span class="value" id="retBorrower">—</span></div>
+            <div class="field"><span class="label">Borrowed</span><span class="value" id="retBorrowedAt">—</span></div>
+            <div class="field"><span class="label">Was Due</span><span class="value" id="retDue">—</span></div>
+        </div>
+        <form method="post" id="returnForm">
+            {% csrf_token %}
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeReturnModal()">Cancel</button>
+                <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Yes, Mark Returned</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== DELETE MODAL ===== -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+        <div class="modal-icon danger"><i class="fas fa-trash"></i></div>
+        <h3>Delete Borrow Record</h3>
+        <p>This will permanently remove this record. This action cannot be undone.</p>
+        <div class="info-box">
+            <div class="field"><span class="label">Item</span><span class="value" id="deleteItem">—</span></div>
+            <div class="field"><span class="label">Borrower</span><span class="value" id="deleteBorrower">—</span></div>
+        </div>
+        <form method="post" id="deleteForm">
+            {% csrf_token %}
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Yes, Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== BULK CONFIRM MODAL ===== -->
+<div class="modal-overlay" id="bulkModal">
+    <div class="modal">
+        <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+        <h3>Apply Bulk Action</h3>
+        <p>You are about to <strong id="bulkActionLabel">apply</strong> to <strong id="bulkCountLabel">0</strong> record(s).</p>
+        <div class="info-box">
+            <div class="field"><span class="label">Action</span><span class="value" id="bulkActionText">—</span></div>
+            <div class="field"><span class="label">Selected</span><span class="value" id="bulkCountText">0</span></div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeBulkModal()">Cancel</button>
+            <button type="button" class="btn btn-danger" id="bulkConfirmBtn"><i class="fas fa-check"></i> Yes, Apply</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ---------- Select/Deselect ---------- */
+function toggleAllCheckboxes(master) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
+}
+function toggleSelectAll() {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = true);
+    document.getElementById('selectAllCheckbox').checked = true;
+}
+function deselectAll() {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+    document.getElementById('selectAllCheckbox').checked = false;
+}
+
+/* ---------- Bulk apply ---------- */
+document.getElementById('bulkApplyBtn').addEventListener('click', function() {
+    const actionSelect = document.querySelector('select[name="bulk_action"]');
+    const action = actionSelect.value;
+    const selected = document.querySelectorAll('.row-checkbox:checked');
+
+    if (!action || selected.length === 0) {
+        const msg = document.createElement('div');
+        msg.textContent = 'Please select an action and at least one record.';
+        msg.style.cssText = 'position:fixed;top:1rem;left:50%;transform:translateX(-50%);background:#fef3e8;color:#a8671a;padding:0.6rem 1.2rem;border-radius:50px;box-shadow:0 4px 14px rgba(0,0,0,0.15);z-index:99999;font-size:0.85rem;font-weight:600;';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 2500);
+        return;
+    }
+
+    const actionLabel = actionSelect.options[actionSelect.selectedIndex].text;
+    document.getElementById('bulkActionLabel').textContent = actionLabel.replace(/^[^\w]*\s*/, '').toLowerCase();
+    document.getElementById('bulkActionText').textContent = actionLabel;
+    document.getElementById('bulkCountLabel').textContent = selected.length;
+    document.getElementById('bulkCountText').textContent = selected.length;
+    document.getElementById('bulkModal').classList.add('active');
+});
+
+document.getElementById('bulkConfirmBtn').addEventListener('click', function() {
+    document.getElementById('bulkForm').submit();
+});
+
+function closeBulkModal() {
+    document.getElementById('bulkModal').classList.remove('active');
+}
+document.getElementById('bulkModal').addEventListener('click', function(e) {
+    if (e.target === this) closeBulkModal();
+});
+
+/* ---------- Mark Returned modal ---------- */
+function openReturnModal(pk, item, borrower, borrowedAt, due) {
+    document.getElementById('retItem').textContent = item;
+    document.getElementById('retBorrower').textContent = borrower;
+    document.getElementById('retBorrowedAt').textContent = borrowedAt;
+    document.getElementById('retDue').textContent = due;
+    document.getElementById('returnForm').action = '/business/admin/equipment-borrows/' + pk + '/return/';
+    document.getElementById('returnModal').classList.add('active');
+}
+function closeReturnModal() {
+    document.getElementById('returnModal').classList.remove('active');
+}
+document.getElementById('returnModal').addEventListener('click', function(e) {
+    if (e.target === this) closeReturnModal();
+});
+
+/* ---------- Delete modal ---------- */
+function openDeleteModal(pk, item, borrower) {
+    document.getElementById('deleteItem').textContent = item;
+    document.getElementById('deleteBorrower').textContent = borrower;
+    document.getElementById('deleteForm').action = '/business/admin/equipment-borrows/' + pk + '/delete/';
+    document.getElementById('deleteModal').classList.add('active');
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('active');
+}
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
+
+/* ---------- ESC key ---------- */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeReturnModal();
+        closeDeleteModal();
+        closeBulkModal();
+    }
+});
+</script>
+
+{% endblock %}

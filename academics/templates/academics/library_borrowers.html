@@ -1,0 +1,211 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Borrowers · Library · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.br-wrap { max-width: 1100px; margin: 0 auto; }
+
+.br-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 12px 36px rgba(15,61,46,0.22);
+}
+.br-hero::before {
+    content: "👥"; font-size: 7rem;
+    position: absolute; bottom: -1.5rem; right: 1rem;
+    opacity: 0.08; pointer-events: none;
+}
+.br-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.br-hero h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.3rem; }
+.br-hero p { color: rgba(255,255,255,0.82); font-size: 0.88rem; margin: 0; }
+.br-hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.6rem 1.25rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem;
+    text-decoration: none; border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.12); color: #fff;
+    transition: all 0.25s;
+}
+.br-hbtn:hover { background: rgba(255,255,255,0.22); transform: translateY(-3px); }
+
+.br-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    padding: 1.5rem 1.65rem;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+}
+.br-card h2 {
+    font-size: 0.9rem; font-weight: 800; color: #0F3D2E;
+    margin: 0 0 1.15rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.br-card h2 i { color: #C8A951; }
+
+.br-table-wrap { overflow-x: auto; }
+.br-table {
+    width: 100%; border-collapse: collapse; font-size: 0.85rem;
+}
+.br-table th {
+    background: #f8faf9; color: #0F3D2E;
+    padding: 0.75rem 1rem; text-align: left;
+    font-size: 0.66rem; text-transform: uppercase;
+    letter-spacing: 0.06em; font-weight: 800;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.br-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    vertical-align: middle;
+}
+.br-table tr:last-child td { border-bottom: none; }
+.br-table tr:hover { background: rgba(200,169,81,0.04); }
+
+.br-user {
+    display: flex; align-items: center; gap: 0.75rem;
+}
+.br-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 800;
+    flex-shrink: 0;
+    border: 2px solid #C8A951;
+}
+.br-user-info .name {
+    font-size: 0.85rem; font-weight: 700; color: #0F3D2E;
+}
+.br-user-info .email {
+    font-size: 0.72rem; color: #8a9b95;
+}
+
+.br-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.22rem 0.65rem; border-radius: 20px;
+    font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+.br-badge.overdue { background: #fdecea; color: #9b2c2c; }
+.br-badge.ok      { background: #e8f2ec; color: #1a6b3c; }
+
+.br-btn {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.45rem 0.9rem;
+    background: #f5e9c8; color: #8a6a1a;
+    border: none; border-radius: 8px;
+    font-size: 0.75rem; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s;
+}
+.br-btn:hover { background: #C8A951; color: #0F3D2E; }
+
+.br-empty {
+    text-align: center; padding: 3rem 1.5rem;
+    color: #8a9b95;
+}
+.br-empty .ic { font-size: 3rem; display: block; opacity: 0.4; margin-bottom: 0.75rem; }
+.br-empty h3 { color: #0F3D2E; margin: 0 0 0.35rem; }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="br-wrap">
+
+    <div class="br-hero">
+        <div class="br-hero-inner">
+            <div>
+                <h1>👥 Borrowers</h1>
+                <p>Everyone currently holding a book.</p>
+            </div>
+            <a href="{% url 'academics:library_manage' %}" class="br-hbtn">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="br-card">
+        <h2>
+            <i class="fas fa-list"></i>
+            Active Loans
+            {% if overdue_count %}
+            <span style="margin-left:auto; padding:0.2rem 0.7rem; background:#fdecea; color:#9b2c2c; border-radius:20px; font-size:0.7rem;">
+                {{ overdue_count }} overdue
+            </span>
+            {% endif %}
+        </h2>
+
+        {% if borrowed %}
+        <div class="br-table-wrap">
+            <table class="br-table">
+                <thead>
+                    <tr>
+                        <th>Borrower</th>
+                        <th>Book</th>
+                        <th>Borrowed</th>
+                        <th>Due</th>
+                        <th>Status</th>
+                        <th style="width:120px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in borrowed %}
+                    <tr>
+                        <td>
+                            <div class="br-user">
+                                <div class="br-avatar">
+                                    {{ b.current_borrower.first_name|first|upper }}{{ b.current_borrower.last_name|first|upper }}
+                                </div>
+                                <div class="br-user-info">
+                                    <div class="name">{{ b.current_borrower.get_full_name|default:b.current_borrower.email }}</div>
+                                    <div class="email">{{ b.current_borrower.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight:700; color:#0F3D2E; font-size:0.85rem;">{{ b.title }}</div>
+                            <div style="font-size:0.72rem; color:#8a9b95;">{{ b.author|default:"—" }}</div>
+                        </td>
+                        <td style="font-size:0.82rem; color:#4a5568;">{{ b.borrowed_at|date:"M d, Y" }}</td>
+                        <td style="font-size:0.82rem; color:#4a5568;">{{ b.due_date|date:"M d, Y" }}</td>
+                        <td>
+                            {% if b.is_overdue %}
+                                <span class="br-badge overdue">Overdue ({{ b.days_until_due }}d)</span>
+                            {% else %}
+                                <span class="br-badge ok">{{ b.days_until_due }} day{{ b.days_until_due|pluralize }} left</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form method="post" action="{% url 'academics:library_return' b.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="br-btn">
+                                    <i class="fas fa-undo"></i> Returned
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="br-empty">
+            <i class="fas fa-book-open ic"></i>
+            <h3>No active loans</h3>
+            <p>All books are back on the shelf.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,432 @@
+{% load static %}
+
+{% if hero_slides %}
+<section class="hero-carousel" id="heroCarousel">
+  <div class="hero-track">
+    {% for slide in hero_slides %}
+      <div class="hero-slide {% if forloop.first %}active{% endif %}">
+
+        {% if slide.desktop_url %}
+          <img class="hero-bg"
+               src="{{ slide.desktop_url }}"
+               {% if slide.mobile_url %}
+                 srcset="{{ slide.mobile_url }} 720w, {{ slide.desktop_url }} 1920w"
+                 sizes="100vw"
+               {% endif %}
+               alt="{{ slide.title|default:'Hero slide' }}">
+        {% endif %}
+
+        <div class="hero-overlay"></div>
+
+        <div class="hero-inner">
+          <div class="hero-content">
+            {% if slide.title %}
+              <h1 class="hero-title">{{ slide.title }}</h1>
+            {% endif %}
+
+            {% if slide.subtitle %}
+              <p class="hero-subtitle">{{ slide.subtitle }}</p>
+            {% endif %}
+
+            {% if slide.has_any_button %}
+              <div class="hero-actions">
+                {% if slide.has_primary_button %}
+                  <a href="{{ slide.primary_button_url }}" class="hero-btn primary">
+                    <span>{{ slide.primary_button_text }}</span>
+                    <i class="fas fa-arrow-right"></i>
+                  </a>
+                {% endif %}
+
+                {% if slide.has_secondary_button %}
+                  <a href="{{ slide.secondary_button_url }}" class="hero-btn ghost">
+                    <span>{{ slide.secondary_button_text }}</span>
+                    <i class="fas fa-arrow-right"></i>
+                  </a>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if hero_slides|length > 1 %}
+    <div class="hero-dots-wrap">
+      <div class="hero-dots">
+        {% for slide in hero_slides %}
+          <button class="hero-dot {% if forloop.first %}active{% endif %}"
+                  data-index="{{ forloop.counter0 }}"
+                  aria-label="Go to slide {{ forloop.counter }}"></button>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</section>
+
+<style>
+  /* ============================================================
+     ⭐⭐⭐  TEXT POSITION — CHANGE THESE TWO NUMBERS ONLY  ⭐⭐⭐
+     ============================================================
+
+       --text-top-desktop:   where the text starts on desktop, in PIXELS
+                             from the TOP of the hero image.
+                             Bigger number  = lower on the image
+                             Smaller number = higher up
+                             0px            = flush at the very top
+
+       --text-top-mobile:    same, but for phones (<640px wide)
+
+     Example starting values are 180px (desktop) and 120px (mobile).
+     Try 100px, 220px, 300px, etc. — whatever looks right on your image.
+
+     The width of the text column is also adjustable:
+       --text-column-width:  how wide the text block is allowed to be
+
+     Everything else below is fixed and does NOT need editing.
+     ============================================================ */
+  .hero-carousel {
+    --text-top-desktop: 160px;      /* <-- desktop vertical position (px) */
+    --text-top-mobile:  120px;      /* <-- mobile  vertical position (px) */
+    --text-column-width: 620px;     /* <-- max width of text block        */
+
+    /* These cancel parent padding so the hero hugs the navbar.
+       Already tuned per screen size at the bottom — leave alone. */
+    --hero-pull-top: 0px;
+    --hero-pull-bottom: 0px;
+
+    position: relative;
+    width: 100vw;
+    max-width: 100vw;
+    box-sizing: border-box;
+
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-top: var(--hero-pull-top);
+    margin-bottom: var(--hero-pull-bottom);
+
+    padding: 0;
+    overflow-x: clip;
+  }
+
+  /* ------------------------------------------------------------
+     TRACK
+     ------------------------------------------------------------ */
+  .hero-track {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 92vh;
+    min-height: 460px;
+    overflow: hidden;
+    background: #1a1a1a;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1s ease;
+    will-change: opacity;
+  }
+  .hero-slide.active { opacity: 1; z-index: 1; }
+
+  /* ------------------------------------------------------------
+     IMAGE
+     ------------------------------------------------------------ */
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  /* ------------------------------------------------------------
+     OVERLAY — light, left-only
+     ------------------------------------------------------------ */
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      rgba(0, 0, 0, 0.55) 0%,
+      rgba(0, 0, 0, 0.30) 30%,
+      rgba(0, 0, 0, 0.08) 55%,
+      rgba(0, 0, 0, 0) 75%
+    );
+    pointer-events: none;
+  }
+
+  /* ------------------------------------------------------------
+     CONTENT — positioned by --text-top-desktop (mobile overrides below)
+     ------------------------------------------------------------ */
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-left: 3.5rem;
+    padding-right: 3.5rem;
+    padding-top: var(--text-top-desktop);   /* <-- KEY LINE */
+    padding-bottom: 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: flex-start;                /* text starts at the top of the padded area */
+  }
+
+  .hero-content {
+    max-width: var(--text-column-width);
+    opacity: 1;
+  }
+
+  .hero-title {
+    font-size: clamp(2.9rem, 4.3vw, 3.2rem);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.9rem;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+  }
+
+  .hero-subtitle {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.94);
+    margin: 0 0 1.6rem;
+    max-width: 520px;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+  }
+
+  /* ------------------------------------------------------------
+     BUTTONS
+     ------------------------------------------------------------ */
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    align-items: center;
+  }
+
+  .hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.7rem;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: transform 0.25s ease, background 0.25s ease,
+                box-shadow 0.25s ease, border-color 0.25s ease;
+    will-change: transform;
+  }
+  .hero-btn i {
+    font-size: 0.75rem;
+    transition: transform 0.25s ease;
+  }
+  .hero-btn:hover i { transform: translateX(4px); }
+  .hero-btn:active { transform: translateY(0) scale(0.98); }
+
+  .hero-btn.primary {
+    background: linear-gradient(135deg, #D9BC63 0%, #C8A951 100%);
+    color: #0F3D2E;
+    box-shadow:
+      0 8px 22px rgba(200, 169, 81, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+  .hero-btn.primary:hover {
+    background: linear-gradient(135deg, #E6D07C 0%, #D9BC63 100%);
+    transform: translateY(-3px);
+    box-shadow:
+      0 14px 32px rgba(200, 169, 81, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  .hero-btn.ghost {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .hero-btn.ghost:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(200, 169, 81, 0.75);
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
+  }
+
+  /* ------------------------------------------------------------
+     DOTS
+     ------------------------------------------------------------ */
+  .hero-dots-wrap {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 1180px;
+    padding: 0 3.5rem;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: flex-end;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .hero-dots {
+    display: flex;
+    gap: 0.5rem;
+    pointer-events: auto;
+  }
+  .hero-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+  }
+  .hero-dot:hover { background: rgba(255, 255, 255, 0.75); }
+  .hero-dot.active {
+    background: #C8A951;
+    width: 28px;
+    border-radius: 20px;
+    box-shadow: 0 0 12px rgba(200, 169, 81, 0.65);
+  }
+
+  /* ============================================================
+     RESPONSIVE — padding counters + mobile text position switch
+     ============================================================ */
+
+  @media (min-width: 1200px) {
+    .hero-carousel { --hero-pull-top: 0px; }
+    .hero-track { aspect-ratio: 16 / 9; max-height: 92vh; min-height: 460px; }
+    .hero-inner { padding-left: 3.5rem; padding-right: 3.5rem; }
+    .hero-dots-wrap { padding: 0 3.5rem; }
+  }
+
+  @media (max-width: 1199px) and (min-width: 1024px) {
+    .hero-carousel { --hero-pull-top: -2rem; }
+    .hero-track { aspect-ratio: 16 / 9; max-height: 90vh; min-height: 440px; }
+    .hero-inner { padding-left: 2.75rem; padding-right: 2.75rem; }
+    .hero-dots-wrap { padding: 0 2.75rem; }
+  }
+
+  @media (max-width: 1023px) and (min-width: 900px) {
+    .hero-carousel { --hero-pull-top: -2.25rem; }
+    .hero-track { aspect-ratio: auto; height: 74vh; min-height: 460px; max-height: 640px; }
+    .hero-inner { padding-left: 2.25rem; padding-right: 2.25rem; }
+    .hero-dots-wrap { padding: 0 2.25rem; }
+  }
+
+  @media (max-width: 899px) and (min-width: 768px) {
+    .hero-carousel { --hero-pull-top: -2.5rem; }
+    .hero-track { aspect-ratio: auto; height: 66vh; min-height: 440px; max-height: 600px; }
+    .hero-inner { padding-left: 2rem; padding-right: 2rem; }
+    .hero-subtitle { font-size: 0.94rem; }
+    .hero-dots-wrap { padding: 0 2rem; }
+  }
+
+  @media (max-width: 767px) and (min-width: 640px) {
+    .hero-carousel { --hero-pull-top: -2rem; }
+    .hero-track { aspect-ratio: auto; height: 62vh; min-height: 440px; max-height: 580px; }
+    .hero-inner { padding-left: 1.75rem; padding-right: 1.75rem; }
+    .hero-dots-wrap { padding: 0 1.75rem; }
+  }
+
+  /* ---- Phones (< 640px): uses --text-top-mobile ---- */
+  @media (max-width: 639px) {
+    .hero-carousel { --hero-pull-top: -1.5rem; }
+    .hero-track {
+      aspect-ratio: 4 / 5;
+      height: auto;
+      min-height: 480px;
+      max-height: 88vh;
+    }
+    .hero-inner {
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+      padding-top: var(--text-top-mobile);   /* <-- KEY LINE for mobile */
+    }
+    .hero-title { font-size: 2.2rem; }
+    .hero-subtitle { font-size: 1.08rem; margin-bottom: 1.25rem; }
+
+    /* ---- Buttons: SMALL, size-to-content ---- */
+    .hero-actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+    }
+    .hero-btn {
+      flex: 0 1 auto;
+      width: auto;
+      padding: 0.55rem 1rem;
+      font-size: 0.78rem;
+      gap: 0.35rem;
+    }
+    .hero-btn i { font-size: 0.8rem; }
+
+    .hero-dots-wrap { padding: 0 1.25rem; bottom: 1rem; }
+  }
+
+  @media (max-width: 399px) {
+    .hero-btn {
+      padding: 0.5rem 0.85rem;
+      font-size: 0.72rem;
+    }
+    .hero-title { font-size: 1.45rem; }
+  }
+</style>
+
+<script>
+  (function () {
+    const carousel = document.getElementById('heroCarousel');
+    if (!carousel) return;
+
+    const slides = carousel.querySelectorAll('.hero-slide');
+    const dots = carousel.querySelectorAll('.hero-dot');
+    if (slides.length <= 1) return;
+
+    let current = 0;
+    let timer = null;
+    const INTERVAL = 6000;
+
+    function show(index) {
+      slides[current].classList.remove('active');
+      dots[current]?.classList.remove('active');
+      current = (index + slides.length) % slides.length;
+      slides[current].classList.add('active');
+      dots[current]?.classList.add('active');
+    }
+
+    function next() { show(current + 1); }
+    function start() { stop(); timer = setInterval(next, INTERVAL); }
+    function stop() { if (timer) clearInterval(timer); timer = null; }
+
+    dots.forEach(dot => {
+      dot.addEventListener('click', () => {
+        show(parseInt(dot.dataset.index, 10));
+        start();
+      });
+    });
+
+    carousel.addEventListener('mouseenter', stop);
+    carousel.addEventListener('mouseleave', start);
+
+    start();
+  })();
+</script>
+{% endif %}

@@ -1,0 +1,708 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}QR Check-In Scanner · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.qr-scan-wrap { max-width: 720px; margin: 0 auto; }
+
+/* HERO */
+.qr-scan-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 14px 40px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.qr-scan-hero::before {
+    content: "📷"; font-size: 9rem;
+    position: absolute; bottom: -2rem; right: 1.25rem;
+    opacity: 0.08; pointer-events: none;
+}
+.qr-scan-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.qr-scan-hero h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.3rem; }
+.qr-scan-hero p { color: rgba(255,255,255,0.82); font-size: 0.88rem; margin: 0; }
+.qr-stat-pill {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(200,169,81,0.2);
+    border: 1px solid rgba(200,169,81,0.4);
+    color: #E0C96E;
+    padding: 0.5rem 1rem; border-radius: 50px;
+    font-size: 0.78rem; font-weight: 800;
+    white-space: nowrap;
+}
+
+/* SCANNER PANEL */
+.qr-scan-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.25rem;
+}
+
+.qr-reader-frame {
+    position: relative;
+    background: #0F3D2E;
+    border-radius: 16px;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    max-height: 480px;
+    margin: 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 1rem;
+}
+#qr-reader { width: 100% !important; height: 100% !important; }
+#qr-reader video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+    border-radius: 16px;
+}
+#qr-reader img { display: none; }
+
+/* Scan-line overlay */
+.qr-scan-frame-overlay {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+}
+.qr-scan-frame-overlay::before,
+.qr-scan-frame-overlay::after {
+    content: '';
+    position: absolute;
+    width: 60%; height: 60%;
+    border: 3px solid rgba(200,169,81,0.9);
+    border-radius: 16px;
+    box-shadow: 0 0 0 4000px rgba(15,61,46,0.45);
+    animation: qrPulse 2s ease-in-out infinite;
+}
+@keyframes qrPulse {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    50%      { opacity: 1; transform: scale(1.03); }
+}
+.qr-scan-frame-overlay::after {
+    width: 100px; height: 3px;
+    background: #C8A951;
+    border: none; border-radius: 2px;
+    box-shadow: 0 0 20px 4px rgba(200,169,81,0.7);
+    animation: qrLine 2s ease-in-out infinite;
+}
+@keyframes qrLine {
+    0%, 100% { transform: translateY(-40px); opacity: 0.3; }
+    50%      { transform: translateY(40px); opacity: 1; }
+}
+
+.qr-controls {
+    display: flex; gap: 0.6rem; justify-content: center;
+    margin-top: 1.1rem; flex-wrap: wrap;
+}
+.qr-ctrl-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.65rem 1.35rem; border-radius: 50px;
+    font-size: 0.85rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    border: none; transition: all 0.25s;
+    font-family: inherit;
+}
+.qr-ctrl-btn.primary {
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(15,61,46,0.22);
+}
+.qr-ctrl-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(15,61,46,0.32); }
+.qr-ctrl-btn.danger {
+    background: #fdecea; color: #9b2c2c;
+    border: 1px solid rgba(220,53,69,0.3);
+}
+.qr-ctrl-btn.danger:hover { background: #dc3545; color: #fff; }
+.qr-ctrl-btn.outline {
+    background: transparent; color: #4a5568;
+    border: 1px solid #d5dcd9;
+}
+.qr-ctrl-btn.outline:hover { background: #f0f4f2; color: #0F3D2E; }
+
+/* MANUAL ENTRY */
+.qr-manual {
+    margin-top: 1.15rem;
+    padding-top: 1.15rem;
+    border-top: 1px solid rgba(0,0,0,0.06);
+}
+.qr-manual h3 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #8a6a1a; margin: 0 0 0.7rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.qr-manual h3::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.35), transparent);
+}
+.qr-manual-form { display: flex; gap: 0.5rem; }
+.qr-manual-form input {
+    flex: 1;
+    padding: 0.7rem 0.95rem;
+    border: 1px solid #d5dcd9;
+    border-radius: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    background: #fff; color: #0F3D2E;
+    transition: all 0.2s;
+}
+.qr-manual-form input:focus {
+    border-color: #C8A951; outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.15);
+}
+.qr-manual-form button {
+    padding: 0.7rem 1.35rem;
+    border-radius: 10px;
+    background: #0F3D2E; color: #fff;
+    border: none; font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.qr-manual-form button:hover { background: #1a5a44; transform: translateY(-1px); }
+
+/* RESULT PANEL */
+.qr-result {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 20px;
+    padding: 1.5rem 1.5rem 1.25rem;
+    box-shadow: 0 8px 28px rgba(15,61,46,0.08);
+    margin-bottom: 1.25rem;
+    display: none;
+    animation: qrResultIn 0.35s cubic-bezier(0.34,1.4,0.64,1);
+}
+.qr-result.active { display: block; }
+@keyframes qrResultIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.qr-result.success { border-top: 4px solid #38a169; }
+.qr-result.error   { border-top: 4px solid #dc3545; }
+.qr-result.warning { border-top: 4px solid #C8A951; }
+
+.qr-result-head {
+    display: flex; justify-content: space-between;
+    align-items: flex-start; gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+.qr-result-name {
+    font-size: 1.15rem; font-weight: 800;
+    color: #0F3D2E;
+    margin: 0 0 0.2rem;
+    letter-spacing: -0.01em;
+}
+.qr-result-sub {
+    font-size: 0.82rem; color: #8a9b95;
+}
+.qr-status-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 50px;
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.qr-status-badge.paid {
+    background: #e8f2ec; color: #1a6b3c;
+}
+.qr-status-badge.checked {
+    background: #e6f0fb; color: #185fa5;
+}
+.qr-status-badge.pending {
+    background: #fef3e8; color: #a8671a;
+}
+.qr-status-badge.cancelled {
+    background: #fdecea; color: #9b2c2c;
+}
+
+.qr-detail-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding: 0.9rem 1rem;
+    background: #f8faf9;
+    border-radius: 12px;
+}
+.qr-detail-item .lbl {
+    font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a9b95; margin-bottom: 0.25rem;
+}
+.qr-detail-item .val {
+    font-size: 0.88rem; font-weight: 700;
+    color: #0F3D2E;
+    word-break: break-word;
+}
+
+.qr-result-actions {
+    display: flex; gap: 0.6rem; flex-wrap: wrap;
+}
+.qr-result-actions .qr-ctrl-btn {
+    flex: 1; justify-content: center; min-width: 130px;
+}
+
+/* RECENT CHECK-INS */
+.qr-recent {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 1.25rem 1.4rem;
+    box-shadow: var(--shadow-sm);
+}
+.qr-recent h3 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #8a6a1a; margin: 0 0 0.9rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.qr-recent h3::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.35), transparent);
+}
+.qr-recent-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.qr-recent-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
+    background: #f8faf9;
+    font-size: 0.82rem;
+}
+.qr-recent-item .check {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: #e8f2ec; color: #38a169;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; flex-shrink: 0;
+}
+.qr-recent-item .body { flex: 1; min-width: 0; }
+.qr-recent-item .name {
+    font-weight: 800; color: #0F3D2E;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.qr-recent-item .event {
+    font-size: 0.72rem; color: #8a9b95;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.qr-recent-item .time {
+    font-size: 0.68rem; color: #8a9b95;
+    font-weight: 600; white-space: nowrap;
+}
+.qr-recent-empty {
+    padding: 1.5rem 0.75rem; text-align: center;
+    color: #8a9b95; font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+    .qr-scan-hero { padding: 1.35rem 1.35rem; }
+    .qr-scan-hero h1 { font-size: 1.25rem; }
+    .qr-scan-hero-inner { flex-direction: column; align-items: flex-start; }
+    .qr-scan-card { padding: 1rem; }
+    .qr-reader-frame { aspect-ratio: 3 / 4; }
+    .qr-result-actions .qr-ctrl-btn { min-width: 0; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+{% csrf_token %}
+
+<div class="qr-scan-wrap">
+
+    <!-- HERO -->
+    <div class="qr-scan-hero">
+        <div class="qr-scan-hero-inner">
+            <div>
+                <h1>📷 QR Scanner</h1>
+                <p>Scan any NAMETS QR — bookings, shop orders, claims, and form purchases.</p>
+            </div>
+            <div class="qr-stat-pill">
+                <i class="fas fa-check-double"></i>
+                {{ total_checked_in_today }} checked in today
+            </div>
+        </div>
+    </div>
+
+    <!-- SCANNER -->
+    <div class="qr-scan-card">
+        <div class="qr-reader-frame" id="reader-container">
+            <div id="qr-reader"></div>
+            <div class="qr-scan-frame-overlay" id="qr-overlay"></div>
+        </div>
+
+        <div class="qr-controls">
+            <button type="button" class="qr-ctrl-btn primary" id="btn-start">
+                <i class="fas fa-camera"></i> Start Camera
+            </button>
+            <button type="button" class="qr-ctrl-btn danger" id="btn-stop" style="display:none;">
+                <i class="fas fa-stop-circle"></i> Stop Camera
+            </button>
+        </div>
+
+        <!-- Manual entry fallback -->
+        <div class="qr-manual">
+            <h3><i class="fas fa-keyboard"></i> Manual entry (if camera fails)</h3>
+            <form class="qr-manual-form" id="manual-form" onsubmit="return false;">
+                <input type="text" id="manual-token"
+                       placeholder="Paste or type the code…"
+                       autocomplete="off">
+                <button type="button" id="manual-submit">
+                    <i class="fas fa-search"></i> Look Up
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="qr-result" id="result-panel">
+        <div class="qr-result-head">
+            <div>
+                <div class="qr-result-name" id="result-name">—</div>
+                <div class="qr-result-sub" id="result-sub">—</div>
+            </div>
+            <span class="qr-status-badge paid" id="result-badge">—</span>
+        </div>
+
+        <div class="qr-detail-list">
+            <div class="qr-detail-item">
+                <div class="lbl">Item / Event</div>
+                <div class="val" id="result-event">—</div>
+            </div>
+            <div class="qr-detail-item">
+                <div class="lbl">Location / When</div>
+                <div class="val" id="result-venue">—</div>
+            </div>
+            <div class="qr-detail-item">
+                <div class="lbl">Quantity</div>
+                <div class="val" id="result-qty">—</div>
+            </div>
+            <div class="qr-detail-item">
+                <div class="lbl">Email</div>
+                <div class="val" id="result-email">—</div>
+            </div>
+            <div class="qr-detail-item">
+                <div class="lbl">Phone</div>
+                <div class="val" id="result-phone">—</div>
+            </div>
+            <div class="qr-detail-item">
+                <div class="lbl">Amount</div>
+                <div class="val" id="result-amount">—</div>
+            </div>
+        </div>
+
+        <div class="qr-result-actions" id="result-actions">
+            <!-- populated by JS -->
+        </div>
+    </div>
+
+    <!-- RECENT CHECK-INS -->
+    <div class="qr-recent">
+        <h3><i class="fas fa-history"></i> Recently checked in</h3>
+        <div class="qr-recent-list">
+            {% for b in recently_checked_in %}
+            <div class="qr-recent-item">
+                <div class="check"><i class="fas fa-check"></i></div>
+                <div class="body">
+                    <div class="name">{{ b.booker_name }} · {{ b.quantity }} ticket{{ b.quantity|pluralize }}</div>
+                    <div class="event">{{ b.listing.title }}</div>
+                </div>
+                <div class="time">{{ b.checked_in_at|timesince }} ago</div>
+            </div>
+            {% empty %}
+            <div class="qr-recent-empty">
+                No check-ins yet today. Scan a QR code to begin.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- QR scanning library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<script>
+(function() {
+    const CSRF_TOKEN = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const LOOKUP_URL_TEMPLATE = "{% url 'business:admin_qr_lookup' 'TOKEN_PLACEHOLDER' %}";
+    const CHECKIN_URL_TEMPLATE = "{% url 'business:admin_qr_check_in' 'KIND_PLACEHOLDER' 0 %}";
+
+    const overlay = document.getElementById('qr-overlay');
+    const btnStart = document.getElementById('btn-start');
+    const btnStop = document.getElementById('btn-stop');
+    const resultPanel = document.getElementById('result-panel');
+    const resultActions = document.getElementById('result-actions');
+
+    let html5QrCode = null;
+    let scanning = false;
+    let lastScannedToken = null;
+    let lastScanTime = 0;
+
+    // ---------- SCANNER CONTROL ----------
+    function startScanner() {
+        if (scanning) return;
+
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
+        }
+
+        html5QrCode.start(
+            { facingMode: "environment" },
+            {
+                fps: 10,
+                qrbox: { width: 260, height: 260 },
+                aspectRatio: 1.0,
+            },
+            onScanSuccess,
+            onScanFailure
+        ).then(() => {
+            scanning = true;
+            btnStart.style.display = 'none';
+            btnStop.style.display = 'inline-flex';
+        }).catch(err => {
+            console.error('Camera start error:', err);
+            showResult({
+                kind: 'error',
+                message: 'Could not start camera. Please grant permission, or use manual entry below.',
+            });
+        });
+    }
+
+    function stopScanner() {
+        if (!scanning || !html5QrCode) return;
+        html5QrCode.stop().then(() => {
+            scanning = false;
+            btnStart.style.display = 'inline-flex';
+            btnStop.style.display = 'none';
+        }).catch(err => console.error('Stop error:', err));
+    }
+
+    function onScanSuccess(decodedText) {
+        const now = Date.now();
+
+        // Debounce: ignore same token within 3 seconds
+        if (decodedText === lastScannedToken && now - lastScanTime < 3000) {
+            return;
+        }
+        lastScannedToken = decodedText;
+        lastScanTime = now;
+
+        if (navigator.vibrate) navigator.vibrate(50);
+
+        lookupToken(decodedText);
+    }
+
+    function onScanFailure() {
+        // Ignore per-frame misses
+    }
+
+    // ---------- LOOKUP ----------
+    function lookupToken(token) {
+        const url = LOOKUP_URL_TEMPLATE.replace('TOKEN_PLACEHOLDER', encodeURIComponent(token));
+
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.ok) {
+                showResult({
+                    kind: 'error',
+                    message: data.error || 'Not found.',
+                });
+                return;
+            }
+            showResult({ kind: 'success', item: data.item });
+        })
+        .catch(err => {
+            console.error('Lookup error:', err);
+            showResult({
+                kind: 'error',
+                message: 'Could not reach the server. Check your connection.',
+            });
+        });
+    }
+
+    // ---------- RENDER RESULT ----------
+    function showResult({ kind, message, item }) {
+        resultPanel.className = 'qr-result active ' + (kind || 'success');
+        resultActions.innerHTML = '';
+
+        if (kind === 'error' || !item) {
+            document.getElementById('result-name').textContent = '❌ Not Found';
+            document.getElementById('result-sub').textContent = message || 'No NAMETS record matched this code.';
+            document.getElementById('result-badge').textContent = 'Unknown';
+            document.getElementById('result-badge').className = 'qr-status-badge cancelled';
+
+            ['event', 'venue', 'qty', 'email', 'phone', 'amount'].forEach(k => {
+                document.getElementById('result-' + k).textContent = '—';
+            });
+
+            const btn = document.createElement('button');
+            btn.className = 'qr-ctrl-btn outline';
+            btn.innerHTML = '<i class="fas fa-redo"></i> Scan Again';
+            btn.onclick = hideResult;
+            resultActions.appendChild(btn);
+            return;
+        }
+
+        // Populate fields
+        document.getElementById('result-name').textContent = item.attendee;
+        document.getElementById('result-sub').textContent = item.icon + ' ' + item.type_label + ' · ' + item.title;
+        document.getElementById('result-event').textContent = item.title;
+
+        const venueOrWhen = item.where_line || item.when_line || '—';
+        document.getElementById('result-venue').textContent = venueOrWhen;
+        document.getElementById('result-qty').textContent = item.quantity;
+        document.getElementById('result-email').textContent = item.email || '—';
+        document.getElementById('result-phone').textContent = item.phone || '—';
+        document.getElementById('result-amount').textContent = parseFloat(item.amount) > 0
+            ? '₦' + parseFloat(item.amount).toLocaleString()
+            : 'Free';
+
+        const badge = document.getElementById('result-badge');
+        badge.textContent = item.status_display;
+
+        // -------- Actions based on state --------
+
+        if (item.is_collected) {
+            badge.className = 'qr-status-badge checked';
+            const note = document.createElement('div');
+            note.style.cssText = 'width:100%;padding:0.75rem 1rem;background:#e6f0fb;color:#185fa5;border-radius:10px;font-size:0.85rem;font-weight:700;text-align:center;';
+            note.innerHTML = '<i class="fas fa-check-double"></i> Already ' +
+                             item.collected_label.toLowerCase() +
+                             (item.collected_at ? ' · ' + new Date(item.collected_at).toLocaleString() : '');
+            resultActions.appendChild(note);
+        } else if (item.is_cancelled) {
+            badge.className = 'qr-status-badge cancelled';
+            const note = document.createElement('div');
+            note.style.cssText = 'width:100%;padding:0.75rem 1rem;background:#fdecea;color:#9b2c2c;border-radius:10px;font-size:0.85rem;font-weight:700;text-align:center;';
+            note.innerHTML = '<i class="fas fa-times-circle"></i> Cancelled — do not release.';
+            resultActions.appendChild(note);
+        } else if (item.is_pending) {
+            badge.className = 'qr-status-badge pending';
+            const note = document.createElement('div');
+            note.style.cssText = 'width:100%;padding:0.75rem 1rem;background:#fef3e8;color:#a8671a;border-radius:10px;font-size:0.85rem;font-weight:700;text-align:center;';
+            note.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Not paid yet — cannot complete.';
+            resultActions.appendChild(note);
+        } else if (item.is_ready) {
+            badge.className = 'qr-status-badge paid';
+
+            const actionVerb = {
+                'booking': 'Check In',
+                'shop_order': 'Mark Collected',
+                'free_claim': 'Mark Claimed',
+                'form_purchase': 'Mark Verified',
+            }[item.kind] || 'Confirm';
+
+            const checkinBtn = document.createElement('button');
+            checkinBtn.className = 'qr-ctrl-btn primary';
+            checkinBtn.innerHTML = '<i class="fas fa-check"></i> Confirm — ' + actionVerb;
+            checkinBtn.onclick = () => performCheckIn(item.kind, item.pk);
+            resultActions.appendChild(checkinBtn);
+        }
+
+        // Always offer rescan
+        const scanAgain = document.createElement('button');
+        scanAgain.className = 'qr-ctrl-btn outline';
+        scanAgain.innerHTML = '<i class="fas fa-redo"></i> Scan Again';
+        scanAgain.onclick = hideResult;
+        resultActions.appendChild(scanAgain);
+    }
+
+    function hideResult() {
+        resultPanel.classList.remove('active');
+        lastScannedToken = null;
+    }
+
+    // ---------- CHECK-IN ----------
+    function performCheckIn(kind, id) {
+        const url = CHECKIN_URL_TEMPLATE
+            .replace('KIND_PLACEHOLDER', kind)
+            .replace('/0/', '/' + id + '/');
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': CSRF_TOKEN,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.ok) {
+                showResult({
+                    kind: 'error',
+                    message: data.error || 'Check-in failed.',
+                });
+                return;
+            }
+
+            // Success feedback
+            resultPanel.className = 'qr-result active success';
+            document.getElementById('result-badge').textContent = 'Done';
+            document.getElementById('result-badge').className = 'qr-status-badge checked';
+
+            resultActions.innerHTML = '';
+            const note = document.createElement('div');
+            note.style.cssText = 'width:100%;padding:1rem 1.15rem;background:#e8f2ec;color:#1a6b3c;border-radius:12px;font-size:0.95rem;font-weight:800;text-align:center;';
+            note.innerHTML = '<i class="fas fa-check-circle" style="font-size:1.3rem;"></i>  ' + data.message;
+            resultActions.appendChild(note);
+
+            const scanNext = document.createElement('button');
+            scanNext.className = 'qr-ctrl-btn primary';
+            scanNext.innerHTML = '<i class="fas fa-camera"></i> Scan Next';
+            scanNext.style.marginTop = '0.75rem';
+            scanNext.onclick = hideResult;
+            resultActions.appendChild(scanNext);
+
+            if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+        })
+        .catch(err => {
+            console.error('Check-in error:', err);
+            showResult({
+                kind: 'error',
+                message: 'Check-in failed. Please try again.',
+            });
+        });
+    }
+
+    // ---------- WIRE UP ----------
+    btnStart.addEventListener('click', startScanner);
+    btnStop.addEventListener('click', stopScanner);
+
+    document.getElementById('manual-submit').addEventListener('click', () => {
+        const token = document.getElementById('manual-token').value.trim();
+        if (!token) return;
+        lookupToken(token);
+    });
+
+    document.getElementById('manual-token').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('manual-submit').click();
+        }
+    });
+
+    // Auto-start on load
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        setTimeout(() => {
+            try { startScanner(); } catch (e) { /* user clicks Start */ }
+        }, 400);
+    }
+})();
+</script>
+{% endblock %}

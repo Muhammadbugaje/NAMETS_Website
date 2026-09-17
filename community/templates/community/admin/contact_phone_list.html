@@ -1,0 +1,223 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Contact Phones · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.phone-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.phone-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.phone-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.phone-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.phone-header-text h1 { font-size: 1.6rem; font-weight: 700; color: #fff; margin: 0 0 0.3rem; }
+.phone-header-text p { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+.phone-header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.phone-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.25s;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.phone-btn:hover { background: rgba(255,255,255,0.2); color: #fff; transform: translateY(-2px); }
+
+.phone-table-wrapper { overflow-x: auto; }
+.phone-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.phone-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+.phone-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+.phone-table tr:hover { background: rgba(200,169,81,0.05); }
+.badge-sm {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+.badge-success { background: #e8f2ec; color: #1a3c2e; }
+.badge-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm {
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c); }
+.btn-sm-danger:hover { background: #fce4e0; }
+.empty { text-align: center; color: var(--text-muted); padding: 3rem 2rem; }
+.empty .empty-icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
+
+.pagination { margin-top: 1.5rem; text-align: center; }
+.pagination .step-links a {
+    color: var(--gold);
+    text-decoration: none;
+    margin: 0 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+}
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.5rem; }
+
+@media (max-width: 768px) {
+    .phone-header { padding: 1.4rem 1.25rem; border-radius: 18px; }
+    .phone-header-content { flex-direction: column; align-items: stretch; }
+    .phone-btn { width: 100%; justify-content: center; }
+    .phone-table th, .phone-table td { font-size: 0.8rem; padding: 0.5rem 0.6rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="phone-header">
+    <div class="phone-header-glow" aria-hidden="true"></div>
+    <div class="phone-header-content">
+        <div class="phone-header-text">
+            <span class="phone-eyebrow">Contact</span>
+            <h1>📞 Contact Phones</h1>
+            <p>Manage contact phone numbers displayed on the website.</p>
+        </div>
+        <div class="phone-header-actions">
+            {% if perms.community.add_contactphone %}
+            <a href="{% url 'community:admin_contact_phone_create' %}" class="phone-btn">
+                <i class="fas fa-plus-circle"></i> Add Phone
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<form method="post" id="bulkForm">
+    {% csrf_token %}
+    <div class="phone-table-wrapper">
+        <table class="phone-table">
+            <thead>
+                <tr>
+                    <th style="width:40px;"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"></th>
+                    <th>Label</th>
+                    <th>Phone Number</th>
+                    <th>Order</th>
+                    <th>Status</th>
+                    <th style="width:100px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for phone in phones %}
+                <tr>
+                    <td><input type="checkbox" name="selected_ids" value="{{ phone.id }}" class="row-checkbox"></td>
+                    <td><strong>{{ phone.label }}</strong></td>
+                    <td>{{ phone.phone_number }}</td>
+                    <td>{{ phone.order }}</td>
+                    <td>
+                        {% if phone.is_active %}
+                        <span class="badge-sm badge-success">Active</span>
+                        {% else %}
+                        <span class="badge-sm badge-danger">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:0.3rem;">
+                            <a href="{% url 'community:admin_contact_phone_edit' phone.pk %}" class="btn-sm btn-sm-gold"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'community:admin_contact_phone_delete' phone.pk %}" class="btn-sm btn-sm-danger"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="empty">
+                    <span class="empty-icon">📞</span>
+                    <h3>No phone numbers found</h3>
+                    <p>Add contact numbers for the website.</p>
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% if query %}&q={{ query }}{% endif %}">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">previous</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+<script>
+    function toggleAllCheckboxes(master) {
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
+    }
+</script>
+{% endblock %}

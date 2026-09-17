@@ -1,0 +1,160 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 700px; margin: 0 auto; }
+.form-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    transition: var(--transition);
+}
+.form-back:hover { text-decoration: underline; color: var(--gold-dark); }
+.form-header { margin-bottom: 1rem; }
+.form-header h2 { margin: 0; color: var(--text-primary); font-size: 1.4rem; font-weight: 700; }
+.form-header p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
+.form-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.8rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label {
+    font-weight: 600; color: var(--text-primary); font-size: 0.8rem; margin-bottom: 0.2rem;
+}
+.form-group label .required { color: #e53e3e; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.5rem 0.8rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.9rem;
+    background: #fff;
+    transition: var(--transition);
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--gold); outline: none; box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.form-group .help-text { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; }
+.form-group .error-text { font-size: 0.75rem; color: #e53e3e; margin-top: 0.15rem; }
+.form-actions {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-primary {
+    background: var(--primary); color: #fff;
+    padding: 0.5rem 1.8rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; transition: var(--transition);
+    text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.5rem 1.8rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; text-decoration: none; transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+@media (max-width: 768px) { .form-card { padding: 1.25rem; } .form-row { grid-template-columns: 1fr; gap: 0.6rem; } }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="form-container">
+    <a href="{% url 'business:admin_bank_account_list' %}" class="form-back">
+        <i class="fas fa-arrow-left"></i> Back to Accounts
+    </a>
+    <div class="form-header">
+        <h2>{{ title }}</h2>
+        <p>{{ button_text }} for NAMETS finances.</p>
+    </div>
+
+    <form method="post" class="form-card" novalidate>
+        {% csrf_token %}
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.name.id_for_label }}">Account Name <span class="required">*</span></label>
+                {{ form.name }}
+                {% if form.name.errors %}<div class="error-text">{{ form.name.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.account_type.id_for_label }}">Account Type <span class="required">*</span></label>
+                {{ form.account_type }}
+                {% if form.account_type.errors %}<div class="error-text">{{ form.account_type.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.account_number.id_for_label }}">Account Number</label>
+                {{ form.account_number }}
+                {% if form.account_number.errors %}<div class="error-text">{{ form.account_number.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.bank_name.id_for_label }}">Bank Name</label>
+                {{ form.bank_name }}
+                {% if form.bank_name.errors %}<div class="error-text">{{ form.bank_name.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.current_balance.id_for_label }}">Current Balance (₦)</label>
+                {{ form.current_balance }}
+                <div class="help-text">This will be updated automatically with transactions.</div>
+                {% if form.current_balance.errors %}<div class="error-text">{{ form.current_balance.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    {{ form.is_active }}
+                    <label for="{{ form.is_active.id_for_label }}" style="font-weight:400; margin:0;">Active</label>
+                </div>
+                {% if form.is_active.errors %}<div class="error-text">{{ form.is_active.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    {{ form.is_public }}
+                    <label for="{{ form.is_public.id_for_label }}" style="font-weight:400; margin:0;">Show on Public Donations Page</label>
+                </div>
+                {% if form.is_public.errors %}<div class="error-text">{{ form.is_public.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.description.id_for_label }}">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}<div class="error-text">{{ form.description.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="form-row">
+            <div class="form-group full">
+                {% for error in form.non_field_errors %}
+                <div class="error-text" style="background:#fdecea; padding:0.5rem 1rem; border-radius:8px; border-left:4px solid #e53e3e;">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> {{ button_text }}</button>
+            <a href="{% url 'business:admin_bank_account_list' %}" class="btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

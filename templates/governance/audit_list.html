@@ -1,0 +1,412 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Audit Log · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.audit-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.6rem 2rem; margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.audit-head::before {
+    content: "🔍"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.audit-head-inner {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.audit-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem; border-radius: 20px;
+    margin-bottom: 0.35rem;
+}
+.audit-head h1 { font-size: 1.35rem; font-weight: 800; margin: 0 0 0.2rem; }
+.audit-head p { color: rgba(255,255,255,0.75); font-size: 0.82rem; margin: 0; }
+.audit-head-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.15rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem; text-decoration: none;
+    border: 1px solid transparent; transition: all 0.25s;
+}
+.hbtn-gold { background: #C8A951; color: #0F3D2E; border-color: #C8A951; }
+.hbtn-gold:hover { background: #E0C96E; color: #0F3D2E; transform: translateY(-2px); }
+.hbtn-outline { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2); }
+.hbtn-outline:hover { background: rgba(255,255,255,0.22); color: #fff; transform: translateY(-2px); }
+
+/* Compact filter bar */
+.filters-bar {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 0.75rem 1rem; margin-bottom: 1rem;
+}
+.filters-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+    gap: 0.4rem;
+    align-items: center;
+}
+.filters-grid input, .filters-grid select {
+    padding: 0.5rem 0.75rem; border: 1px solid #d0d9d6;
+    border-radius: 8px; background: #fff;
+    font-size: 0.82rem; font-family: inherit;
+    width: 100%; color: #0F3D2E;
+    transition: all 0.15s;
+}
+.filters-grid input:focus, .filters-grid select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.filters-grid .btn-search {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;
+    font-weight: 700; font-size: 0.8rem;
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    justify-content: center; white-space: nowrap;
+}
+.filters-clear {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    color: #8a9b95; text-decoration: none;
+    font-size: 0.72rem; font-weight: 600;
+    padding: 0.4rem 0.7rem;
+    border-radius: 20px;
+    transition: all 0.15s;
+}
+.filters-clear:hover { background: #f0f4f2; color: var(--text-primary); }
+
+@media (max-width: 1200px) { .filters-grid { grid-template-columns: 2fr 1fr 1fr 1fr; } }
+@media (max-width: 900px) { .filters-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .filters-grid { grid-template-columns: 1fr; } }
+
+/* Compact table */
+.audit-wrap {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.audit-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.audit-table thead th {
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff;
+    padding: 0.6rem 0.85rem; text-align: left;
+    font-size: 0.66rem; text-transform: uppercase;
+    letter-spacing: 0.06em; font-weight: 800;
+    white-space: nowrap;
+}
+.audit-table tbody td {
+    padding: 0.55rem 0.85rem;
+    border-bottom: 1px solid rgba(0,0,0,0.035);
+    vertical-align: middle;
+}
+.audit-table tbody tr { transition: background 0.15s; cursor: pointer; }
+.audit-table tbody tr:hover { background: rgba(200,169,81,0.05); }
+.audit-table tbody tr:last-child td { border-bottom: none; }
+
+/* Compact cells */
+.time-cell {
+    white-space: nowrap;
+    font-size: 0.72rem;
+    color: #8a9b95;
+    font-weight: 600;
+    line-height: 1.3;
+}
+.time-cell .t-relative {
+    display: block;
+    color: #0F3D2E;
+    font-weight: 700;
+    font-size: 0.78rem;
+}
+
+.actor-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+}
+.actor-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.68rem; font-weight: 800;
+    flex-shrink: 0;
+}
+.actor-avatar.system {
+    background: #c0c8c5;
+    color: #fff;
+}
+.actor-name {
+    font-weight: 700; color: #0F3D2E;
+    font-size: 0.8rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+.action-cell { white-space: nowrap; }
+.action-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.2rem 0.6rem; border-radius: 20px;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+.action-badge.create   { background: #e8f2ec; color: #1a6b3c; }
+.action-badge.update   { background: #e6f0fb; color: #185fa5; }
+.action-badge.delete   { background: #fdecea; color: #9b2c2c; }
+.action-badge.permission_granted { background: #f0eafb; color: #6b21a8; }
+.action-badge.permission_revoked { background: #fef3e8; color: #a8671a; }
+.action-badge.vote_cast { background: #f5e9c8; color: #8a6a1a; }
+.action-badge.proposal_opened,
+.action-badge.proposal_closed { background: #e0f7f4; color: #0d7a6b; }
+.action-badge.handover { background: #fdecea; color: #9b2c2c; }
+.action-badge.payment_logged { background: #e8f2ec; color: #1a6b3c; }
+.action-badge.bulk_import,
+.action-badge.bulk_export { background: #f0eafb; color: #6b21a8; }
+.action-badge.login,
+.action-badge.logout { background: #f0f4f2; color: #4a5568; }
+.action-badge.other { background: #f0f4f2; color: #4a5568; }
+
+.object-cell {
+    font-size: 0.8rem;
+    color: #2d3748;
+    max-width: 320px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.object-cell strong { color: #0F3D2E; font-weight: 700; }
+.object-cell em {
+    color: #8a9b95; font-style: normal; font-size: 0.72rem;
+}
+
+.meta-cell {
+    font-size: 0.72rem;
+    color: #8a9b95;
+    white-space: nowrap;
+}
+.meta-cell .office-name {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    color: #8a6a1a; font-weight: 700;
+}
+
+.row-arrow {
+    color: #C8A951;
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.15s;
+}
+.audit-table tbody tr:hover .row-arrow { opacity: 1; transform: translateX(2px); }
+
+.empty-state {
+    text-align: center; padding: 3rem 1.5rem;
+    color: #8a9b95;
+}
+.empty-state .ic { font-size: 3rem; display: block; margin-bottom: 0.6rem; opacity: 0.5; }
+.empty-state h3 { color: #0F3D2E; margin: 0 0 0.3rem; font-size: 1rem; }
+
+.pagination { margin-top: 1.25rem; display: flex; justify-content: center; gap: 0.3rem; flex-wrap: wrap; }
+.pagination a, .pagination .current {
+    min-width: 34px; height: 34px; padding: 0 0.7rem;
+    border-radius: 8px; text-decoration: none;
+    font-size: 0.78rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: #0F3D2E;
+    transition: all 0.15s;
+}
+.pagination a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pagination .current { background: var(--primary); color: #C8A951; border-color: var(--primary); }
+
+@media (max-width: 768px) {
+    .audit-head { padding: 1.15rem 1.25rem; }
+    .audit-head-inner { flex-direction: column; align-items: stretch; }
+    .audit-head-actions { flex-direction: column; }
+    .hbtn { justify-content: center; width: 100%; }
+    .audit-table .hide-sm { display: none; }
+    .actor-name { max-width: 100px; }
+    .object-cell { max-width: 160px; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- HEADER -->
+<div class="audit-head">
+    <div class="audit-head-inner">
+        <div>
+            <span class="audit-eyebrow">Governance · Audit</span>
+            <h1>Audit Log</h1>
+            <p>
+                {% if can_see_all %}
+                    Full association-wide record of sensitive actions.
+                {% else %}
+                    Activity from your office only.
+                {% endif %}
+            </p>
+        </div>
+        <div class="audit-head-actions">
+            <a href="{% url 'governance:audit_export' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}" class="hbtn hbtn-gold">
+                <i class="fas fa-file-excel"></i> Export
+            </a>
+            <a href="{% url 'governance:dashboard' %}" class="hbtn hbtn-outline">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-bar">
+    <form method="get">
+        <div class="filters-grid">
+            <input type="text" name="q" placeholder="Search actor, object, target model…" value="{{ query }}">
+
+            <select name="action">
+                <option value="">All Actions</option>
+                {% for value, label in action_choices %}
+                <option value="{{ value }}" {% if action_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            {% if can_see_all %}
+            <select name="office">
+                <option value="">All Offices</option>
+                {% for o in all_offices %}
+                <option value="{{ o.pk }}" {% if office_filter == o.pk|stringformat:"s" %}selected{% endif %}>{{ o.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="user">
+                <option value="">All Users</option>
+                {% for u in all_users %}
+                <option value="{{ u.pk }}" {% if user_filter == u.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ u.get_full_name|default:u.username }}
+                </option>
+                {% endfor %}
+            </select>
+            {% endif %}
+
+            <input type="date" name="from" value="{{ date_from }}" placeholder="From">
+            <input type="date" name="to" value="{{ date_to }}" placeholder="To">
+
+            <button type="submit" class="btn-search"><i class="fas fa-search"></i></button>
+        </div>
+        {% if query or action_filter or office_filter or user_filter or date_from or date_to %}
+        <div style="text-align:right; margin-top:0.5rem;">
+            <a href="{% url 'governance:audit_list' %}" class="filters-clear">
+                <i class="fas fa-times"></i> Clear all filters
+            </a>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<!-- LOG TABLE -->
+<div class="audit-wrap">
+    {% if logs %}
+    <table class="audit-table">
+        <thead>
+            <tr>
+                <th style="width:120px;">When</th>
+                <th style="width:200px;">Actor</th>
+                <th style="width:180px;">Action</th>
+                <th>Object</th>
+                <th class="hide-sm" style="width:160px;">Context</th>
+                <th style="width:36px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr onclick="window.location.href='{% url 'governance:audit_detail' log.pk %}'">
+                <td>
+                    <div class="time-cell">
+                        <span class="t-relative">{{ log.timestamp|timesince }} ago</span>
+                        {{ log.timestamp|date:"M d, H:i" }}
+                    </div>
+                </td>
+                <td>
+                    <div class="actor-cell">
+                        <div class="actor-avatar {% if not log.user %}system{% endif %}">
+                            {% if log.user %}
+                                {{ log.user.first_name|first|upper }}{{ log.user.last_name|first|upper }}
+                            {% else %}
+                                ⚙
+                            {% endif %}
+                        </div>
+                        <div class="actor-name">{{ log.actor_display }}</div>
+                    </div>
+                </td>
+                <td>
+                    <span class="action-badge {{ log.action }}">
+                        {% if log.action == 'create' %}<i class="fas fa-plus"></i>
+                        {% elif log.action == 'update' %}<i class="fas fa-pen"></i>
+                        {% elif log.action == 'delete' %}<i class="fas fa-trash"></i>
+                        {% elif log.action == 'permission_granted' %}<i class="fas fa-user-shield"></i>
+                        {% elif log.action == 'permission_revoked' %}<i class="fas fa-user-slash"></i>
+                        {% elif log.action == 'vote_cast' %}<i class="fas fa-vote-yea"></i>
+                        {% elif log.action == 'proposal_opened' %}<i class="fas fa-gavel"></i>
+                        {% elif log.action == 'proposal_closed' %}<i class="fas fa-flag-checkered"></i>
+                        {% elif log.action == 'handover' %}<i class="fas fa-exchange-alt"></i>
+                        {% elif log.action == 'payment_logged' %}<i class="fas fa-coins"></i>
+                        {% elif log.action == 'bulk_import' %}<i class="fas fa-file-import"></i>
+                        {% elif log.action == 'bulk_export' %}<i class="fas fa-file-export"></i>
+                        {% elif log.action == 'login' %}<i class="fas fa-sign-in-alt"></i>
+                        {% elif log.action == 'logout' %}<i class="fas fa-sign-out-alt"></i>
+                        {% else %}<i class="fas fa-circle"></i>{% endif %}
+                        {{ log.get_action_display }}
+                    </span>
+                </td>
+                <td>
+                    <div class="object-cell">
+                        {% if log.object_repr %}
+                            <strong>{{ log.object_repr }}</strong>
+                        {% else %}
+                            <em style="color:#8a9b95;">—</em>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="hide-sm">
+                    <div class="meta-cell">
+                        {% if log.office %}
+                            <span class="office-name"><i class="fas fa-building"></i> {{ log.office.name }}</span>
+                        {% elif log.target_model %}
+                            <span><i class="fas fa-cube"></i> {{ log.target_model }}</span>
+                        {% else %}
+                            <span style="opacity:0.5;">—</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>
+                    <i class="fas fa-chevron-right row-arrow"></i>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <span class="ic">🔍</span>
+        <h3>No audit entries found</h3>
+        <p>{% if query or action_filter or office_filter or user_filter or date_from or date_to %}Try adjusting the filters.{% else %}Nothing has been logged yet.{% endif %}</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- PAGINATION -->
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

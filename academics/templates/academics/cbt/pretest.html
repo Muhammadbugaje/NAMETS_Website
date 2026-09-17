@@ -1,0 +1,490 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ready? · CBT{% endblock %}
+
+{% block extra_css %}
+<style>
+body { overflow-x: hidden; }
+
+.pre-page {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #0A2A1F 0%, #0F3D2E 40%, #1a5a44 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem 1.25rem;
+    color: #fff;
+}
+
+/* Floating emoji background */
+.bg-float {
+    position: absolute; font-size: 4rem;
+    opacity: 0.05; pointer-events: none;
+    animation: bgFloat 14s ease-in-out infinite;
+}
+.bg-float:nth-child(1) { top: 8%; left: 6%; animation-delay: 0s; }
+.bg-float:nth-child(2) { top: 75%; left: 12%; animation-delay: 2s; font-size: 5rem; }
+.bg-float:nth-child(3) { top: 20%; right: 8%; animation-delay: 4s; font-size: 3rem; }
+.bg-float:nth-child(4) { bottom: 10%; right: 15%; animation-delay: 6s; }
+.bg-float:nth-child(5) { top: 45%; left: 45%; animation-delay: 8s; font-size: 6rem; opacity: 0.04; }
+@keyframes bgFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-40px) rotate(15deg); }
+}
+
+.pre-content {
+    position: relative; z-index: 2;
+    max-width: 680px; width: 100%;
+    text-align: center;
+    animation: preFadeIn 0.8s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes preFadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animated logo */
+.pre-logo {
+    width: 120px; height: 120px; margin: 0 auto 1.5rem;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 3px solid rgba(200,169,81,0.6);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    animation: logoGlow 3s ease-in-out infinite;
+}
+.pre-logo::before,
+.pre-logo::after {
+    content: ''; position: absolute; inset: -12px;
+    border-radius: 50%;
+    border: 2px solid rgba(200,169,81,0.35);
+    animation: ringPulse 3s ease-out infinite;
+}
+.pre-logo::after { animation-delay: 1.5s; }
+@keyframes logoGlow {
+    0%, 100% { box-shadow: 0 0 0 rgba(200,169,81,0); }
+    50% { box-shadow: 0 0 40px rgba(200,169,81,0.5); }
+}
+@keyframes ringPulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+.pre-logo img {
+    width: 85px; height: 85px;
+    border-radius: 50%; object-fit: cover;
+    animation: logoBreath 4s ease-in-out infinite;
+}
+@keyframes logoBreath {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Arabic ayah block */
+.ayah-block {
+    margin: 1.75rem 0 1.25rem;
+    padding: 1.75rem 1.5rem;
+    background: rgba(200,169,81,0.08);
+    border: 1px solid rgba(200,169,81,0.25);
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    animation: ayahFadeIn 1s ease-out 0.3s backwards;
+}
+@keyframes ayahFadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.ayah-arabic {
+    font-family: 'Amiri', serif;
+    font-size: 1.8rem;
+    color: #C8A951;
+    line-height: 1.7;
+    direction: rtl;
+    margin: 0 0 0.9rem;
+    white-space: pre-line;
+    text-shadow: 0 2px 20px rgba(200,169,81,0.3);
+}
+.ayah-translation {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.85);
+    font-style: italic;
+    line-height: 1.6;
+}
+.ayah-source {
+    display: block;
+    font-size: 0.72rem;
+    color: rgba(200,169,81,0.75);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-top: 0.6rem;
+    text-transform: uppercase;
+}
+
+/* Honesty reminder */
+.honesty-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 18px;
+    padding: 1.35rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: flex-start; gap: 1rem;
+    text-align: left;
+    animation: ayahFadeIn 1s ease-out 0.5s backwards;
+}
+.honesty-card .h-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: rgba(200,169,81,0.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; flex-shrink: 0;
+}
+.honesty-card .h-text {
+    font-size: 0.92rem;
+    color: rgba(255,255,255,0.92);
+    line-height: 1.65;
+}
+.honesty-card .h-text strong {
+    color: #C8A951;
+    font-weight: 700;
+}
+
+/* ============ RULES PANEL (NEW) ============ */
+.rules-panel {
+    background: rgba(220,53,69,0.08);
+    border: 1px solid rgba(220,53,69,0.35);
+    border-radius: 18px;
+    padding: 1.35rem 1.5rem 1.25rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+    animation: ayahFadeIn 1s ease-out 0.55s backwards;
+    position: relative;
+    overflow: hidden;
+}
+.rules-panel::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #dc3545, #C8A951, #dc3545);
+    background-size: 200% 100%;
+    animation: rulesShimmer 3s linear infinite;
+}
+@keyframes rulesShimmer {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+}
+.rules-panel-head {
+    display: flex; align-items: center; gap: 0.65rem;
+    margin-bottom: 0.9rem;
+}
+.rules-panel-head .rp-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(220,53,69,0.2);
+    color: #fbb;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+.rules-panel-head h3 {
+    font-size: 0.85rem; font-weight: 800;
+    color: #fbb;
+    margin: 0;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.rules-list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 0.55rem;
+}
+.rules-list li {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.92);
+    line-height: 1.5;
+}
+.rules-list li i {
+    width: 18px; text-align: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    color: #C8A951;
+}
+.rules-list li.warn i { color: #fbb; }
+.rules-list li strong { color: #fff; font-weight: 800; }
+
+/* Test summary */
+.pre-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.65rem;
+    margin-bottom: 2rem;
+    animation: ayahFadeIn 1s ease-out 0.7s backwards;
+}
+.pre-summary-item {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 0.9rem 0.5rem;
+    text-align: center;
+}
+.pre-summary-item .val {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #C8A951;
+    line-height: 1.1;
+}
+.pre-summary-item .lbl {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.6);
+    margin-top: 0.35rem;
+    font-weight: 700;
+}
+
+/* Start button */
+.start-btn-wrap {
+    position: relative;
+    display: inline-block;
+    animation: ayahFadeIn 1s ease-out 0.9s backwards;
+}
+.start-btn {
+    position: relative;
+    padding: 1.15rem 3.5rem;
+    border-radius: 60px;
+    background: linear-gradient(135deg, #C8A951 0%, #E0C96E 100%);
+    color: #0F3D2E;
+    border: none; cursor: pointer;
+    font-family: inherit;
+    font-size: 1.1rem; font-weight: 800;
+    letter-spacing: 0.03em;
+    display: inline-flex; align-items: center; gap: 0.7rem;
+    box-shadow: 0 0 0 rgba(200,169,81,0), 0 12px 32px rgba(200,169,81,0.4);
+    animation: startPulse 2.5s ease-in-out infinite;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+@keyframes startPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 rgba(200,169,81,0), 0 12px 32px rgba(200,169,81,0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(200,169,81,0.6), 0 12px 40px rgba(200,169,81,0.5);
+        transform: scale(1.03);
+    }
+}
+.start-btn:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 0 60px rgba(200,169,81,0.8), 0 20px 50px rgba(200,169,81,0.6);
+}
+.start-btn i { font-size: 1.2rem; }
+
+.pre-back-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    font-size: 0.82rem;
+    margin-top: 1.75rem;
+    transition: color 0.2s;
+}
+.pre-back-link:hover { color: #C8A951; }
+
+/* ============ COUNTDOWN OVERLAY ============ */
+.countdown-overlay {
+    position: fixed; inset: 0;
+    background: #0A2A1F;
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 9999;
+}
+.countdown-overlay.active { display: flex; }
+.countdown-number {
+    font-size: 16rem;
+    font-weight: 900;
+    color: #C8A951;
+    text-shadow: 0 0 80px rgba(200,169,81,0.8);
+    line-height: 1;
+    animation: countPop 1s cubic-bezier(0.34,1.56,0.64,1);
+    font-family: 'Playfair Display', serif;
+}
+@keyframes countPop {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.countdown-number.go {
+    font-size: 4rem;
+    color: #38a169;
+    text-shadow: 0 0 40px rgba(56,161,105,0.8);
+    letter-spacing: 0.05em;
+}
+
+/* Course instructions banner */
+.course-instructions {
+    background: rgba(56,161,105,0.1);
+    border: 1px solid rgba(56,161,105,0.3);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.9);
+    text-align: left;
+    line-height: 1.6;
+    animation: ayahFadeIn 1s ease-out 0.6s backwards;
+}
+.course-instructions strong { color: #C8A951; }
+
+@media (max-width: 640px) {
+    .ayah-arabic { font-size: 1.3rem; }
+    .pre-logo { width: 90px; height: 90px; }
+    .pre-logo img { width: 65px; height: 65px; }
+    .start-btn { padding: 1rem 2.5rem; font-size: 1rem; }
+    .countdown-number { font-size: 10rem; }
+    .countdown-number.go { font-size: 2.5rem; }
+    .rules-panel { padding: 1.15rem 1.15rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pre-page">
+
+    <span class="bg-float">📖</span>
+    <span class="bg-float">🕌</span>
+    <span class="bg-float">🧠</span>
+    <span class="bg-float">✨</span>
+    <span class="bg-float">🎯</span>
+
+    <div class="pre-content">
+
+        <!-- Animated Logo -->
+        <div class="pre-logo">
+            <img src="{% static 'images/Namets.jpg' %}" alt="NAMETS">
+        </div>
+
+        <!-- Arabic Ayah -->
+        <div class="ayah-block">
+            <div class="ayah-arabic">{{ verse|default:"بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"|linebreaksbr }}</div>
+            <div class="ayah-translation">{{ message|default:"This test is for your own benefit. Allah sees your effort — be honest with yourself." }}</div>
+            <span class="ayah-source">Before you begin</span>
+        </div>
+
+        <!-- Course Instructions (if any) -->
+        {% if course.instructions %}
+        <div class="course-instructions">
+            <strong>📌 Course Instructions:</strong> {{ course.instructions }}
+        </div>
+        {% endif %}
+
+        <!-- Anti-cheating Rules -->
+        <div class="rules-panel">
+            <div class="rules-panel-head">
+                <div class="rp-icon"><i class="fas fa-shield-alt"></i></div>
+                <h3>Anti-Cheating Rules</h3>
+            </div>
+            <ul class="rules-list">
+                <li>
+                    <i class="fas fa-check"></i>
+                    <span>The test will open in <strong>fullscreen mode</strong>. Stay in fullscreen until you finish.</span>
+                </li>
+                <li>
+                    <i class="fas fa-check"></i>
+                    <span>Do <strong>not switch tabs</strong> or minimise the window during the test.</span>
+                </li>
+                <li>
+                    <i class="fas fa-check"></i>
+                    <span>Copy, paste, and right-click are <strong>disabled</strong> inside the test.</span>
+                </li>
+                <li class="warn">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>
+                        <strong>3 violations will auto-submit your test.</strong>
+                        Each violation is logged for review.
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Honesty Card -->
+        <div class="honesty-card">
+            <div class="h-icon">🤲</div>
+            <div class="h-text">
+                <strong>Take your time, answer sincerely.</strong>
+                This is a self-study test — the only person who benefits from honesty is you.
+                Answer with the intention of learning, and Allah will bless your effort.
+            </div>
+        </div>
+
+        <!-- Test Summary -->
+        <div class="pre-summary">
+            <div class="pre-summary-item">
+                <div class="val">{{ course.icon|default:"📘" }}</div>
+                <div class="lbl">{{ course.name|truncatechars:12 }}</div>
+            </div>
+            <div class="pre-summary-item">
+                <div class="val">{{ test.num_questions }}</div>
+                <div class="lbl">Questions</div>
+            </div>
+            <div class="pre-summary-item">
+                <div class="val">{{ test.time_limit_minutes }}</div>
+                <div class="lbl">Minutes</div>
+            </div>
+            <div class="pre-summary-item">
+                <div class="val">{{ test.difficulty|title }}</div>
+                <div class="lbl">Difficulty</div>
+            </div>
+        </div>
+
+        <!-- Start Button -->
+        <div class="start-btn-wrap">
+            <button type="button" class="start-btn" onclick="beginCountdown()">
+                <i class="fas fa-play-circle"></i>
+                Begin Test
+            </button>
+        </div>
+
+        <br>
+        <a href="{% url 'academics:cbt_setup' %}?course={{ course.slug }}" class="pre-back-link">
+            <i class="fas fa-arrow-left"></i> Back to Setup
+        </a>
+    </div>
+
+    <!-- Countdown Overlay -->
+    <div class="countdown-overlay" id="countdownOverlay">
+        <div class="countdown-number" id="countdownNumber">3</div>
+    </div>
+</div>
+
+<script>
+function beginCountdown() {
+    const overlay = document.getElementById('countdownOverlay');
+    const number = document.getElementById('countdownNumber');
+    overlay.classList.add('active');
+
+    let count = 3;
+    number.textContent = count;
+    number.className = 'countdown-number';
+
+    const ticker = setInterval(function() {
+        count--;
+        if (count > 0) {
+            number.textContent = count;
+            number.style.animation = 'none';
+            void number.offsetWidth;
+            number.style.animation = 'countPop 1s cubic-bezier(0.34,1.56,0.64,1)';
+        } else {
+            clearInterval(ticker);
+            number.textContent = 'Bismillah';
+            number.className = 'countdown-number go';
+            setTimeout(function() {
+                window.location.href = '{% url "academics:cbt_take" %}';
+            }, 700);
+        }
+    }, 1000);
+}
+
+window.addEventListener('beforeunload', function(e) {
+    if (document.getElementById('countdownOverlay').classList.contains('active')) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+</script>
+{% endblock %}

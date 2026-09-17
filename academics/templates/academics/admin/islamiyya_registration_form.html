@@ -1,0 +1,290 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · Islamiyya{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 820px; margin: 0 auto; }
+.form-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none; font-weight: 600;
+    margin-bottom: 0.6rem; font-size: 0.85rem;
+}
+.form-back:hover { text-decoration: underline; }
+.form-header { margin-bottom: 1rem; }
+.form-header h2 { margin: 0; color: var(--text-primary); font-size: 1.4rem; font-weight: 700; }
+.form-header p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
+.form-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 2rem; box-shadow: var(--shadow-sm);
+}
+
+.field-section {
+    margin-bottom: 1.5rem; padding-bottom: 1.5rem;
+    border-bottom: 1px dashed rgba(0,0,0,0.08);
+}
+.field-section:last-of-type { border-bottom: none; padding-bottom: 0; }
+.field-section-title {
+    font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #8a6a1a; margin-bottom: 0.9rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.field-section-title::after {
+    content: ''; flex: 1; height: 1px; background: rgba(200,169,81,0.25);
+}
+.field-section-title i { font-size: 0.9rem; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.85rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label { font-weight: 600; color: var(--text-primary); font-size: 0.8rem; margin-bottom: 0.3rem; }
+.form-group label .required { color: #e53e3e; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.55rem 0.85rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.9rem; background: #fff; transition: var(--transition);
+    font-family: inherit;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.form-group select[multiple] { min-height: 130px; padding: 0.4rem; }
+.form-group .help-text { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; }
+.form-group .error-text { font-size: 0.78rem; color: #e53e3e; margin-top: 0.25rem; }
+
+.form-check-group {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.75rem 1rem; background: #f8faf9;
+    border-radius: 10px; border: 1px solid rgba(0,0,0,0.05);
+}
+.form-check-group input[type="checkbox"] {
+    width: 18px; height: 18px; accent-color: var(--gold); cursor: pointer;
+}
+.form-check-group label { font-weight: 500; margin: 0; cursor: pointer; }
+
+.image-preview {
+    margin-top: 0.5rem; max-width: 130px;
+    border-radius: 50%; overflow: hidden;
+    border: 3px solid var(--gold); aspect-ratio: 1/1;
+}
+.image-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.form-actions {
+    display: flex; gap: 0.85rem; flex-wrap: wrap;
+    margin-top: 1.5rem; padding-top: 1.5rem;
+    border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-primary {
+    background: var(--primary); color: #fff;
+    padding: 0.7rem 2rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    transition: var(--transition); display: inline-flex;
+    align-items: center; gap: 0.4rem; text-decoration: none;
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.7rem 2rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    transition: var(--transition); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+.error-summary {
+    background: #fdecea; border-left: 4px solid #e53e3e;
+    border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 1.2rem;
+    color: #9b2c2c; font-size: 0.88rem;
+}
+.error-summary strong { display: block; margin-bottom: 0.4rem; }
+.error-summary ul { margin: 0; padding-left: 1.2rem; }
+.warn-banner {
+    background: linear-gradient(135deg, #fef3e8 0%, #fef9ec 100%);
+    border-left: 4px solid #a8671a;
+    border-radius: 10px; padding: 0.9rem 1.15rem;
+    margin-bottom: 1.25rem; font-size: 0.83rem; color: #6b3a0a;
+    line-height: 1.55;
+}
+.warn-banner strong { color: #a8671a; }
+@media (max-width: 768px) {
+    .form-card { padding: 1.25rem; }
+    .form-row { grid-template-columns: 1fr; gap: 0.7rem; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="form-container">
+    <a href="{% url 'academics:admin_islamiyya_registration_detail' registration.pk %}" class="form-back">
+        <i class="fas fa-arrow-left"></i> Back to Registration
+    </a>
+
+    <div class="form-header">
+        <h2>{{ title }}</h2>
+        <p>{{ button_text }}.</p>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="error-summary">
+        <strong>Please fix the following:</strong>
+        <ul>{% for err in form.non_field_errors %}<li>{{ err }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="form-card" novalidate>
+        {% csrf_token %}
+
+        <!-- Identity -->
+        <div class="field-section">
+            <div class="field-section-title"><i class="fas fa-user"></i> Identity</div>
+            <div class="form-row">
+                <div class="form-group full">
+                    <label for="{{ form.session_settings.id_for_label }}">Session <span class="required">*</span></label>
+                    {{ form.session_settings }}
+                    {% if form.session_settings.errors %}<div class="error-text">{{ form.session_settings.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group full">
+                    <label for="{{ form.name.id_for_label }}">Full Name <span class="required">*</span></label>
+                    {{ form.name }}
+                    {% if form.name.errors %}<div class="error-text">{{ form.name.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">Email <span class="required">*</span></label>
+                    {{ form.email }}
+                    {% if form.email.errors %}<div class="error-text">{{ form.email.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.phone.id_for_label }}">Phone <span class="required">*</span></label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}<div class="error-text">{{ form.phone.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.gender.id_for_label }}">Gender</label>
+                    {{ form.gender }}
+                    {% if form.gender.errors %}<div class="error-text">{{ form.gender.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.registration_number.id_for_label }}">Reg. Number <span class="required">*</span></label>
+                    {{ form.registration_number }}
+                    {% if form.registration_number.errors %}<div class="error-text">{{ form.registration_number.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.department.id_for_label }}">Department</label>
+                    {{ form.department }}
+                    {% if form.department.errors %}<div class="error-text">{{ form.department.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.photo.id_for_label }}">Photo</label>
+                    {{ form.photo }}
+                    {% if form.photo.errors %}<div class="error-text">{{ form.photo.errors }}</div>{% endif %}
+                    {% if form.instance.photo %}
+                    <div class="image-preview">
+                        <img src="{{ form.instance.photo.url }}" alt="Current photo">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic -->
+        <div class="field-section">
+            <div class="field-section-title"><i class="fas fa-book"></i> Academic Details</div>
+            <div class="form-row">
+                <div class="form-group full">
+                    <label for="{{ form.level.id_for_label }}">Level <span class="required">*</span></label>
+                    {{ form.level }}
+                    {% if form.level.errors %}<div class="error-text">{{ form.level.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group full">
+                    <label for="{{ form.courses.id_for_label }}">Courses</label>
+                    {{ form.courses }}
+                    <div class="help-text">Hold Ctrl / Cmd to select multiple courses.</div>
+                    {% if form.courses.errors %}<div class="error-text">{{ form.courses.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group full">
+                    <label for="{{ form.other_course.id_for_label }}">Other Course (specify)</label>
+                    {{ form.other_course }}
+                    {% if form.other_course.errors %}<div class="error-text">{{ form.other_course.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="field-section">
+            <div class="field-section-title"><i class="fas fa-coins"></i> Payment & Verification</div>
+            <div class="warn-banner">
+                <strong>⚠️ Note:</strong> Changing payment status to <em>Paid</em> here does NOT record a ledger transaction.
+                Use the <strong>Mark as Paid</strong> button on the detail page to record a real payment and update the bank balance.
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.payment_status.id_for_label }}">Payment Status</label>
+                    {{ form.payment_status }}
+                    {% if form.payment_status.errors %}<div class="error-text">{{ form.payment_status.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.payment_method.id_for_label }}">Payment Method</label>
+                    {{ form.payment_method }}
+                    {% if form.payment_method.errors %}<div class="error-text">{{ form.payment_method.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.amount_paid.id_for_label }}">Amount Paid (₦)</label>
+                    {{ form.amount_paid }}
+                    {% if form.amount_paid.errors %}<div class="error-text">{{ form.amount_paid.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.payment_reference.id_for_label }}">Payment Reference</label>
+                    {{ form.payment_reference }}
+                    {% if form.payment_reference.errors %}<div class="error-text">{{ form.payment_reference.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Meta -->
+        <div class="field-section">
+            <div class="field-section-title"><i class="fas fa-sticky-note"></i> Internal</div>
+            <div class="form-row">
+                <div class="form-group full">
+                    <label for="{{ form.notes.id_for_label }}">EXCO Internal Notes</label>
+                    {{ form.notes }}
+                    <div class="help-text">Not visible to the student.</div>
+                    {% if form.notes.errors %}<div class="error-text">{{ form.notes.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <div class="form-check-group">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}">Enrollment Active</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> {{ button_text }}</button>
+            <a href="{% url 'academics:admin_islamiyya_registration_detail' registration.pk %}" class="btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

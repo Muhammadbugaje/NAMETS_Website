@@ -6,102 +6,759 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/global.css' %}">
     <link rel="stylesheet" href="{% static 'community/css/community.css' %}">
+    <style>
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .about-hero {
+        max-width: 1180px;
+        margin: 1.5rem auto 2.5rem;
+        padding: 0 20px;
+    }
+    .about-hero-inner {
+        background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 60%, #2D7D5A 100%);
+        border-radius: 28px;
+        padding: 3rem 2.5rem 2.75rem;
+        position: relative; overflow: hidden;
+        box-shadow: 0 20px 50px rgba(15,61,46,0.25);
+        text-align: center;
+    }
+    .about-hero-inner::before {
+        content: "﷽";
+        font-family: 'Amiri', serif;
+        font-size: 10rem;
+        position: absolute; top: -2rem; right: 1.5rem;
+        opacity: 0.06; color: #fff; pointer-events: none;
+    }
+    .about-hero-inner::after {
+        content: ''; position: absolute;
+        top: -40%; left: -10%;
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(200,169,81,0.2) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .about-hero-eyebrow {
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        font-size: 0.68rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.12em;
+        color: #C8A951;
+        background: rgba(200,169,81,0.18);
+        padding: 0.35rem 1rem; border-radius: 20px;
+        margin-bottom: 1rem;
+        position: relative; z-index: 1;
+    }
+    .about-hero h1 {
+        font-size: 2.35rem; font-weight: 800;
+        color: #fff; margin: 0 0 0.75rem;
+        letter-spacing: -0.02em;
+        position: relative; z-index: 1;
+    }
+    .about-hero h1 .accent { color: #C8A951; }
+    .about-hero p {
+        color: rgba(255,255,255,0.82);
+        font-size: 1.05rem; max-width: 640px;
+        margin: 0 auto; line-height: 1.65;
+        position: relative; z-index: 1;
+    }
+
+    /* ============================================================
+       MISSION / VISION / HISTORY
+       ============================================================ */
+    .mvh-section {
+        max-width: 1180px;
+        margin: 0 auto 2rem;
+        padding: 0 20px;
+    }
+    /* Top row: Mission + Vision side-by-side */
+    .mvh-grid-top {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+    /* History full-width beneath */
+    .mvh-history-row {
+        display: block;
+    }
+
+    .mvh-card {
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 22px;
+        padding: 2rem 1.85rem 1.75rem;
+        box-shadow: 0 8px 28px rgba(15,61,46,0.08);
+        position: relative; overflow: hidden;
+        transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .mvh-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 44px rgba(15,61,46,0.14);
+        border-color: rgba(200,169,81,0.4);
+    }
+    .mvh-card::before {
+        content: ''; position: absolute;
+        top: 0; left: 0; right: 0; height: 4px;
+    }
+    .mvh-card.mission::before { background: linear-gradient(90deg, #0F3D2E, #38a169); }
+    .mvh-card.vision::before  { background: linear-gradient(90deg, #C8A951, #E0C96E); }
+    .mvh-card.history::before { background: linear-gradient(90deg, #185fa5, #4299e1); }
+
+    .mvh-icon {
+        width: 58px; height: 58px; border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.75rem; margin-bottom: 1rem;
+        transition: transform 0.4s ease;
+    }
+    .mvh-card:hover .mvh-icon { transform: scale(1.1) rotate(-6deg); }
+    .mvh-card.mission .mvh-icon { background: #e8f2ec; color: #1a6b3c; }
+    .mvh-card.vision .mvh-icon  { background: #f5e9c8; color: #8a6a1a; }
+    .mvh-card.history .mvh-icon { background: #e6f0fb; color: #185fa5; }
+
+    .mvh-label {
+        font-size: 0.7rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        margin-bottom: 0.4rem;
+    }
+    .mvh-card.mission .mvh-label { color: #1a6b3c; }
+    .mvh-card.vision .mvh-label  { color: #8a6a1a; }
+    .mvh-card.history .mvh-label { color: #185fa5; }
+
+    .mvh-card h2 {
+        font-size: 1.35rem; font-weight: 800;
+        color: #0F3D2E; margin: 0 0 0.85rem;
+        letter-spacing: -0.01em;
+    }
+    .mvh-body {
+        font-size: 0.92rem; color: #4a5568;
+        line-height: 1.75;
+    }
+    .mvh-body p { margin: 0 0 0.65rem; }
+    .mvh-body p:last-child { margin-bottom: 0; }
+
+    .mvh-established {
+        display: inline-flex; align-items: center; gap: 0.45rem;
+        margin-top: 1rem; padding: 0.45rem 1rem;
+        background: linear-gradient(135deg, #e6f0fb, #f0f7ff);
+        border: 1px solid rgba(24,95,165,0.15);
+        border-radius: 50px;
+        font-size: 0.8rem; font-weight: 700;
+        color: #185fa5;
+    }
+    .mvh-established strong { color: #0F3D2E; }
+
+    /* History card gets a slightly different feel since it's full-width */
+    .mvh-card.history {
+        padding: 2.25rem 2rem 2rem;
+    }
+    .mvh-card.history .mvh-body {
+        max-width: 900px;
+        font-size: 0.95rem;
+    }
+
+    /* ============================================================
+       SECTION HEADING (matches site rhythm)
+       ============================================================ */
+    .about-section-heading {
+        max-width: 1180px;
+        margin: 3rem auto 1.5rem;
+        padding: 0 20px;
+    }
+    .about-section-heading .label {
+        display: flex; align-items: center; gap: 0.65rem;
+        font-size: 1.5rem; font-weight: 800;
+        color: #0F3D2E; margin: 0 0 0.4rem;
+        letter-spacing: -0.01em;
+    }
+    .about-section-heading .label .emoji { font-size: 1.35rem; }
+    .about-section-heading .sub {
+        color: #8a9b95; font-size: 0.9rem;
+        margin: 0; max-width: 620px;
+    }
+    .about-section-heading::after {
+        content: ''; display: block;
+        height: 2px; width: 60px;
+        background: linear-gradient(90deg, #C8A951, transparent);
+        border-radius: 2px; margin-top: 0.9rem;
+    }
+
+    /* ============================================================
+       DEVELOPERS — avatar cards
+       ============================================================ */
+    .dev-wrap {
+        max-width: 1180px;
+        margin: 0 auto 2rem;
+        padding: 0 20px;
+    }
+    .dev-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.1rem;
+    }
+    .dev-card {
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 20px;
+        padding: 1.75rem 1.5rem 1.5rem;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(15,61,46,0.07);
+        transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        position: relative; overflow: hidden;
+    }
+    .dev-card::before {
+        content: ''; position: absolute;
+        top: 0; left: 0; right: 0; height: 3px;
+        background: linear-gradient(90deg, #0F3D2E, #C8A951);
+        opacity: 0; transition: opacity 0.3s;
+    }
+    .dev-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 44px rgba(15,61,46,0.14);
+        border-color: rgba(200,169,81,0.35);
+    }
+    .dev-card:hover::before { opacity: 1; }
+
+    .dev-avatar {
+        width: 78px; height: 78px; border-radius: 50%;
+        margin: 0 auto 1rem;
+        background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.85rem; font-weight: 800;
+        color: #C8A951;
+        border: 3px solid #C8A951;
+        box-shadow: 0 8px 24px rgba(15,61,46,0.2);
+        transition: transform 0.4s ease;
+    }
+    .dev-card:hover .dev-avatar { transform: scale(1.06) rotate(-4deg); }
+
+    .dev-name {
+        font-size: 1.05rem; font-weight: 800;
+        color: #0F3D2E; margin: 0 0 0.25rem;
+        letter-spacing: -0.01em;
+    }
+    .dev-role {
+        display: inline-block;
+        font-size: 0.68rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.08em;
+        color: #8a6a1a;
+        background: rgba(200,169,81,0.15);
+        padding: 0.25rem 0.75rem; border-radius: 20px;
+        margin-bottom: 0.85rem;
+    }
+    .dev-bio {
+        font-size: 0.85rem; color: #5A5A5A;
+        line-height: 1.6; margin: 0 0 1rem;
+        min-height: 3.2em;
+    }
+    .dev-social {
+        display: flex; justify-content: center; gap: 0.5rem;
+        padding-top: 0.85rem; border-top: 1px solid rgba(0,0,0,0.05);
+    }
+    .dev-social a {
+        width: 36px; height: 36px; border-radius: 10px;
+        background: #f0f4f2; color: #0F3D2E;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 0.9rem; font-weight: 700;
+        text-decoration: none;
+        transition: all 0.25s ease;
+    }
+    .dev-social a:hover {
+        background: #0F3D2E; color: #C8A951;
+        transform: translateY(-3px);
+    }
+
+    /* ============================================================
+       DOCUMENTS
+       ============================================================ */
+    .docs-wrap {
+        max-width: 1180px;
+        margin: 0 auto 2rem;
+        padding: 0 20px;
+    }
+    .docs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1rem;
+    }
+    .doc-card {
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 18px;
+        padding: 1.35rem 1.35rem 1.15rem;
+        box-shadow: 0 4px 18px rgba(15,61,46,0.06);
+        transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        display: flex; flex-direction: column;
+        position: relative; overflow: hidden;
+    }
+    .doc-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 16px 36px rgba(15,61,46,0.12);
+        border-color: rgba(200,169,81,0.4);
+    }
+    .doc-icon {
+        width: 48px; height: 48px; border-radius: 14px;
+        background: linear-gradient(135deg, #f5e9c8, #fbf3d9);
+        border: 1px solid rgba(200,169,81,0.3);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; margin-bottom: 0.85rem;
+    }
+    .doc-title {
+        font-size: 0.98rem; font-weight: 700;
+        color: #0F3D2E; margin: 0 0 0.35rem;
+        letter-spacing: -0.01em;
+    }
+    .doc-desc {
+        font-size: 0.82rem; color: #5A5A5A;
+        line-height: 1.55; margin: 0 0 1rem; flex: 1;
+    }
+    .doc-download {
+        align-self: flex-start;
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        padding: 0.5rem 1.15rem; border-radius: 50px;
+        background: #0F3D2E; color: #fff;
+        font-size: 0.78rem; font-weight: 700;
+        text-decoration: none;
+        transition: all 0.25s ease;
+    }
+    .doc-download:hover {
+        background: #1a5a44; color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(15,61,46,0.25);
+    }
+    .doc-download i { transition: transform 0.25s ease; }
+    .doc-download:hover i { transform: translateY(2px); }
+
+    /* ============================================================
+       PUBLICATIONS
+       ============================================================ */
+    .pub-wrap {
+        max-width: 1180px;
+        margin: 0 auto 2rem;
+        padding: 0 20px;
+    }
+    .pub-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.25rem;
+    }
+    .pub-card {
+        position: relative; overflow: hidden;
+        border-radius: 22px;
+        padding: 2.25rem 2rem 2rem;
+        text-decoration: none; color: #fff;
+        display: flex; flex-direction: column;
+        min-height: 220px;
+        isolation: isolate;
+        transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        box-shadow: 0 12px 32px rgba(15,61,46,0.15);
+    }
+    .pub-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 24px 56px rgba(15,61,46,0.25);
+    }
+    .pub-card.magazine {
+        background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    }
+    .pub-card.magazine::before {
+        content: ''; position: absolute; inset: 0;
+        background: radial-gradient(circle at 90% 15%, rgba(200,169,81,0.28) 0%, transparent 45%);
+        z-index: -1;
+    }
+    .pub-card.articles {
+        background: linear-gradient(135deg, #7a4a1a 0%, #a8671a 100%);
+    }
+    .pub-card.articles::before {
+        content: ''; position: absolute; inset: 0;
+        background: radial-gradient(circle at 10% 85%, rgba(255,255,255,0.15) 0%, transparent 40%);
+        z-index: -1;
+    }
+    .pub-card::after {
+        position: absolute; top: 1.5rem; right: 1.5rem;
+        font-size: 5rem; opacity: 0.14; line-height: 1;
+        transition: transform 0.5s ease;
+    }
+    .pub-card.magazine::after { content: '📘'; }
+    .pub-card.articles::after { content: '📄'; }
+    .pub-card:hover::after { transform: scale(1.15) rotate(-8deg); }
+
+    .pub-eyebrow {
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        font-size: 0.66rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        padding: 0.3rem 0.85rem; border-radius: 20px;
+        width: fit-content;
+        margin-bottom: 1rem;
+        position: relative; z-index: 1;
+    }
+    .pub-card.magazine .pub-eyebrow {
+        background: rgba(200,169,81,0.22); color: #C8A951;
+    }
+    .pub-card.articles .pub-eyebrow {
+        background: rgba(255,255,255,0.18); color: #fef3e8;
+    }
+
+    .pub-title {
+        font-size: 1.5rem; font-weight: 800;
+        margin: 0 0 0.5rem; line-height: 1.2;
+        letter-spacing: -0.02em;
+        position: relative; z-index: 1;
+    }
+    .pub-desc {
+        font-size: 0.88rem; line-height: 1.6;
+        margin: 0 0 1.5rem; flex: 1;
+        position: relative; z-index: 1;
+        opacity: 0.85;
+    }
+    .pub-cta {
+        align-self: flex-start;
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        padding: 0.7rem 1.5rem; border-radius: 50px;
+        font-weight: 800; font-size: 0.85rem;
+        position: relative; z-index: 1;
+        transition: all 0.25s ease;
+    }
+    .pub-card.magazine .pub-cta {
+        background: #C8A951; color: #0F3D2E;
+        box-shadow: 0 6px 20px rgba(200,169,81,0.4);
+    }
+    .pub-card.magazine .pub-cta:hover {
+        background: #E0C96E; transform: translateY(-2px);
+    }
+    .pub-card.articles .pub-cta {
+        background: #fff; color: #7a4a1a;
+    }
+    .pub-card.articles .pub-cta:hover {
+        background: #fef3e8; transform: translateY(-2px);
+    }
+    .pub-cta i { transition: transform 0.25s ease; }
+    .pub-cta:hover i { transform: translateX(4px); }
+
+    /* ============================================================
+       LEADERSHIP CARDS
+       ============================================================ */
+    .lead-wrap {
+        max-width: 1180px;
+        margin: 0 auto 3rem;
+        padding: 0 20px;
+    }
+    .lead-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.1rem;
+    }
+    .lead-card {
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 20px;
+        padding: 1.75rem 1.5rem 1.5rem;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(15,61,46,0.07);
+        transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        text-decoration: none; color: inherit;
+        position: relative; overflow: hidden;
+        display: flex; flex-direction: column;
+    }
+    .lead-card::before {
+        content: ''; position: absolute;
+        top: 0; left: 0; right: 0; height: 3px;
+    }
+    .lead-card.execs::before   { background: linear-gradient(90deg, #0F3D2E, #38a169); }
+    .lead-card.patrons::before { background: linear-gradient(90deg, #C8A951, #E0C96E); }
+    .lead-card.devs::before    { background: linear-gradient(90deg, #6b21a8, #a78bfa); }
+    .lead-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 44px rgba(15,61,46,0.14);
+        border-color: rgba(200,169,81,0.35);
+    }
+    .lead-icon {
+        width: 62px; height: 62px; border-radius: 16px;
+        margin: 0 auto 0.9rem;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.85rem;
+        transition: transform 0.4s ease;
+    }
+    .lead-card:hover .lead-icon { transform: scale(1.1) rotate(-6deg); }
+    .lead-card.execs   .lead-icon { background: #e8f2ec; color: #1a6b3c; }
+    .lead-card.patrons .lead-icon { background: #f5e9c8; color: #8a6a1a; }
+    .lead-card.devs    .lead-icon { background: #f0eafb; color: #6b21a8; }
+
+    .lead-title {
+        font-size: 1.1rem; font-weight: 800;
+        color: #0F3D2E; margin: 0 0 0.35rem;
+        letter-spacing: -0.01em;
+    }
+    .lead-desc {
+        font-size: 0.85rem; color: #5A5A5A;
+        line-height: 1.6; margin: 0 0 1rem; flex: 1;
+    }
+    .lead-arrow {
+        align-self: center;
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        font-size: 0.78rem; font-weight: 800;
+        color: #C8A951;
+        transition: gap 0.3s ease;
+    }
+    .lead-card:hover .lead-arrow { gap: 0.6rem; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 768px) {
+        .about-hero-inner { padding: 2rem 1.5rem 1.75rem; border-radius: 22px; }
+        .about-hero h1 { font-size: 1.65rem; }
+        .about-hero p { font-size: 0.92rem; }
+        .about-hero-inner::before { font-size: 6rem; }
+
+        .mvh-grid-top { grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1rem; }
+        .mvh-card { padding: 1.5rem 1.35rem 1.25rem; }
+        .mvh-card.history { padding: 1.5rem 1.35rem 1.25rem; }
+        .mvh-card.history .mvh-body { font-size: 0.9rem; }
+        .mvh-card h2 { font-size: 1.15rem; }
+
+        .about-section-heading .label { font-size: 1.2rem; }
+        .about-section-heading .sub { font-size: 0.85rem; }
+
+        .dev-grid, .docs-grid, .lead-grid {
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        }
+        .pub-grid { grid-template-columns: 1fr; }
+        .pub-card { padding: 1.75rem 1.5rem 1.5rem; min-height: auto; }
+        .pub-card::after { font-size: 3.5rem; top: 1rem; right: 1rem; }
+        .pub-title { font-size: 1.2rem; }
+    }
+    @media (max-width: 480px) {
+        .dev-grid, .docs-grid, .lead-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    </style>
 {% endblock %}
 
 {% block content %}
-<div class="community-page">
-    <h1 class="page-title animate-on-scroll" style="margin: 0px 0px 10px;">About NAMETS</h1>
 
-    {% if about %}
-        <div class="about-section glass-card animate-on-scroll">
-            <h2>Mission</h2>
-            <p>{{ about.mission_statement|linebreaks }}</p>
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="about-hero">
+    <div class="about-hero-inner">
+        <span class="about-hero-eyebrow">🕌 Our Story</span>
+        <h1>About <span class="accent">NAMETS</span></h1>
+        <p>
+            The university-based Islamic student association fostering community,
+            knowledge, and faith on the campus of Ahmadu Bello University, Zaria.
+        </p>
+    </div>
+</section>
+
+<!-- ============================================================
+     MISSION / VISION / HISTORY
+     ============================================================ -->
+{% if about %}
+<section class="mvh-section">
+
+    <!-- Top row: Mission + Vision side-by-side -->
+    <div class="mvh-grid-top">
+
+        <!-- Mission -->
+        <div class="mvh-card mission">
+            <div class="mvh-icon">🎯</div>
+            <div class="mvh-label">Mission</div>
+            <h2>Our Purpose</h2>
+            <div class="mvh-body">{{ about.mission_statement|linebreaks }}</div>
         </div>
 
-        <div class="about-section glass-card animate-on-scroll">
-            <h2>Vision</h2>
-            <p>{{ about.vision_statement|linebreaks }}</p>
+        <!-- Vision -->
+        <div class="mvh-card vision">
+            <div class="mvh-icon">🌅</div>
+            <div class="mvh-label">Vision</div>
+            <h2>Where We're Going</h2>
+            <div class="mvh-body">{{ about.vision_statement|linebreaks }}</div>
         </div>
 
-        {% if about.history %}
-        <div class="about-section glass-card animate-on-scroll">
-            <h2>Our History</h2>
-            <p>{{ about.history|linebreaks }}</p>
+    </div>
+
+    <!-- History — full-width beneath -->
+    {% if about.history %}
+    <div class="mvh-history-row">
+        <div class="mvh-card history">
+            <div class="mvh-icon">📜</div>
+            <div class="mvh-label">History</div>
+            <h2>Our Journey</h2>
+            <div class="mvh-body">{{ about.history|linebreaks }}</div>
             {% if about.established_year %}
-                <p><strong>Established:</strong> {{ about.established_year }}</p>
+            <div class="mvh-established">
+                <i class="fas fa-calendar-alt"></i>
+                Established: <strong>{{ about.established_year }}</strong>
+            </div>
             {% endif %}
         </div>
-        {% endif %}
-    {% else %}
-        <p>About information not yet added.</p>
+    </div>
     {% endif %}
 
-    <h2 class="animate-on-scroll" style="margin: 20px 0px 20px;">Meet the Developers</h2>
-    <div class="developer-grid card-grid">
+</section>
+{% else %}
+<div class="mvh-section">
+    <p style="text-align:center;color:#8a9b95;padding:2rem;">About information not yet added.</p>
+</div>
+{% endif %}
+
+<!-- ============================================================
+     MEET THE DEVELOPERS
+     ============================================================ -->
+<div class="about-section-heading">
+    <div class="label"><span class="emoji">👨‍💻</span> Meet the Developers</div>
+    <p class="sub">The brothers behind NAMETS' digital home — architects of the platform you're using right now.</p>
+</div>
+
+<div class="dev-wrap">
+    <div class="dev-grid">
         {% for dev in developers %}
-            <div class="card developer-card animate-on-scroll">
-                <div class="card-body">
-                    <h3 class="card-title">{{ dev.name }}</h3>
-                    <p class="card-meta">{{ dev.role }}</p>
-                    {% if dev.bio %}
-                        <p class="card-desc">{{ dev.bio|truncatewords:20 }}</p>
-                    {% endif %}
-                    <div class="social-links">
-                        {% if dev.github_link %}
-                            <a href="{{ dev.github_link }}" target="_blank">GitHub</a>
-                        {% endif %}
-                        {% if dev.linkedin_link %}
-                            <a href="{{ dev.linkedin_link }}" target="_blank">LinkedIn</a>
-                        {% endif %}
-                    </div>
-                </div>
+        <div class="dev-card">
+            <div class="dev-avatar">
+                {{ dev.name|first|upper }}
             </div>
+            <div class="dev-name">{{ dev.name }}</div>
+            <div class="dev-role">{{ dev.role }}</div>
+            {% if dev.bio %}
+            <div class="dev-bio">{{ dev.bio|truncatewords:18 }}</div>
+            {% endif %}
+            <div class="dev-social">
+                {% if dev.github_link %}
+                <a href="{{ dev.github_link }}" target="_blank" rel="noopener" title="GitHub">
+                    <i class="fab fa-github"></i>
+                </a>
+                {% endif %}
+                {% if dev.linkedin_link %}
+                <a href="{{ dev.linkedin_link }}" target="_blank" rel="noopener" title="LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+                {% endif %}
+                {% if not dev.github_link and not dev.linkedin_link %}
+                <span style="font-size:0.75rem;color:#8a9b95;">NAMETS · ABU Zaria</span>
+                {% endif %}
+            </div>
+        </div>
         {% empty %}
-            <p>Developer credits not yet added.</p>
+        <p style="text-align:center;color:#8a9b95;padding:2rem;">Developer credits not yet added.</p>
         {% endfor %}
     </div>
+</div>
 
-    {% if documents %}
-        <div class="section-heading reveal mt-lg">
-            <h2>📄 Official Documents</h2>
-            <div class="section-heading-line"></div>
+<!-- ============================================================
+     OFFICIAL DOCUMENTS
+     ============================================================ -->
+{% if documents %}
+<div class="about-section-heading">
+    <div class="label"><span class="emoji">📄</span> Official Documents</div>
+    <p class="sub">Constitution, bylaws, reports, and other official NAMETS publications.</p>
+</div>
+
+<div class="docs-wrap">
+    <div class="docs-grid">
+        {% for doc in documents %}
+        <div class="doc-card">
+            <div class="doc-icon">📄</div>
+            <div class="doc-title">{{ doc.title }}</div>
+            {% if doc.description %}
+            <div class="doc-desc">{{ doc.description|truncatewords:20 }}</div>
+            {% endif %}
+            <a href="{{ doc.file.url }}" class="doc-download" download>
+                <i class="fas fa-download"></i> Download
+            </a>
         </div>
-        <div class="documents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem;">
-            {% for doc in documents %}
-                <div class="glass-card card-reveal" style="padding: 1.2rem; border-radius: 20px;">
-                    <h3 style="font-size: 1.1rem; margin-bottom: 0.3rem;">{{ doc.title }}</h3>
-                    {% if doc.description %}
-                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">{{ doc.description|truncatewords:20 }}</p>
-                    {% endif %}
-                    <a href="{{ doc.file.url }}" class="btn btn-primary btn-sm" download>📥 Download</a>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <!-- NEW SECTION: Magazine & Articles (clean, glass-style) -->
-    <div class="section-heading reveal mt-lg">
-        <h2>📖 Publications & Media</h2>
-        <div class="section-heading-line"></div>
+        {% endfor %}
     </div>
-    <div class="publication-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem;">
-        <a href="{% url 'communications:magazine_list' %}" class="btn btn-primary" style="min-width: 160px; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
-            📘 Al‑Irshad Magazine
+</div>
+{% endif %}
+
+<!-- ============================================================
+     PUBLICATIONS & MEDIA
+     ============================================================ -->
+<div class="about-section-heading">
+    <div class="label"><span class="emoji">📖</span> Publications &amp; Media</div>
+    <p class="sub">Read our magazine, articles, and interviews — stories of faith, scholarship, and community.</p>
+</div>
+
+<div class="pub-wrap">
+    <div class="pub-grid">
+
+        <!-- Magazine -->
+        <a href="{% url 'communications:magazine_list' %}" class="pub-card magazine">
+            <span class="pub-eyebrow">📘 Annual Publication</span>
+            <h3 class="pub-title">Al‑Irshad Magazine</h3>
+            <p class="pub-desc">
+                NAMETS' flagship magazine — thought pieces, campus stories, interviews,
+                Islamic reflections, and a snapshot of the year gone by.
+            </p>
+            <span class="pub-cta">
+                Read Issues <i class="fas fa-arrow-right"></i>
+            </span>
         </a>
-        <a href="{% url 'communications:article_list' %}" class="btn btn-secondary" style="min-width: 160px; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
-            📄 Articles & Interviews
+
+        <!-- Articles -->
+        <a href="{% url 'communications:article_list' %}" class="pub-card articles">
+            <span class="pub-eyebrow">📄 Ongoing Series</span>
+            <h3 class="pub-title">Articles &amp; Interviews</h3>
+            <p class="pub-desc">
+                Short-form pieces from members, alumni, and guests — Q&amp;A spotlights,
+                campus reflections, and topical Islamic commentary.
+            </p>
+            <span class="pub-cta">
+                Browse Articles <i class="fas fa-arrow-right"></i>
+            </span>
         </a>
-    </div>
 
-    <div class="section-heading reveal mt-lg">
-        <h2>Our Leadership & Supporters</h2>
-        <div class="section-heading-line"></div>
     </div>
-    <div class="button-group" style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
-        <a href="{% url 'community:executive_list' %}" class="btn btn-primary">Meet the Executives</a>
-        <a href="{% url 'community:patron_list' %}" class="btn btn-primary">Our Patrons</a>
-        <a href="{% url 'community:developer_list' %}" class="btn btn-primary">Developers</a>
-    </div>
+</div>
 
-</div> 
+<!-- ============================================================
+     LEADERSHIP & SUPPORTERS
+     ============================================================ -->
+<div class="about-section-heading">
+    <div class="label"><span class="emoji">👥</span> Our Leadership &amp; Supporters</div>
+    <p class="sub">The people behind NAMETS — past and present — who make all of this possible.</p>
+</div>
+
+<div class="lead-wrap">
+    <div class="lead-grid">
+
+        <!-- Executives -->
+        <a href="{% url 'community:executive_list' %}" class="lead-card execs">
+            <div class="lead-icon">🏛️</div>
+            <div class="lead-title">Meet the Executives</div>
+            <div class="lead-desc">
+                The current EXCO team running NAMETS — presidents, secretaries,
+                coordinators, and office heads.
+            </div>
+            <span class="lead-arrow">View Team <i class="fas fa-arrow-right"></i></span>
+        </a>
+
+        <!-- Patrons -->
+        <a href="{% url 'community:patron_list' %}" class="lead-card patrons">
+            <div class="lead-icon">🤲</div>
+            <div class="lead-title">Our Patrons</div>
+            <div class="lead-desc">
+                Esteemed scholars, lecturers, and community leaders who guide,
+                support, and mentor NAMETS.
+            </div>
+            <span class="lead-arrow">See Patrons <i class="fas fa-arrow-right"></i></span>
+        </a>
+
+        <!-- Developers -->
+        <a href="{% url 'community:developer_list' %}" class="lead-card devs">
+            <div class="lead-icon">💻</div>
+            <div class="lead-title">Developers</div>
+            <div class="lead-desc">
+                The team that built and maintains the NAMETS website — designers,
+                backend engineers, and content managers.
+            </div>
+            <span class="lead-arrow">Meet Devs <i class="fas fa-arrow-right"></i></span>
+        </a>
+
+    </div>
+</div>
+
 {% endblock %}

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Donate | NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.donations-page { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+.donations-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.donations-hero::before {
+    content: "🤲";
+    font-size: 4rem;
+    position: absolute; bottom: -0.5rem; right: 2rem;
+    opacity: 0.08;
+}
+.donations-hero .hero-badge {
+    display: inline-block; background: rgba(200,169,81,0.2);
+    color: #C8A951; font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.2rem 0.8rem; border-radius: 20px; margin-bottom: 0.5rem;
+}
+.donations-hero h1 { font-size: 2rem; font-weight: 700; color: #fff; margin: 0 0 0.3rem; }
+.donations-hero p { color: rgba(255,255,255,0.8); font-size: 0.95rem; margin: 0; }
+
+.section-title {
+    font-size: 1.1rem; font-weight: 700; color: #1A1A1A;
+    margin: 1.5rem 0 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.section-title::after { content: ''; flex: 1; height: 1px; background: rgba(0,0,0,0.08); }
+
+.accounts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+.account-card {
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+}
+.account-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); border-color: rgba(200,169,81,0.3); }
+.account-card .type {
+    display: inline-block; font-size: 0.6rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.12); padding: 0.15rem 0.6rem;
+    border-radius: 20px; margin-bottom: 0.5rem;
+}
+.account-card .name { font-size: 1rem; font-weight: 700; color: #1A1A1A; margin-bottom: 0.3rem; }
+.account-card .bank { font-size: 0.85rem; color: #5A5A5A; margin-bottom: 0.75rem; }
+.account-card .number {
+    background: #f8faf9; border-radius: 8px; padding: 0.6rem 0.8rem;
+    font-family: 'Courier New', monospace; font-size: 1rem; font-weight: 700;
+    color: #0F3D2E; letter-spacing: 0.05em; text-align: center;
+    margin-bottom: 0.75rem;
+}
+.account-card .balance {
+    font-size: 0.85rem; color: #8a9b95;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.account-card .balance .amount { color: #0F3D2E; font-weight: 700; font-size: 1rem; }
+
+.campaigns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+.campaign-card {
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.campaign-card h3 { font-size: 1rem; font-weight: 700; color: #1A1A1A; margin: 0 0 0.3rem; }
+.campaign-card p { font-size: 0.85rem; color: #5A5A5A; margin: 0.3rem 0; }
+.campaign-card .goal {
+    margin-top: 0.75rem; padding: 0.5rem 0.8rem;
+    background: #f5e9c8; border-radius: 8px;
+    font-size: 0.85rem; color: #8a6a1a; font-weight: 600;
+}
+
+.empty-state {
+    grid-column: 1 / -1; text-align: center; padding: 3rem 2rem;
+    background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); border-radius: 16px;
+    color: #8a9b95;
+}
+.empty-state .icon { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
+
+@media (max-width: 768px) {
+    .donations-hero { padding: 1.75rem 1.25rem; }
+    .donations-hero h1 { font-size: 1.6rem; }
+    .accounts-grid, .campaigns-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="donations-page">
+    <div class="donations-hero">
+        <span class="hero-badge">Support NAMETS</span>
+        <h1>🤲 Donate</h1>
+        <p>Your contributions help us serve the Muslim engineering community.</p>
+    </div>
+
+    {% if accounts %}
+    <div class="section-title">🏦 Bank Accounts</div>
+    <div class="accounts-grid">
+        {% for account in accounts %}
+        <div class="account-card">
+            <span class="type">{{ account.get_account_type_display }}</span>
+            <div class="name">{{ account.name }}</div>
+            <div class="bank">{{ account.bank_name|default:"" }}</div>
+            {% if account.account_number %}
+            <div class="number">{{ account.account_number }}</div>
+            {% endif %}
+            <div class="balance">
+                <span>Current Balance</span>
+                <span class="amount">₦{{ account.current_balance|floatformat:2 }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if campaigns %}
+    <div class="section-title">🎯 Active Campaigns</div>
+    <div class="campaigns-grid">
+        {% for campaign in campaigns %}
+        <div class="campaign-card">
+            <h3>{{ campaign.title }}</h3>
+            <p>{{ campaign.description|truncatechars:100 }}</p>
+            {% if campaign.goal_amount %}
+            <div class="goal">🎯 Goal: ₦{{ campaign.goal_amount|floatformat:2 }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not accounts and not campaigns %}
+    <div class="empty-state">
+        <span class="icon">🤲</span>
+        <h3>No donation information available</h3>
+        <p>Please contact NAMETS for donation details.</p>
+    </div>
+    {% endif %}
+</div>
+{% include "business/public/includes/back_to_business.html" %}
+{% endblock %}

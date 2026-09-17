@@ -1,0 +1,228 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Groups · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.gl-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.75rem 2rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.gl-head::before { content: "🔐"; font-size: 6rem; position: absolute; bottom: -1.2rem; right: 1.5rem; opacity: 0.08; }
+.gl-head-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.gl-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px; margin-bottom: 0.5rem;
+}
+.gl-head h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.3rem; }
+.gl-head p { color: rgba(255,255,255,0.78); font-size: 0.88rem; margin: 0; }
+.hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.6rem 1.35rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem; text-decoration: none;
+    border: 1px solid transparent; transition: all 0.25s;
+}
+.hbtn-gold { background: #C8A951; color: #0F3D2E; border-color: #C8A951; }
+.hbtn-gold:hover { background: #E0C96E; color: #0F3D2E; transform: translateY(-2px); }
+.hbtn-outline { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2); }
+.hbtn-outline:hover { background: rgba(255,255,255,0.22); color: #fff; transform: translateY(-2px); }
+
+.group-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+.group-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 18px; padding: 1.4rem 1.5rem 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+.group-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #0F3D2E, #C8A951);
+    opacity: 0.85;
+}
+.group-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(200,169,81,0.4);
+}
+.gc-head {
+    display: flex; align-items: center;
+    gap: 0.75rem; margin-bottom: 0.85rem;
+}
+.gc-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; flex-shrink: 0;
+    box-shadow: 0 6px 16px rgba(15,61,46,0.18);
+}
+.gc-name {
+    font-size: 1.05rem; font-weight: 800;
+    color: #0F3D2E; margin: 0;
+    letter-spacing: -0.01em;
+    word-break: break-word;
+}
+.gc-stats {
+    display: flex; gap: 1.25rem; padding: 0.75rem 0;
+    border-top: 1px dashed rgba(0,0,0,0.06);
+    border-bottom: 1px dashed rgba(0,0,0,0.06);
+    margin-bottom: 0.9rem;
+}
+.gc-stat { text-align: center; }
+.gc-stat .num { font-size: 1.3rem; font-weight: 800; color: #0F3D2E; line-height: 1; }
+.gc-stat .lbl { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #8a9b95; margin-top: 0.3rem; }
+.gc-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.gc-btn {
+    flex: 1; min-width: 90px;
+    padding: 0.55rem 0.85rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.75rem;
+    text-decoration: none; border: none; cursor: pointer;
+    font-family: inherit;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 0.35rem; transition: all 0.2s;
+}
+.gc-btn.perms { background: var(--primary); color: #fff; }
+.gc-btn.perms:hover { background: var(--primary-dark); color: #fff; transform: translateY(-1px); }
+.gc-btn.edit { background: var(--gold); color: var(--primary); }
+.gc-btn.edit:hover { background: #E0C96E; color: var(--primary); transform: translateY(-1px); }
+.gc-btn.del { background: #fdecea; color: #9b2c2c; flex: 0; min-width: 44px; padding: 0.55rem; }
+.gc-btn.del:hover { background: #f5c2bc; }
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center; padding: 4rem 1.5rem;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 2px dashed rgba(200,169,81,0.35);
+    border-radius: 20px;
+}
+.empty-state .ic { font-size: 3.5rem; display: block; margin-bottom: 0.75rem; opacity: 0.5; }
+.empty-state h3 { color: #0F3D2E; margin: 0 0 0.35rem; }
+.empty-state p { color: #8a9b95; font-size: 0.85rem; margin: 0 0 1.25rem; }
+
+.pagination { margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap; }
+.pagination a, .pagination .current {
+    min-width: 38px; height: 38px; padding: 0 0.8rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.82rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: #0F3D2E;
+}
+.pagination a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pagination .current { background: var(--primary); color: #C8A951; border-color: var(--primary); }
+
+@media (max-width: 768px) {
+    .gl-head-inner { flex-direction: column; align-items: stretch; }
+    .hbtn { justify-content: center; width: 100%; }
+    .group-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="gl-head">
+    <div class="gl-head-inner">
+        <div>
+            <span class="gl-eyebrow">Governance · Groups</span>
+            <h1>Permission Groups</h1>
+            <p>Bundle permissions and assign them to users or link them to offices.</p>
+        </div>
+        <div>
+            <a href="{% url 'governance:group_create' %}" class="hbtn hbtn-gold">
+                <i class="fas fa-plus"></i> Create Group
+            </a>
+            <a href="{% url 'governance:user_list' %}" class="hbtn hbtn-outline">
+                <i class="fas fa-users"></i> Users
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="group-grid">
+    {% for g in groups %}
+    <div class="group-card">
+        <div class="gc-head">
+            <div class="gc-icon"><i class="fas fa-users-cog"></i></div>
+            <h3 class="gc-name">{{ g.name }}</h3>
+        </div>
+        <div class="gc-stats">
+            <div class="gc-stat">
+                <div class="num">{{ g.perm_count }}</div>
+                <div class="lbl">Permissions</div>
+            </div>
+            <div class="gc-stat">
+                <div class="num">{{ g.user_count }}</div>
+                <div class="lbl">Members</div>
+            </div>
+        </div>
+        <div class="gc-actions">
+            <a href="{% url 'governance:group_permissions' g.pk %}" class="gc-btn perms">
+                <i class="fas fa-shield-alt"></i> Permissions
+            </a>
+            <a href="{% url 'governance:group_edit' g.pk %}" class="gc-btn edit">
+                <i class="fas fa-pen"></i> Rename
+            </a>
+            {% if user.is_superuser or g.name not in "admin,editor,viewer" %}
+            <button type="button" class="gc-btn del"
+                    onclick="confirmDelete('{{ g.pk }}', '{{ g.name|escapejs }}')">
+                <i class="fas fa-trash"></i>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <span class="ic">🔐</span>
+        <h3>No groups yet</h3>
+        <p>Create your first permission bundle to speed up user and office setup.</p>
+        <a href="{% url 'governance:group_create' %}" class="hbtn hbtn-gold" style="display:inline-flex;">
+            <i class="fas fa-plus"></i> Create first group
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">‹</a>{% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">›</a>{% endif %}
+</div>
+{% endif %}
+
+<form method="post" id="groupDeleteForm" style="display:none;">{% csrf_token %}</form>
+
+<script>
+function confirmDelete(pk, name) {
+    NAMETS.confirm({
+        title: 'Delete Group?',
+        message: `“${name}” will be deleted. Users in this group lose its permissions. This cannot be undone.`,
+        confirmText: 'Yes, Delete',
+        danger: true,
+    }).then(ok => {
+        if (!ok) return;
+        const form = document.getElementById('groupDeleteForm');
+        form.action = `/governance/groups/${pk}/delete/`;
+        form.submit();
+    });
+}
+</script>
+
+{% endblock %}

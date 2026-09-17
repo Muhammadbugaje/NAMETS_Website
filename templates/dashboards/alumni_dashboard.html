@@ -1,0 +1,668 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Alumni Home · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   HERO
+   ============================================================ */
+.alu-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 16px 44px rgba(15,61,46,0.22);
+}
+.alu-hero::before {
+    content: "🎓"; font-size: 11rem;
+    position: absolute; bottom: -3rem; right: 1.5rem;
+    opacity: 0.07; pointer-events: none;
+}
+.alu-hero::after {
+    content: ''; position: absolute;
+    top: -40%; left: -10%;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(200,169,81,0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+.alu-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1.5rem;
+}
+.alu-hero-left { flex: 1; min-width: 260px; }
+.alu-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.28rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.7rem;
+}
+.alu-hero-left h1 {
+    font-size: 1.85rem; font-weight: 800;
+    color: #fff; margin: 0 0 0.4rem;
+    letter-spacing: -0.02em;
+}
+.alu-hero-left p {
+    color: rgba(255,255,255,0.82);
+    font-size: 0.95rem; margin: 0; max-width: 540px;
+    line-height: 1.6;
+}
+.alu-hero-actions {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    position: relative; z-index: 1;
+}
+.alu-hero-btn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.65rem 1.35rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem;
+    text-decoration: none; border: 1px solid transparent;
+    transition: all 0.25s ease;
+}
+.alu-hero-btn.gold {
+    background: #C8A951; color: #0F3D2E;
+    box-shadow: 0 6px 20px rgba(200,169,81,0.35);
+}
+.alu-hero-btn.gold:hover {
+    background: #E0C96E; color: #0F3D2E;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(200,169,81,0.5);
+}
+.alu-hero-btn.outline {
+    background: rgba(255,255,255,0.12); color: #fff;
+    border-color: rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.alu-hero-btn.outline:hover {
+    background: rgba(255,255,255,0.22); color: #fff;
+    transform: translateY(-3px);
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+.alu-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.85rem; margin-bottom: 1.5rem;
+}
+.alu-stat {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.25rem;
+    box-shadow: var(--shadow-sm);
+    position: relative; overflow: hidden;
+    transition: all 0.25s;
+}
+.alu-stat::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 4px;
+}
+.alu-stat.green::before  { background: linear-gradient(90deg,#0F3D2E,#38a169); }
+.alu-stat.gold::before   { background: linear-gradient(90deg,#8a6a1a,#E0C96E); }
+.alu-stat.blue::before   { background: linear-gradient(90deg,#185fa5,#4299e1); }
+.alu-stat.purple::before { background: linear-gradient(90deg,#6b21a8,#a78bfa); }
+.alu-stat:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+.alu-stat-icon {
+    width: 40px; height: 40px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; margin-bottom: 0.65rem;
+}
+.alu-stat.green .alu-stat-icon  { background: #e8f2ec; color: #1a6b3c; }
+.alu-stat.gold .alu-stat-icon   { background: #f5e9c8; color: #8a6a1a; }
+.alu-stat.blue .alu-stat-icon   { background: #e6f0fb; color: #185fa5; }
+.alu-stat.purple .alu-stat-icon { background: #f0eafb; color: #6b21a8; }
+.alu-stat-num {
+    font-size: 1.75rem; font-weight: 800;
+    color: var(--text-primary); line-height: 1;
+    letter-spacing: -0.02em;
+}
+.alu-stat-lbl {
+    font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a9b95; margin-top: 0.35rem;
+}
+
+/* ============================================================
+   GRID PANELS
+   ============================================================ */
+.alu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem; margin-bottom: 1rem;
+}
+@media (max-width: 1024px) { .alu-grid { grid-template-columns: 1fr; } }
+
+.alu-panel {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.35rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+.alu-panel-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    gap: 0.75rem; flex-wrap: wrap;
+}
+.alu-panel-head h3 {
+    font-size: 0.9rem; font-weight: 800;
+    color: var(--text-primary); margin: 0;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.alu-panel-head h3 i { color: #C8A951; }
+.alu-panel-head a {
+    color: #C8A951; text-decoration: none;
+    font-weight: 700; font-size: 0.75rem;
+    display: inline-flex; align-items: center; gap: 0.2rem;
+}
+.alu-panel-head a:hover { text-decoration: underline; }
+
+/* ============================================================
+   PROFILE CARD
+   ============================================================ */
+.alu-profile {
+    display: flex; gap: 1rem;
+    padding: 0.5rem 0;
+    align-items: center;
+}
+.alu-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; font-weight: 800;
+    border: 3px solid #C8A951;
+    box-shadow: 0 6px 18px rgba(15,61,46,0.18);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.alu-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.alu-profile-info { flex: 1; min-width: 0; }
+.alu-profile-info .name {
+    font-size: 1.1rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.2rem;
+    letter-spacing: -0.01em;
+}
+.alu-profile-info .meta {
+    font-size: 0.78rem; color: #8a9b95;
+    margin: 0.1rem 0;
+    display: flex; align-items: center; gap: 0.35rem;
+    flex-wrap: wrap;
+}
+.alu-profile-info .meta i {
+    color: #C8A951; font-size: 0.72rem; width: 0.9rem;
+}
+
+.alu-profile-detail {
+    background: #f8faf9;
+    border-radius: 12px; padding: 0.9rem 1rem;
+    margin-top: 0.85rem;
+    font-size: 0.82rem;
+}
+.alu-profile-detail .row {
+    display: flex; justify-content: space-between;
+    padding: 0.25rem 0;
+    gap: 1rem;
+}
+.alu-profile-detail .row .label {
+    color: #8a9b95; font-weight: 600;
+}
+.alu-profile-detail .row .value {
+    color: #2d3748; font-weight: 700; text-align: right;
+}
+
+/* ============================================================
+   QUICK ACTION CARDS
+   ============================================================ */
+.alu-quick-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+}
+@media (max-width: 640px) { .alu-quick-grid { grid-template-columns: 1fr; } }
+
+.alu-quick {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    background: #f8faf9;
+    border-radius: 12px;
+    text-decoration: none; color: inherit;
+    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    border: 1.5px solid transparent;
+    position: relative;
+}
+.alu-quick:hover {
+    background: #fff;
+    border-color: rgba(200,169,81,0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(15,61,46,0.08);
+}
+.alu-quick-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+.alu-quick-icon.green  { background: #e8f2ec; color: #1a6b3c; }
+.alu-quick-icon.gold   { background: #f5e9c8; color: #8a6a1a; }
+.alu-quick-icon.blue   { background: #e6f0fb; color: #185fa5; }
+.alu-quick-icon.purple { background: #f0eafb; color: #6b21a8; }
+.alu-quick-icon.red    { background: #fdecea; color: #9b2c2c; }
+.alu-quick-body { flex: 1; min-width: 0; }
+.alu-quick-name {
+    font-size: 0.85rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.15rem;
+    letter-spacing: -0.01em;
+}
+.alu-quick-desc {
+    font-size: 0.72rem; color: #8a9b95;
+    line-height: 1.45;
+}
+.alu-quick-badge {
+    position: absolute; top: 0.7rem; right: 0.7rem;
+    font-size: 0.58rem; font-weight: 800;
+    padding: 0.15rem 0.5rem; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    background: #f5e9c8; color: #8a6a1a;
+}
+
+/* ============================================================
+   PEOPLE LIST
+   ============================================================ */
+.alu-people { display: flex; flex-direction: column; gap: 0.35rem; }
+.alu-person {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
+    text-decoration: none; color: inherit;
+    transition: all 0.2s;
+}
+.alu-person:hover {
+    background: rgba(200,169,81,0.06);
+    transform: translateX(3px);
+}
+.alu-person-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 800;
+    flex-shrink: 0;
+    border: 2px solid #C8A951;
+    overflow: hidden;
+}
+.alu-person-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.alu-person-avatar.inactive { background: #c0c8c5; border-color: #d0d9d6; color: #fff; }
+.alu-person-info { flex: 1; min-width: 0; }
+.alu-person-name {
+    font-size: 0.83rem; font-weight: 700; color: #0F3D2E;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.alu-person-role {
+    font-size: 0.7rem; color: #8a9b95;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ============================================================
+   ARCHIVE / DOC CARDS
+   ============================================================ */
+.alu-docs { display: flex; flex-direction: column; gap: 0.5rem; }
+.alu-doc {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 0.85rem;
+    border-radius: 10px;
+    background: #f8faf9;
+    text-decoration: none; color: inherit;
+    transition: all 0.2s;
+}
+.alu-doc:hover {
+    background: #fef9ec;
+    transform: translateX(3px);
+}
+.alu-doc-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+.alu-doc-info { flex: 1; min-width: 0; }
+.alu-doc-title {
+    font-size: 0.82rem; font-weight: 700;
+    color: #0F3D2E;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.alu-doc-meta {
+    font-size: 0.68rem; color: #8a9b95; margin-top: 0.1rem;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.alu-empty {
+    text-align: center;
+    padding: 1.75rem 1rem;
+    color: #8a9b95; font-size: 0.82rem;
+}
+.alu-empty .ic {
+    font-size: 2rem; display: block;
+    margin-bottom: 0.5rem; opacity: 0.55;
+}
+
+/* ============================================================
+   COMING SOON BANNER
+   ============================================================ */
+.alu-coming {
+    background: linear-gradient(135deg, #fef9ec 0%, #f8f0d8 100%);
+    border: 1px dashed rgba(200,169,81,0.5);
+    border-radius: 12px;
+    padding: 1rem 1.15rem;
+    display: flex; align-items: center; gap: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+.alu-coming .ic {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: #fff; color: #8a6a1a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; flex-shrink: 0;
+}
+.alu-coming .txt {
+    font-size: 0.82rem; color: #6b5415; line-height: 1.5;
+}
+.alu-coming .txt strong { color: #8a6a1a; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+    .alu-hero { padding: 1.5rem 1.25rem; }
+    .alu-hero-left h1 { font-size: 1.4rem; }
+    .alu-hero-inner { flex-direction: column; align-items: stretch; }
+    .alu-hero-actions { flex-direction: column; }
+    .alu-hero-btn { justify-content: center; width: 100%; }
+    .alu-stats { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+    .alu-stat { padding: 0.9rem 1rem; }
+    .alu-stat-num { font-size: 1.4rem; }
+    .alu-panel { padding: 1.1rem 1.15rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- ============ HERO ============ -->
+<div class="alu-hero">
+    <div class="alu-hero-inner">
+        <div class="alu-hero-left">
+            <span class="alu-eyebrow">🎓 Alumni Portal</span>
+            <h1>Welcome back, {{ request.user.first_name|default:request.user.get_full_name|default:"Alumnus" }}</h1>
+            <p>Your NAMETS community doesn't end at graduation. Stay connected, browse the directory, and revisit session archives.</p>
+        </div>
+        <div class="alu-hero-actions">
+            <a href="{% url 'dashboards:alumni_directory' %}" class="alu-hero-btn gold">
+                <i class="fas fa-address-book"></i> Contact Directory
+            </a>
+            <a href="{% url 'accounts:profile_update' %}" class="alu-hero-btn outline">
+                <i class="fas fa-user-circle"></i> My Profile
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ============ STATS ============ -->
+<div class="alu-stats">
+    <div class="alu-stat green">
+        <div class="alu-stat-icon"><i class="fas fa-users"></i></div>
+        <div class="alu-stat-num">{{ total_alumni }}</div>
+        <div class="alu-stat-lbl">Total Alumni</div>
+    </div>
+    <div class="alu-stat gold">
+        <div class="alu-stat-icon"><i class="fas fa-graduation-cap"></i></div>
+        <div class="alu-stat-num">{{ this_year_alumni }}</div>
+        <div class="alu-stat-lbl">Graduated This Year</div>
+    </div>
+    <div class="alu-stat blue">
+        <div class="alu-stat-icon"><i class="fas fa-user-tie"></i></div>
+        <div class="alu-stat-num">{{ total_active_exco }}</div>
+        <div class="alu-stat-lbl">Active EXCO</div>
+    </div>
+    <div class="alu-stat purple">
+        <div class="alu-stat-icon"><i class="fas fa-book"></i></div>
+        <div class="alu-stat-num">{{ session_docs_count }}</div>
+        <div class="alu-stat-lbl">Session Archives</div>
+    </div>
+</div>
+
+<!-- ============ COMING SOON ============ -->
+<div class="alu-coming">
+    <div class="ic"><i class="fas fa-comments"></i></div>
+    <div class="txt">
+        <strong>Messaging is coming.</strong> Soon you'll be able to reach out to fellow alumni and current EXCO directly from here — no need to share personal contact details.
+    </div>
+</div>
+
+<!-- ============ ROW 1: Profile + Quick Actions ============ -->
+<div class="alu-grid">
+
+    <!-- YOUR PROFILE -->
+    <div class="alu-panel">
+        <div class="alu-panel-head">
+            <h3><i class="fas fa-id-card"></i> Your Graduation Profile</h3>
+            <a href="{% url 'accounts:profile_update' %}">
+                Edit <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+
+        {% if profile %}
+        <div class="alu-profile">
+            <div class="alu-avatar">
+                {% if request.user.profile_picture %}
+                    <img src="{{ request.user.profile_picture.url }}" alt="">
+                {% else %}
+                    {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                {% endif %}
+            </div>
+            <div class="alu-profile-info">
+                <div class="name">{{ request.user.get_full_name|default:request.user.email }}</div>
+                {% if request.user.department %}
+                <div class="meta"><i class="fas fa-building"></i> {{ request.user.department.name }}</div>
+                {% endif %}
+                {% if request.user.matric_number %}
+                <div class="meta"><i class="fas fa-id-badge"></i> {{ request.user.matric_number }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="alu-profile-detail">
+            {% if profile.session_label %}
+            <div class="row"><span class="label">Session</span><span class="value">{{ profile.session_label }}</span></div>
+            {% endif %}
+            {% if profile.office_held %}
+            <div class="row"><span class="label">Office Held</span><span class="value">{{ profile.office_held }}</span></div>
+            {% endif %}
+            {% if request.user.year_of_graduation %}
+            <div class="row"><span class="label">Graduated</span><span class="value">{{ request.user.year_of_graduation }}</span></div>
+            {% endif %}
+            {% if request.user.email %}
+            <div class="row"><span class="label">Email</span><span class="value">{{ request.user.email }}</span></div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="alu-profile">
+            <div class="alu-avatar">
+                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+            </div>
+            <div class="alu-profile-info">
+                <div class="name">{{ request.user.get_full_name|default:request.user.email }}</div>
+                <div class="meta"><i class="fas fa-info-circle"></i> No graduation profile yet</div>
+            </div>
+        </div>
+        <div class="alu-empty">
+            <span class="ic">📄</span>
+            <div>Your graduation profile hasn't been created. Please contact the ICT office.</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="alu-panel">
+        <div class="alu-panel-head">
+            <h3><i class="fas fa-bolt"></i> Quick Access</h3>
+        </div>
+        <div class="alu-quick-grid">
+
+            <a href="{% url 'dashboards:alumni_directory' %}" class="alu-quick">
+                <div class="alu-quick-icon green"><i class="fas fa-address-book"></i></div>
+                <div class="alu-quick-body">
+                    <div class="alu-quick-name">Contact Directory</div>
+                    <div class="alu-quick-desc">Browse alumni &amp; current EXCO</div>
+                </div>
+            </a>
+
+            <a href="{% url 'core:homepage' %}" class="alu-quick">
+                <div class="alu-quick-icon gold"><i class="fas fa-globe"></i></div>
+                <div class="alu-quick-body">
+                    <div class="alu-quick-name">Public Homepage</div>
+                    <div class="alu-quick-desc">See what NAMETS is up to</div>
+                </div>
+            </a>
+
+            <a href="{% url 'accounts:profile_update' %}" class="alu-quick">
+                <div class="alu-quick-icon blue"><i class="fas fa-user-edit"></i></div>
+                <div class="alu-quick-body">
+                    <div class="alu-quick-name">Update Profile</div>
+                    <div class="alu-quick-desc">Keep your contact details fresh</div>
+                </div>
+            </a>
+
+            <!-- SESSION ARCHIVES -->
+            <div class="alu-panel">
+                <div class="alu-panel-head">
+                    <h3><i class="fas fa-book-open"></i> Session Archives</h3>
+                    <a href="{% url 'governance:session_document_list' %}">
+                        View all <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                {% if session_docs %}
+                <div class="alu-docs">
+                    {% for doc in session_docs %}
+                    <a href="{% url 'governance:session_document_detail' doc.pk %}" class="alu-doc">
+                        <div class="alu-doc-icon"><i class="fas {{ doc.type_icon }}"></i></div>
+                        <div class="alu-doc-info">
+                            <div class="alu-doc-title">{{ doc.title }}</div>
+                            <div class="alu-doc-meta">{{ doc.session_label }} · {{ doc.uploaded_at|date:"M Y" }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alu-empty">
+                    <span class="ic">📚</span>
+                    <div>
+                        No session archives yet.<br>
+                        <span style="font-size:0.75rem;">Each outgoing EXCO will upload their session magazine here.</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="alu-quick" style="cursor:not-allowed; opacity:0.6;">
+                <div class="alu-quick-icon red"><i class="fas fa-comments"></i></div>
+                <div class="alu-quick-body">
+                    <div class="alu-quick-name">Messages</div>
+                    <div class="alu-quick-desc">Direct inbox for alumni</div>
+                </div>
+                <span class="alu-quick-badge">Soon</span>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ============ ROW 2: Recent Alumni + Session Archives ============ -->
+<div class="alu-grid">
+
+    <!-- RECENT ALUMNI -->
+    <div class="alu-panel">
+        <div class="alu-panel-head">
+            <h3><i class="fas fa-user-graduate"></i> Recently Graduated</h3>
+            <a href="{% url 'dashboards:alumni_directory' %}?type=alumni">
+                See all <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        {% if recent_alumni %}
+        <div class="alu-people">
+            {% for person in recent_alumni %}
+            <a href="mailto:{{ person.email }}" class="alu-person">
+                <div class="alu-person-avatar">
+                    {% if person.profile_picture %}
+                        <img src="{{ person.profile_picture.url }}" alt="">
+                    {% else %}
+                        {{ person.first_name|first|upper }}{{ person.last_name|first|upper }}
+                    {% endif %}
+                </div>
+                <div class="alu-person-info">
+                    <div class="alu-person-name">{{ person.get_full_name|default:person.email }}</div>
+                    <div class="alu-person-role">
+                        {% if person.year_of_graduation %}
+                            Graduated {{ person.year_of_graduation }}
+                        {% elif person.department %}
+                            {{ person.department.name }}
+                        {% else %}
+                            NAMETS Alumni
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alu-empty">
+            <span class="ic">👥</span>
+            <div>No other alumni in the system yet.</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- SESSION ARCHIVES PREVIEW -->
+    <div class="alu-panel">
+        <div class="alu-panel-head">
+            <h3><i class="fas fa-book-open"></i> Session Archives</h3>
+            {% if session_docs %}
+            <a href="#" onclick="alert('Coming soon.'); return false;">
+                View all <i class="fas fa-arrow-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% if session_docs %}
+        <div class="alu-docs">
+            {% for doc in session_docs %}
+            <div class="alu-doc" style="cursor:default;">
+                <div class="alu-doc-icon"><i class="fas fa-file-alt"></i></div>
+                <div class="alu-doc-info">
+                    <div class="alu-doc-title">{{ doc.title }}</div>
+                    <div class="alu-doc-meta">{{ doc.session_label }} · {{ doc.uploaded_at|date:"M Y" }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alu-empty">
+            <span class="ic">📚</span>
+            <div>
+                No session archives yet.<br>
+                <span style="font-size:0.75rem;">Each outgoing EXCO will upload their session magazine here.</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

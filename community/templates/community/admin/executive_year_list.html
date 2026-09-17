@@ -1,0 +1,241 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Executive Years · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.year-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.year-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.year-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.year-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.year-header-text h1 { font-size: 1.6rem; font-weight: 700; color: #fff; margin: 0 0 0.3rem; }
+.year-header-text p { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+.year-header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.year-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.25s;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.year-btn:hover { background: rgba(255,255,255,0.2); color: #fff; transform: translateY(-2px); }
+
+.bulk-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0.75rem 0;
+    padding: 0.75rem 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.bulk-actions select {
+    padding: 0.4rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+}
+.bulk-actions .btn-sm {
+    padding: 0.4rem 1.2rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--primary); color: #fff;
+}
+.bulk-actions .btn-sm:hover { background: var(--primary-dark); }
+
+.year-table-wrapper { overflow-x: auto; }
+.year-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.year-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+.year-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+.year-table tr:hover { background: rgba(200,169,81,0.05); }
+.badge-sm {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+.badge-success { background: #e8f2ec; color: #1a3c2e; }
+.badge-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm {
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.empty { text-align: center; color: var(--text-muted); padding: 3rem 2rem; }
+.empty .empty-icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
+
+@media (max-width: 768px) {
+    .year-header { padding: 1.4rem 1.25rem; border-radius: 18px; }
+    .year-header-content { flex-direction: column; align-items: stretch; }
+    .year-btn { width: 100%; justify-content: center; }
+    .bulk-actions { flex-direction: column; align-items: stretch; }
+    .year-table th, .year-table td { font-size: 0.8rem; padding: 0.5rem 0.6rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="year-header">
+    <div class="year-header-glow" aria-hidden="true"></div>
+    <div class="year-header-content">
+        <div class="year-header-text">
+            <span class="year-eyebrow">Community</span>
+            <h1>📅 Executive Years</h1>
+            <p>Manage executive council years.</p>
+        </div>
+        <div class="year-header-actions">
+            {% if perms.community.add_executiveyear %}
+            <a href="{% url 'community:admin_executive_year_create' %}" class="year-btn">
+                <i class="fas fa-plus-circle"></i> Add Year
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<form method="post" id="bulkForm">
+    {% csrf_token %}
+    <div class="bulk-actions">
+        <span style="font-weight:600; font-size:0.9rem;">Bulk Actions:</span>
+        <select name="bulk_action">
+            <option value="">— Select —</option>
+            <option value="delete">🗑️ Delete Selected</option>
+        </select>
+        <button type="submit" class="btn-sm" onclick="return confirm('Apply bulk action to selected years?');">Apply</button>
+        <span style="font-size:0.8rem; color:var(--text-muted); margin-left:auto;">
+            <a href="#" onclick="toggleSelectAll(); return false;">Select All</a> / <a href="#" onclick="deselectAll(); return false;">Deselect All</a>
+        </span>
+    </div>
+
+    <div class="year-table-wrapper">
+        <table class="year-table">
+            <thead>
+                <tr>
+                    <th style="width:40px;"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"></th>
+                    <th>Year</th>
+                    <th>Description</th>
+                    <th>Order</th>
+                    <th>Status</th>
+                    <th style="width:100px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for year in years %}
+                <tr>
+                    <td><input type="checkbox" name="selected_ids" value="{{ year.id }}" class="row-checkbox"></td>
+                    <td><strong>{{ year.year_label }}</strong></td>
+                    <td>{{ year.description|truncatechars:50 }}</td>
+                    <td>{{ year.display_order }}</td>
+                    <td>
+                        {% if year.is_active %}
+                        <span class="badge-sm badge-success">Active</span>
+                        {% else %}
+                        <span class="badge-sm badge-danger">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:0.3rem;">
+                            <a href="{% url 'community:admin_executive_year_edit' year.pk %}" class="btn-sm btn-sm-gold"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'community:admin_executive_year_delete' year.pk %}" class="btn-sm btn-sm-danger"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="empty">
+                    <span class="empty-icon">📅</span>
+                    <h3>No years found</h3>
+                    <p>Add your first executive year.</p>
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+<script>
+    function toggleAllCheckboxes(master) {
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
+    }
+    function toggleSelectAll() { document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = true);
+        document.getElementById('selectAllCheckbox').checked = true; }
+    function deselectAll() { document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('selectAllCheckbox').checked = false; }
+</script>
+{% endblock %}

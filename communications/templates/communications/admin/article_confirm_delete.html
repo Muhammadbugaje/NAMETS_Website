@@ -1,0 +1,78 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Delete Article · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.delete-container { max-width: 600px; margin: 2rem auto; text-align: center; }
+.delete-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2.5rem;
+}
+.delete-card .icon { font-size: 4rem; margin-bottom: 0.5rem; }
+.delete-card h2 { color: var(--text-primary); margin: 0 0 0.5rem; }
+.delete-card .warning {
+    color: #b85c4a;
+    font-weight: 500;
+    margin: 0 0 1.5rem;
+    padding: 0.8rem 1rem;
+    background: #fdf6f3;
+    border-radius: 8px;
+    border-left: 4px solid #d48b7a;
+}
+.delete-card .info {
+    background: #f8faf9;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    text-align: left;
+}
+.delete-card .info h3 { margin: 0 0 0.2rem; color: var(--text-primary); }
+.delete-card .info p { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+.delete-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
+.btn-danger {
+    background: #c0392b; color: #fff;
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; transition: var(--transition);
+    text-decoration: none;
+}
+.btn-danger:hover { background: #9b2c2c; transform: translateY(-2px); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; text-decoration: none;
+    transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="delete-container">
+    <div class="delete-card">
+        <div class="icon">⚠️</div>
+        <h2>Delete Article</h2>
+        <p class="warning">This action cannot be undone.</p>
+
+        <div class="info">
+            <h3>{{ article.title }}</h3>
+            <p>Author: {{ article.author|default:"Unknown" }}<br>
+            Published: {{ article.published_at|date:"M d, Y" }}</p>
+        </div>
+
+        <p>Are you sure you want to permanently delete this article?</p>
+
+        <div class="delete-actions">
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger">🗑️ Yes, Delete</button>
+            </form>
+            <a href="{% url 'communications:admin_article_list' %}" class="btn-secondary">Cancel</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

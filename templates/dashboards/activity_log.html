@@ -1,0 +1,356 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static i18n %}
+
+{% block title %}Activity Log · NAMETS EXCO{% endblock %}
+
+{% block dash_content %}
+<div class="activity-log-container">
+    <div class="activity-log-header">
+        <h1><i class="fas fa-history"></i> Activity Log</h1>
+        <p>Complete record of changes across all NAMETS apps.</p>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="activity-filters">
+        <form method="get" class="filter-form">
+            <div class="filter-group">
+                <label for="user-filter">User</label>
+                <select name="user" id="user-filter">
+                    <option value="">All Users</option>
+                    {% for user in users %}
+                        <option value="{{ user.id }}" {% if selected_user == user.id|stringformat:"s" %}selected{% endif %}>
+                            {{ user.get_full_name|default:user.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="action-filter">Action</label>
+                <select name="action" id="action-filter">
+                    <option value="">All Actions</option>
+                    <option value="create" {% if selected_action == 'create' %}selected{% endif %}>Created</option>
+                    <option value="update" {% if selected_action == 'update' %}selected{% endif %}>Updated</option>
+                    <option value="delete" {% if selected_action == 'delete' %}selected{% endif %}>Deleted</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-filter"><i class="fas fa-filter"></i> Apply</button>
+            <a href="{% url 'dashboards:activity_log' %}" class="btn-clear">Clear</a>
+        </form>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="activity-stats">
+        <div class="stat-item">
+            <span class="stat-number">{{ page_obj.paginator.count }}</span>
+            <span class="stat-label">Total Entries</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">{{ page_obj.object_list|length }}</span>
+            <span class="stat-label">On this page</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">{{ page_obj.number }}</span>
+            <span class="stat-label">Page</span>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="activity-table-wrapper">
+        <table class="activity-table">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Model</th>
+                    <th>Object</th>
+                    <th>By</th>
+                    <th>When</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in page_obj %}
+                <tr>
+                    <td><span class="action-badge {{ log.action }}">{{ log.action }}</span></td>
+                    <td><span class="model-badge">{{ log.model_name }}</span></td>
+                    <td>
+                        {% if log.admin_link %}
+                            <a href="{{ log.admin_link }}" class="object-link">
+                                {{ log.object_repr|truncatechars:60 }}
+                            </a>
+                        {% else %}
+                            {{ log.object_repr|truncatechars:60 }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.user %}
+                            <a href="?user={{ log.user.id }}" class="user-link">
+                                <i class="fas fa-user-circle"></i>
+                                {{ log.user.get_full_name|default:log.user.username }}
+                            </a>
+                        {% else %}
+                            <span class="system-label">System</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="time-ago">{{ log.timestamp|timesince }} ago</div>
+                        <div class="time-exact">{{ log.timestamp|date:"M d, Y · H:i" }}</div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-row">No activity recorded yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if selected_user %}&user={{ selected_user }}{% endif %}{% if selected_action %}&action={{ selected_action }}{% endif %}">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if selected_user %}&user={{ selected_user }}{% endif %}{% if selected_action %}&action={{ selected_action }}{% endif %}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if selected_user %}&user={{ selected_user }}{% endif %}{% if selected_action %}&action={{ selected_action }}{% endif %}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if selected_user %}&user={{ selected_user }}{% endif %}{% if selected_action %}&action={{ selected_action }}{% endif %}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
+
+    <!-- Back to dashboard -->
+    <div class="activity-back">
+        <a href="{% url 'dashboards:dashboard' %}" class="btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+.activity-log-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.activity-log-header h1 {
+    color: var(--text-primary);
+    margin: 0 0 0.25rem;
+}
+.activity-log-header p {
+    color: var(--text-muted);
+    margin: 0 0 1.5rem;
+}
+
+/* Filters */
+.activity-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+}
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.filter-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+.filter-group select {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 0.9rem;
+}
+.btn-filter, .btn-clear {
+    padding: 0.4rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+.btn-filter {
+    background: var(--primary);
+    color: #fff;
+}
+.btn-filter:hover {
+    background: var(--primary-dark);
+}
+.btn-clear {
+    background: transparent;
+    color: var(--text-muted);
+    text-decoration: none;
+}
+.btn-clear:hover {
+    color: var(--text-primary);
+}
+
+/* Stats */
+.activity-stats {
+    display: flex;
+    gap: 2rem;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.stat-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+}
+.stat-number {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Table */
+.activity-table-wrapper {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    overflow-x: auto;
+}
+.activity-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+}
+.activity-table thead th {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.7rem 1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: left;
+    font-weight: 600;
+}
+.activity-table tbody td {
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    vertical-align: middle;
+}
+.activity-table tbody tr:hover {
+    background: rgba(200,169,81,0.05);
+}
+.activity-table tbody tr:nth-child(even) {
+    background: rgba(232,242,236,0.2);
+}
+
+.action-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+}
+.action-badge.create { background: #e8f2ec; color: #1a3c2e; }
+.action-badge.update { background: #f5e9c8; color: #8a6a1a; }
+.action-badge.delete { background: #fdecea; color: #9b2c2c; }
+
+.model-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    background: #f3f4f6;
+    color: #4b5563;
+    padding: 0.15rem 0.6rem;
+    border-radius: 6px;
+}
+.object-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+.object-link:hover {
+    color: var(--gold);
+    text-decoration: underline;
+}
+.user-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.user-link:hover {
+    color: var(--gold);
+}
+.system-label {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+.time-ago {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+.time-exact {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+.empty-row {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2rem !important;
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+.pagination .step-links a {
+    color: var(--gold);
+    text-decoration: none;
+    margin: 0 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+.pagination .step-links a:hover {
+    background: var(--gold);
+    color: #fff;
+}
+.pagination .current {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0.5rem;
+}
+
+/* Back button */
+.activity-back {
+    margin-top: 2rem;
+}
+</style>
+{% endblock %}

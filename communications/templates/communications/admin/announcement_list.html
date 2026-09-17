@@ -1,0 +1,404 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Announcements · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== HEADER ===== */
+.announcement-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.announcement-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.announcement-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.announcement-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.announcement-header-text h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 0.3rem;
+}
+.announcement-header-text p {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.88rem;
+    margin: 0;
+}
+.announcement-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.announcement-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+}
+.announcement-btn-primary {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.announcement-btn-primary:hover { background: rgba(255,255,255,0.2); color: #fff; transform: translateY(-2px); }
+
+/* ===== FILTERS ===== */
+.announcement-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+.filter-form input, .filter-form select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 140px;
+}
+.filter-form .btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.filter-form .clear {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.filter-form .clear:hover { color: var(--text-primary); }
+
+/* ===== ANNOUNCEMENT CARDS ===== */
+.announcement-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+.announcement-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+}
+.announcement-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--gold);
+}
+.announcement-card.pinned {
+    border-left: 4px solid var(--gold);
+}
+.announcement-card .card-thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #f0f4f2;
+}
+.announcement-card .card-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.announcement-card .card-thumb .no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #c0c8c5;
+}
+.announcement-card .card-body {
+    flex: 1;
+    min-width: 0;
+}
+.announcement-card .card-body .title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.2rem;
+}
+.announcement-card .card-body .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0.2rem 0 0.3rem;
+}
+.announcement-card .card-body .meta .badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+.badge.gold { background: #f5e9c8; color: #8a6a1a; }
+.badge.green { background: #e8f2ec; color: #1a3c2e; }
+.badge.red { background: #fdecea; color: #9b2c2c; }
+.badge.blue { background: #e6f0fb; color: #185fa5; }
+.announcement-card .card-body .preview {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0.2rem 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.announcement-card .card-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-shrink: 0;
+}
+.announcement-card .card-actions .btn-sm {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-sm-primary { background: var(--primary); color: #fff; }
+.btn-sm-primary:hover { background: var(--primary-dark); }
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.btn-sm-outline { background: transparent; border: 1px solid #d0d9d6; color: var(--text-secondary); }
+.btn-sm-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ===== PAGINATION ===== */
+.pagination { margin-top: 1.5rem; text-align: center; }
+.pagination .step-links a {
+    color: var(--gold);
+    text-decoration: none;
+    margin: 0 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+}
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.5rem; }
+.empty { text-align: center; color: var(--text-muted); padding: 3rem 2rem; }
+.empty .empty-icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .announcement-header { padding: 1.4rem 1.25rem; border-radius: 18px; }
+    .announcement-header-content { flex-direction: column; align-items: stretch; }
+    .announcement-header-text h1 { font-size: 1.35rem; }
+    .announcement-header-actions { flex-direction: column; }
+    .announcement-btn { width: 100%; justify-content: center; padding: 0.75rem 1rem; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .announcement-card { flex-wrap: wrap; }
+    .announcement-card .card-actions { width: 100%; justify-content: flex-start; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- ===== HEADER ===== -->
+<div class="announcement-header">
+    <div class="announcement-header-glow" aria-hidden="true"></div>
+    <div class="announcement-header-content">
+        <div class="announcement-header-text">
+            <span class="announcement-eyebrow">Communications</span>
+            <h1>📢 Announcements</h1>
+            <p>Manage announcements for the NAMETS community.</p>
+        </div>
+        <div class="announcement-header-actions">
+            {% if perms.communications.add_announcement %}
+            <a href="{% url 'communications:announcement_create' %}" class="announcement-btn announcement-btn-primary">
+                <i class="fas fa-plus-circle"></i> New Announcement
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ===== FILTERS ===== -->
+<div class="announcement-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search announcements..." value="{{ query }}">
+        <select name="category">
+            <option value="">All Categories</option>
+            {% for value, label in categories %}
+            <option value="{{ value }}" {% if category_filter == value %}selected{% endif %}>
+                {{ label }}
+            </option>
+            {% endfor %}
+        </select>
+        <select name="status">
+            <option value="">All Status</option>
+            <option value="published" {% if status_filter == 'published' %}selected{% endif %}>Published</option>
+            <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+            <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Expired</option>
+        </select>
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query or category_filter or status_filter %}
+        <a href="{% url 'communications:announcement_admin_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- ===== ANNOUNCEMENTS ===== -->
+<div class="announcement-grid">
+    {% for announcement in announcements %}
+    <div class="announcement-card {% if announcement.is_pinned %}pinned{% endif %}"
+         onclick="window.location.href='{% url 'communications:announcement_edit' announcement.slug %}'">
+        <!-- Thumbnail -->
+        <div class="card-thumb">
+            {% if announcement.image %}
+                <img src="{{ announcement.image.url }}" alt="{{ announcement.title }}">
+            {% else %}
+                <div class="no-image">📄</div>
+            {% endif %}
+        </div>
+        <!-- Body -->
+        <div class="card-body">
+            <div class="title">
+                {% if announcement.is_pinned %}📌 {% endif %}
+                {{ announcement.title }}
+            </div>
+            <div class="meta">
+                <span><i class="far fa-calendar-alt"></i> {{ announcement.publish_at|date:"M d, Y" }}</span>
+                {% if announcement.is_pinned %}
+                <span class="badge gold">📌 Pinned</span>
+                {% endif %}
+                {% if announcement.is_expired %}
+                <span class="badge red">⏰ Expired</span>
+                {% elif announcement.publish_at > timezone.now %}
+                <span class="badge blue">📝 Draft</span>
+                {% else %}
+                <span class="badge green">✅ Published</span>
+                {% endif %}
+                <span><i class="far fa-tag"></i> {{ announcement.get_category_display }}</span>
+                <span><i class="far fa-user"></i> {{ announcement.created_by.get_full_name|default:announcement.created_by.username }}</span>
+            </div>
+            <div class="preview">
+                {{ announcement.content|striptags|truncatechars:120 }}
+            </div>
+            <!-- Links indicator -->
+            {% if announcement.links.exists %}
+            <div style="display: flex; gap: 0.4rem; margin-top: 0.3rem; flex-wrap: wrap;">
+                {% for link in announcement.links.all|slice:":3" %}
+                <span style="display: inline-block; font-size: 0.6rem; background: rgba(200,169,81,0.12); color: #8a6a1a; padding: 0.1rem 0.4rem; border-radius: 4px;">
+                    <i class="fas {{ link.get_icon }}"></i> {{ link.get_link_type_display }}
+                </span>
+                {% endfor %}
+                {% if announcement.links.count > 3 %}
+                <span style="font-size: 0.6rem; color: var(--text-muted);">+{{ announcement.links.count|add:"-3" }} more</span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        </div>
+        <!-- Actions -->
+        <div class="card-actions">
+            <!-- Preview button -->
+            <a href="{% url 'communications:announcement_detail' announcement.slug %}" target="_blank" class="btn-sm btn-sm-outline" onclick="event.stopPropagation();">
+                <i class="fas fa-eye"></i>
+            </a>
+            {% if perms.communications.change_announcement %}
+            <a href="{% url 'communications:announcement_edit' announcement.slug %}" class="btn-sm btn-sm-gold" onclick="event.stopPropagation();">
+                <i class="fas fa-edit"></i>
+            </a>
+            {% endif %}
+            {% if perms.communications.delete_announcement %}
+            <a href="{% url 'communications:announcement_delete' announcement.slug %}" class="btn-sm btn-sm-danger" onclick="event.stopPropagation();">
+                <i class="fas fa-trash"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+        <span class="empty-icon">📭</span>
+        <h3>No announcements found</h3>
+        <p>Try adjusting your search or filters.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ===== PAGINATION ===== -->
+{% if announcements.has_other_pages %}
+<div class="pagination">
+    <span class="step-links">
+        {% if announcements.has_previous %}
+        <a href="?page=1{% if query %}&q={{ query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">&laquo; first</a>
+        <a href="?page={{ announcements.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">previous</a>
+        {% endif %}
+        <span class="current">Page {{ announcements.number }} of {{ announcements.paginator.num_pages }}</span>
+        {% if announcements.has_next %}
+        <a href="?page={{ announcements.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">next</a>
+        <a href="?page={{ announcements.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+{% endblock %}

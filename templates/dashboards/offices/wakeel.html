@@ -1,0 +1,77 @@
+{% extends "dashboards/offices/base_office.html" %}
+{% load static %}
+
+{% block stats %}
+<div class="stats-row">
+    <div class="stat-mini">
+        <span class="icon-mini">👥</span>
+        <span class="number">{{ total_members|default:"—" }}</span>
+        <span class="label">Total Members</span>
+    </div>
+    <div class="stat-mini">
+        <span class="icon-mini">📅</span>
+        <span class="number">{{ upcoming_events|length }}</span>
+        <span class="label">Upcoming Events</span>
+    </div>
+    <div class="stat-mini">
+        <span class="icon-mini">📋</span>
+        <span class="number">{{ pending_proposals|default:0 }}</span>
+        <span class="label">Pending Proposals</span>
+    </div>
+    <div class="stat-mini">
+        <span class="icon-mini">✅</span>
+        <span class="number">{{ completed_tasks|default:0 }}</span>
+        <span class="label">Tasks Completed</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block widgets %}
+    <!-- Pending Proposals -->
+    <div class="widget-card">
+        <span class="icon">📋</span>
+        <span class="count">{{ pending_proposals|default:0 }}</span>
+        <span class="label">Pending Proposals</span>
+        <div class="action">
+            <a href="#"><i class="fas fa-arrow-right"></i> Review</a>
+        </div>
+    </div>
+
+    <!-- Upcoming Events -->
+    <div class="widget-card">
+        <span class="icon">📅</span>
+        <span class="count">{{ upcoming_events|length }}</span>
+        <span class="label">Upcoming Events</span>
+        <div class="action">
+            <a href="{% url 'events:list' %}"><i class="fas fa-arrow-right"></i> View All</a>
+        </div>
+    </div>
+
+    <!-- Recent Announcements -->
+    <div class="widget-card">
+        <span class="icon">📢</span>
+        <span class="count">{{ announcements_count }}</span>
+        <span class="label">Announcements</span>
+        <div class="action">
+            <a href="{% url 'communications:announcement_list' %}"><i class="fas fa-arrow-right"></i> View All</a>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="widget-card">
+        <span class="icon">⚡</span>
+        <span class="count" style="font-size:1.2rem;">Quick</span>
+        <span class="label">Actions</span>
+        <div class="action" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem;">
+            <a href="{% url 'admin:communications_announcement_add' %}" style="background:#0F3D2E; color:#fff; padding:0.3rem 0.8rem; border-radius:20px; font-size:0.75rem; text-decoration:none;">
+                <i class="fas fa-plus"></i> Announcement
+            </a>
+            <a href="{% url 'admin:events_event_add' %}" style="background:#C8A951; color:#0F3D2E; padding:0.3rem 0.8rem; border-radius:20px; font-size:0.75rem; text-decoration:none;">
+                <i class="fas fa-plus"></i> Event
+            </a>
+            <a href="{% url 'admin:governance_proposal_add' %}" style="background:#2b6cb0; color:#fff; padding:0.3rem 0.8rem; border-radius:20px; font-size:0.75rem; text-decoration:none;">
+                <i class="fas fa-plus"></i> Proposal
+            </a>
+        </div>
+    </div>
+{% endblock %}

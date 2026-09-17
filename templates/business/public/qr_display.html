@@ -1,0 +1,468 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ type_label }} QR · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.qr-wrap { max-width: 520px; margin: 2rem auto; padding: 0 1rem; }
+
+.qr-card {
+    background: #fff; border-radius: 26px; overflow: hidden;
+    box-shadow: 0 20px 50px rgba(15,61,46,0.18);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+.qr-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    padding: 2rem 1.75rem; color: #fff; text-align: center;
+    position: relative; overflow: hidden;
+}
+.qr-head::before {
+    content: ""; font-size: 8rem;
+    position: absolute; bottom: -2rem; right: 1rem;
+    opacity: 0.06; pointer-events: none;
+}
+.qr-head::after {
+    content: ''; position: absolute;
+    top: -40%; left: -10%; width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(200,169,81,0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+.qr-head-inner { position: relative; z-index: 1; }
+.qr-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #C8A951; background: rgba(200,169,81,0.2);
+    padding: 0.32rem 1rem; border-radius: 20px;
+    margin-bottom: 0.75rem;
+}
+.qr-head h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.35rem; letter-spacing: -0.02em; }
+.qr-head p { font-size: 0.85rem; margin: 0; color: rgba(255,255,255,0.82); }
+
+.qr-body { padding: 2rem 1.75rem 1.75rem; text-align: center; }
+
+.qr-preview {
+    display: inline-block; padding: 1.25rem; background: #fff;
+    border-radius: 20px; border: 2px solid rgba(200,169,81,0.35);
+    box-shadow: 0 8px 24px rgba(15,61,46,0.08); margin-bottom: 1.5rem;
+}
+.qr-preview canvas, .qr-preview img { display: block; border-radius: 8px; }
+
+.qr-status {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 1.15rem; border-radius: 50px;
+    font-size: 0.82rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+}
+.qr-status.ready      { background: #e8f2ec; color: #1a6b3c; }
+.qr-status.collected  { background: #e6f0fb; color: #185fa5; }
+.qr-status.pending    { background: #fef3e8; color: #a8671a; }
+.qr-status.cancelled  { background: #fdecea; color: #9b2c2c; }
+
+.qr-info {
+    text-align: left; background: #f8faf9;
+    border-radius: 14px; padding: 1rem 1.15rem; margin-bottom: 1.5rem;
+}
+.qr-info-row {
+    display: flex; justify-content: space-between;
+    padding: 0.5rem 0; border-bottom: 1px solid rgba(0,0,0,0.04);
+    font-size: 0.88rem;
+}
+.qr-info-row:last-child { border-bottom: none; }
+.qr-info-row .lbl { color: #8a9b95; font-weight: 600; }
+.qr-info-row .val {
+    color: #0F3D2E; font-weight: 700;
+    text-align: right; max-width: 60%; word-break: break-word;
+}
+.qr-code-line {
+    font-family: 'Courier New', monospace;
+    font-size: 0.78rem; letter-spacing: 0.06em;
+    background: #f0f4f2; color: #0F3D2E;
+    padding: 0.35rem 0.7rem; border-radius: 6px;
+    display: inline-block; word-break: break-all;
+}
+.qr-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+.qr-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.75rem 1.5rem; border-radius: 50px;
+    font-size: 0.85rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    border: none; transition: all 0.25s; font-family: inherit;
+}
+.qr-btn.primary {
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A); color: #fff;
+    box-shadow: 0 8px 22px rgba(15,61,46,0.22);
+}
+.qr-btn.primary:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(15,61,46,0.32); }
+.qr-btn.primary:disabled { opacity: 0.7; cursor: wait; transform: none; box-shadow: 0 4px 14px rgba(15,61,46,0.15); }
+.qr-btn.outline {
+    background: transparent; color: #4a5568; border: 1px solid #d5dcd9;
+}
+.qr-btn.outline:hover { background: #f0f4f2; color: #0F3D2E; }
+
+.qr-hint {
+    margin-top: 1.5rem; padding: 0.85rem 1rem;
+    background: #fef9ec; border-left: 3px solid #C8A951;
+    border-radius: 10px; font-size: 0.8rem;
+    color: #6b5415; line-height: 1.55; text-align: left;
+}
+.qr-hint strong { color: #8a6a1a; }
+
+/* ============================================================
+   HIDDEN DOWNLOAD TICKET — rendered off-screen, screenshotted
+   ============================================================ */
+#download-ticket {
+    position: fixed; left: -10000px; top: 0;
+    width: 620px; background: #ffffff;
+    font-family: 'Inter', 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #0F3D2E;
+}
+.dt-card {
+    width: 620px; background: #ffffff; border-radius: 24px;
+    overflow: hidden; border: 1px solid #e0e8e5; box-sizing: border-box;
+}
+.dt-top {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    padding: 24px 32px; color: #ffffff;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.dt-brand { display: flex; align-items: center; gap: 12px; }
+.dt-logo-mark {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #C8A951; color: #0F3D2E;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 20px; border: 2px solid #ffffff;
+}
+.dt-brand-text { line-height: 1.1; }
+.dt-brand-name { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+.dt-brand-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #C8A951; margin: 2px 0 0;
+}
+.dt-badge {
+    background: rgba(200,169,81,0.25);
+    border: 1px solid rgba(200,169,81,0.5);
+    color: #E0C96E; font-size: 10px; font-weight: 800;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 5px 12px; border-radius: 50px;
+}
+.dt-body { padding: 28px 32px 32px; }
+.dt-event-title {
+    font-size: 22px; font-weight: 800; color: #0F3D2E;
+    margin: 0 0 6px; letter-spacing: -0.02em; line-height: 1.25;
+}
+.dt-event-sub { font-size: 12px; color: #8a9b95; margin: 0 0 20px; font-weight: 600; }
+.dt-grid {
+    display: grid; grid-template-columns: 1fr 240px;
+    gap: 24px; align-items: start;
+}
+.dt-details { display: flex; flex-direction: column; gap: 10px; }
+.dt-row {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 8px 0; border-bottom: 1px solid #eef2f0; font-size: 13px;
+}
+.dt-row:last-child { border-bottom: none; }
+.dt-row .dt-lbl { color: #8a9b95; font-weight: 600; white-space: nowrap; }
+.dt-row .dt-val {
+    color: #0F3D2E; font-weight: 700; text-align: right; word-break: break-word;
+}
+.dt-code-pill {
+    display: inline-block; font-family: 'Courier New', monospace;
+    font-size: 11px; letter-spacing: 0.05em;
+    background: #f0f4f2; color: #0F3D2E;
+    padding: 3px 8px; border-radius: 5px;
+    word-break: break-all; max-width: 100%;
+}
+.dt-qr-panel {
+    background: #f8faf9;
+    border: 2px solid rgba(200,169,81,0.4);
+    border-radius: 16px; padding: 14px; text-align: center;
+}
+.dt-qr-holder {
+    width: 100%; aspect-ratio: 1 / 1; background: #ffffff;
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+}
+.dt-qr-holder canvas, .dt-qr-holder img {
+    width: 100% !important; height: 100% !important;
+    object-fit: contain; display: block;
+}
+.dt-qr-caption {
+    margin-top: 10px; font-size: 10px; font-weight: 800;
+    letter-spacing: 0.12em; text-transform: uppercase; color: #8a6a1a;
+}
+.dt-footer {
+    border-top: 1px dashed #d5dcd9;
+    padding: 14px 32px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: #fbfdfc; font-size: 11px;
+    color: #8a9b95; font-weight: 600;
+}
+.dt-footer strong { color: #0F3D2E; }
+.dt-footer .dt-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-weight: 800; color: #1a6b3c;
+}
+.dt-footer .dt-status.pending { color: #a8671a; }
+.dt-footer .dt-status.collected { color: #185fa5; }
+.dt-footer .dt-status.cancelled { color: #9b2c2c; }
+
+@media (max-width: 480px) {
+    .qr-head { padding: 1.5rem 1.25rem; }
+    .qr-head h1 { font-size: 1.25rem; }
+    .qr-body { padding: 1.5rem 1.25rem; }
+    .qr-preview { padding: 0.85rem; }
+    .qr-actions { flex-direction: column; }
+    .qr-btn { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="qr-wrap">
+    <div class="qr-card">
+
+        <div class="qr-head">
+            <div class="qr-head-inner">
+                <span class="qr-eyebrow">{{ icon }} Your {{ type_label }}</span>
+                <h1>Scan to collect</h1>
+                <p>Show this QR code at the collection desk.</p>
+            </div>
+        </div>
+
+        <div class="qr-body">
+
+            {% if is_collected %}
+            <div class="qr-status collected">
+                <i class="fas fa-check-double"></i> Already {{ collected_label }}
+            </div>
+            {% elif is_ready %}
+            <div class="qr-status ready">
+                <i class="fas fa-check-circle"></i> Ready · Show at Collection
+            </div>
+            {% elif is_pending %}
+            <div class="qr-status pending">
+                <i class="fas fa-clock"></i> Awaiting Payment
+            </div>
+            {% else %}
+            <div class="qr-status cancelled">
+                <i class="fas fa-times-circle"></i> Cancelled
+            </div>
+            {% endif %}
+
+            <div class="qr-preview">
+                <div id="qrcode"></div>
+            </div>
+
+            <div class="qr-info">
+                <div class="qr-info-row">
+                    <span class="lbl">{% if kind == 'booking' %}Event{% else %}Item{% endif %}</span>
+                    <span class="val">{{ title }}</span>
+                </div>
+                {% if when_line %}
+                <div class="qr-info-row">
+                    <span class="lbl">When</span>
+                    <span class="val">{{ when_line }}</span>
+                </div>
+                {% endif %}
+                {% if where_line %}
+                <div class="qr-info-row">
+                    <span class="lbl">Where</span>
+                    <span class="val">{{ where_line }}</span>
+                </div>
+                {% endif %}
+                <div class="qr-info-row">
+                    <span class="lbl">Name</span>
+                    <span class="val">{{ attendee }}</span>
+                </div>
+                {% if quantity > 1 %}
+                <div class="qr-info-row">
+                    <span class="lbl">Quantity</span>
+                    <span class="val">{{ quantity }}</span>
+                </div>
+                {% endif %}
+                {% if amount > 0 %}
+                <div class="qr-info-row">
+                    <span class="lbl">Amount</span>
+                    <span class="val">₦{{ amount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                <div class="qr-info-row">
+                    <span class="lbl">Code</span>
+                    <span class="val"><span class="qr-code-line">{{ code_short }}</span></span>
+                </div>
+                {% if collected_at %}
+                <div class="qr-info-row">
+                    <span class="lbl">{{ collected_label }}</span>
+                    <span class="val">{{ collected_at|date:"M j, Y · g:i A" }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="qr-actions">
+                <button type="button" class="qr-btn primary" id="btn-download">
+                    <i class="fas fa-download"></i>
+                    <span id="btn-download-label">Download</span>
+                </button>
+                <a href="{% url 'business:guest_lookup' %}" class="qr-btn outline">
+                    <i class="fas fa-arrow-left"></i> Back to Lookup
+                </a>
+            </div>
+
+            {% if is_ready %}
+            <div class="qr-hint">
+                <strong>Tip:</strong> Download this as an image and save it to your phone.
+                No internet needed at the collection desk.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     HIDDEN DOWNLOAD TICKET
+     ============================================================ -->
+<div id="download-ticket" aria-hidden="true">
+    <div class="dt-card" id="ticket-inner">
+        <div class="dt-top">
+            <div class="dt-brand">
+                <div class="dt-logo-mark">N</div>
+                <div class="dt-brand-text">
+                    <p class="dt-brand-name">NAMETS</p>
+                    <p class="dt-brand-tag">{{ type_label }}</p>
+                </div>
+            </div>
+            <span class="dt-badge">{{ icon }} Scan to Collect</span>
+        </div>
+
+        <div class="dt-body">
+            <h1 class="dt-event-title">{{ title }}</h1>
+            <p class="dt-event-sub">
+                {% if when_line %}{{ when_line }}{% endif %}
+                {% if when_line and where_line %} · {% endif %}
+                {% if where_line %}{{ where_line }}{% endif %}
+                {% if not when_line and not where_line %}{{ type_label }} from NAMETS{% endif %}
+            </p>
+
+            <div class="dt-grid">
+                <div class="dt-details">
+                    <div class="dt-row">
+                        <span class="dt-lbl">Name</span>
+                        <span class="dt-val">{{ attendee }}</span>
+                    </div>
+                    {% if quantity > 1 %}
+                    <div class="dt-row">
+                        <span class="dt-lbl">Quantity</span>
+                        <span class="dt-val">{{ quantity }}</span>
+                    </div>
+                    {% endif %}
+                    {% if amount > 0 %}
+                    <div class="dt-row">
+                        <span class="dt-lbl">Amount</span>
+                        <span class="dt-val">₦{{ amount|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="dt-row">
+                        <span class="dt-lbl">Status</span>
+                        <span class="dt-val">{{ status_display }}</span>
+                    </div>
+                    <div class="dt-row">
+                        <span class="dt-lbl">Code</span>
+                        <span class="dt-val">
+                            <span class="dt-code-pill">{{ code_short }}</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="dt-qr-panel">
+                    <div class="dt-qr-holder" id="dt-qr-holder"></div>
+                    <div class="dt-qr-caption">Scan to collect</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dt-footer">
+            <span>Generated {{ created_at|date:"M j, Y" }}</span>
+            <span class="dt-status
+                {% if is_pending %}pending
+                {% elif is_collected %}collected
+                {% elif is_cancelled %}cancelled{% endif %}">
+                <i class="fas
+                    {% if is_ready %}fa-check-circle
+                    {% elif is_collected %}fa-check-double
+                    {% elif is_pending %}fa-clock
+                    {% else %}fa-times-circle{% endif %}"></i>
+                {{ status_display }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+(function() {
+    const QR_TEXT = "{{ code|escapejs }}";
+    const DOWNLOAD_NAME = "NAMETS-{{ kind }}-{{ code_short|escapejs }}.png";
+
+    // Preview QR
+    new QRCode(document.getElementById('qrcode'), {
+        text: QR_TEXT,
+        width: 260, height: 260,
+        colorDark: "#0F3D2E", colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+
+    // Ticket QR (bigger, sharper)
+    new QRCode(document.getElementById('dt-qr-holder'), {
+        text: QR_TEXT,
+        width: 240, height: 240,
+        colorDark: "#0F3D2E", colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+
+    // Download as PNG
+    const btn = document.getElementById('btn-download');
+    const label = document.getElementById('btn-download-label');
+    const inner = document.getElementById('ticket-inner');
+
+    btn.addEventListener('click', async function() {
+        const originalLabel = label.textContent;
+        label.textContent = 'Preparing…';
+        btn.disabled = true;
+
+        try {
+            await document.fonts.ready;
+            await new Promise(r => setTimeout(r, 120));
+
+            const canvas = await html2canvas(inner, {
+                backgroundColor: '#ffffff',
+                scale: 3,
+                useCORS: true,
+                logging: false,
+                windowWidth: inner.scrollWidth,
+                windowHeight: inner.scrollHeight,
+            });
+
+            const link = document.createElement('a');
+            link.download = DOWNLOAD_NAME;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            label.textContent = '✓ Downloaded';
+            setTimeout(() => { label.textContent = originalLabel; }, 2000);
+        } catch (err) {
+            console.error('Download failed:', err);
+            label.textContent = 'Download failed';
+            setTimeout(() => { label.textContent = originalLabel; }, 2500);
+        } finally {
+            btn.disabled = false;
+        }
+    });
+})();
+</script>
+{% endblock %}

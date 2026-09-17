@@ -1,11 +1,13 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from django.utils import timezone
 
 
 class Notification(models.Model):
 
     class Type(models.TextChoices):
+        # --- Content ---
         ANNOUNCEMENT = "announcement", "📢 Announcement"
         EVENT        = "event",        "📅 Event"
         MEMBERSHIP   = "membership",   "🙋 Membership Application"
@@ -15,6 +17,26 @@ class Notification(models.Model):
         QA           = "qa",           "❓ Q&A Question"
         GALLERY      = "gallery",      "🖼 Gallery"
         GENERAL      = "general",      "ℹ General"
+
+        # --- Governance ---
+        TASK         = "task",         "✅ Task"
+        PROPOSAL     = "proposal",     "🗳 Proposal"
+        VOTE         = "vote",         "🗳 Vote cast"
+        NOMINATION   = "nomination",   "🕌 Nomination"
+        OATH         = "oath",         "🤝 Oath"
+        HANDOVER     = "handover",     "🎓 Handover"
+        GOVERNANCE   = "governance",   "🏛 Governance"
+
+        # --- Business ---
+        SHOP_ORDER   = "shop_order",   "🛍 Shop Order"
+        BOOKING      = "booking",      "🎟 Booking"
+        FREE_CLAIM   = "free_claim",   "🎁 Free Claim"
+        FORM_PURCHASE= "form_purchase","📄 Form Purchase"
+        EQUIPMENT    = "equipment",    "🔧 Equipment"
+
+        # --- Academics ---
+        CBT          = "cbt",          "🧠 CBT"
+        RESOURCE     = "resource",     "📚 Resource"
 
     recipient             = models.ForeignKey(User, on_delete=models.CASCADE, related_name="namets_notifications")
     notification_type     = models.CharField(max_length=30, choices=Type.choices, default=Type.GENERAL)
@@ -27,6 +49,10 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["recipient", "is_read"]),
+            models.Index(fields=["-created_at"]),
+        ]
 
     def __str__(self):
         return f"[{self.get_notification_type_display()}] {self.title}"
@@ -40,6 +66,7 @@ class Notification(models.Model):
     @property
     def icon(self):
         return {
+            # Content
             "announcement": "campaign",
             "event":        "event",
             "membership":   "how_to_reg",
@@ -49,11 +76,29 @@ class Notification(models.Model):
             "qa":           "quiz",
             "gallery":      "photo_library",
             "general":      "info",
+            # Governance
+            "task":         "check_circle",
+            "proposal":     "how_to_vote",
+            "vote":         "ballot",
+            "nomination":   "workspace_premium",
+            "oath":         "handshake",
+            "handover":     "school",
+            "governance":   "account_balance",
+            # Business
+            "shop_order":   "shopping_bag",
+            "booking":      "confirmation_number",
+            "free_claim":   "redeem",
+            "form_purchase":"description",
+            "equipment":    "build",
+            # Academics
+            "cbt":          "psychology",
+            "resource":     "library_books",
         }.get(self.notification_type, "notifications")
 
     @property
     def color_class(self):
         return {
+            # Content
             "announcement": "green",
             "event":        "blue",
             "membership":   "purple",
@@ -63,6 +108,23 @@ class Notification(models.Model):
             "qa":           "teal",
             "gallery":      "pink",
             "general":      "gray",
+            # Governance
+            "task":         "gold",
+            "proposal":     "blue",
+            "vote":         "blue",
+            "nomination":   "purple",
+            "oath":         "green",
+            "handover":     "green",
+            "governance":   "gold",
+            # Business
+            "shop_order":   "green",
+            "booking":      "blue",
+            "free_claim":   "gold",
+            "form_purchase":"green",
+            "equipment":    "blue",
+            # Academics
+            "cbt":          "purple",
+            "resource":     "teal",
         }.get(self.notification_type, "gray")
 
 

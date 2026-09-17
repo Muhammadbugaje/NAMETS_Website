@@ -1,0 +1,483 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Delegation · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.del-wrap { max-width: 1100px; margin: 0 auto; }
+
+.del-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.85rem 2rem;
+    margin-bottom: 1.25rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22);
+}
+.del-head::before {
+    content: "🔐"; font-size: 6rem;
+    position: absolute; bottom: -1.2rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.del-head-inner { position: relative; z-index: 1; }
+.del-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.6rem;
+}
+.del-head h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.4rem; }
+.del-head p { color: rgba(255,255,255,0.82); font-size: 0.9rem; margin: 0 0 0.85rem; max-width: 640px; line-height: 1.55; }
+.del-office-badge {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.5rem 1.15rem;
+    background: rgba(200,169,81,0.18);
+    border: 1px solid rgba(200,169,81,0.35);
+    border-radius: 50px;
+    font-size: 0.82rem; font-weight: 800;
+    color: #E0C96E;
+}
+.del-office-badge i { color: #C8A951; }
+
+/* Info banner */
+.info-banner {
+    background: linear-gradient(135deg, #e6f0fb 0%, #f0f7ff 100%);
+    border-left: 4px solid #185fa5;
+    border-radius: 12px;
+    padding: 1rem 1.35rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    color: #1e40af;
+    line-height: 1.6;
+}
+.info-banner strong { color: #1e3a8a; }
+.info-banner i { margin-right: 0.35rem; }
+
+/* Empty state */
+.empty-state {
+    text-align: center; padding: 5rem 1.5rem;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 2px dashed rgba(200,169,81,0.35);
+    border-radius: 20px;
+}
+.empty-state .ic { font-size: 4rem; display: block; margin-bottom: 0.85rem; opacity: 0.5; }
+.empty-state h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1.1rem; }
+.empty-state p { color: #8a9b95; font-size: 0.88rem; margin: 0 auto; max-width: 460px; line-height: 1.6; }
+
+/* Member cards */
+.member-list { display: flex; flex-direction: column; gap: 1rem; }
+
+.member-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s;
+}
+.member-card::before {
+    content: ''; display: block;
+    height: 4px;
+    background: linear-gradient(90deg, #0F3D2E, #C8A951);
+    opacity: 0.85;
+}
+.member-card:hover { box-shadow: var(--shadow-md); }
+
+.member-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 1.5rem 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.member-info { display: flex; align-items: center; gap: 1rem; flex: 1; min-width: 0; }
+.member-avatar {
+    width: 50px; height: 50px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; font-weight: 800;
+    border: 2px solid #C8A951;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(15,61,46,0.2);
+}
+.member-name {
+    font-size: 0.98rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.2rem;
+    letter-spacing: -0.01em;
+}
+.member-role {
+    font-size: 0.75rem; color: #8a9b95;
+    display: flex; align-items: center; gap: 0.35rem;
+}
+.member-role i { color: #C8A951; font-size: 0.68rem; }
+
+.member-toggle {
+    padding: 0.5rem 1.15rem;
+    border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem;
+    background: var(--primary); color: #fff;
+    border: none; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.member-toggle:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.member-toggle.open { background: #f0f4f2; color: var(--primary); }
+.member-toggle.open:hover { background: #e0e8e5; color: var(--primary); }
+
+/* Permission editor */
+.perm-editor {
+    display: none;
+    padding: 0 1.5rem 1.5rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    margin-top: 0.5rem;
+    padding-top: 1.25rem;
+}
+.perm-editor.open { display: block; animation: permOpen 0.3s ease-out; }
+@keyframes permOpen {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.perm-toolbar {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+    align-items: center;
+}
+.perm-toolbar .tb {
+    padding: 0.4rem 0.9rem;
+    border-radius: 50px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    background: #f0f4f2; color: #4a5568;
+    border: none; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    transition: all 0.2s;
+}
+.perm-toolbar .tb:hover { background: #e0e8e5; color: #0F3D2E; }
+.perm-toolbar .perm-count {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: #8a9b95;
+    font-weight: 700;
+}
+.perm-toolbar .perm-count strong { color: #0F3D2E; }
+
+.perm-groups { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.perm-group {
+    background: #f8faf9;
+    border-radius: 12px;
+    padding: 1rem 1.15rem;
+}
+.perm-group-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 0.75rem;
+}
+.perm-group-title {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a6a1a;
+    display: flex; align-items: center; gap: 0.45rem;
+}
+.perm-group-title i { font-size: 0.85rem; }
+.perm-group-actions {
+    display: flex; gap: 0.35rem;
+}
+.perm-group-actions button {
+    padding: 0.25rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    border: none; cursor: pointer; font-family: inherit;
+    transition: all 0.15s;
+    background: #fff;
+    color: #4a5568;
+}
+.perm-group-actions button:hover { background: var(--primary); color: #fff; }
+
+.perm-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+}
+.perm-check {
+    display: flex; align-items: flex-start;
+    gap: 0.55rem;
+    padding: 0.55rem 0.75rem;
+    background: #fff;
+    border-radius: 10px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.8rem;
+}
+.perm-check:hover {
+    border-color: rgba(200,169,81,0.4);
+    background: #fef9ec;
+}
+.perm-check input {
+    width: 16px; height: 16px;
+    accent-color: var(--gold);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+.perm-check.checked {
+    background: linear-gradient(135deg, #e8f2ec 0%, #f0faf4 100%);
+    border-color: #38a169;
+}
+.perm-check.checked .perm-name {
+    color: #0F3D2E;
+    font-weight: 700;
+}
+.perm-name {
+    color: #4a5568;
+    line-height: 1.35;
+}
+
+.perm-actions {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    margin-top: 1.5rem; padding-top: 1.25rem;
+    border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-save {
+    padding: 0.75rem 1.75rem;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff; border: none; border-radius: 50px;
+    font-weight: 800; font-size: 0.88rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    box-shadow: 0 6px 20px rgba(15,61,46,0.25);
+    transition: all 0.25s;
+}
+.btn-save:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(15,61,46,0.35);
+}
+.btn-save:disabled { opacity: 0.6; cursor: wait; }
+.btn-cancel-edit {
+    padding: 0.75rem 1.5rem;
+    background: #f0f4f2; color: var(--primary);
+    border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s;
+}
+.btn-cancel-edit:hover { background: #e0e8e5; color: var(--primary); }
+
+@media (max-width: 768px) {
+    .del-head { padding: 1.35rem 1.35rem 1.25rem; }
+    .del-head h1 { font-size: 1.25rem; }
+    .member-head { padding: 1rem 1.15rem 0.85rem; }
+    .member-info { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+    .member-toggle { width: 100%; justify-content: center; }
+    .perm-editor { padding: 1rem 1.15rem 1.25rem; }
+    .perm-items { grid-template-columns: 1fr; }
+    .perm-actions { flex-direction: column; }
+    .btn-save, .btn-cancel-edit { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="del-wrap">
+
+    <!-- HEADER -->
+    <div class="del-head">
+        <div class="del-head-inner">
+            <span class="del-eyebrow">Governance · Delegation</span>
+            <h1>Manage Team Permissions</h1>
+            <p>
+                Grant or revoke specific permissions for members of your office.
+                You can only delegate permissions your own office already holds.
+            </p>
+            <span class="del-office-badge">
+                <i class="fas fa-building"></i> {{ office.name }}
+                · {{ office_permission_count }} permission{{ office_permission_count|pluralize }} available
+            </span>
+        </div>
+    </div>
+
+    <!-- INFO -->
+    <div class="info-banner">
+        <i class="fas fa-info-circle"></i>
+        <strong>How this works:</strong>
+        Your office holds a specific set of permissions. You can give or take
+        any of those permissions to/from members of your own office. You cannot
+        grant a permission your office doesn't have — that would be a security
+        hole. Every grant/revoke is logged in the audit trail.
+    </div>
+
+    <!-- MEMBERS -->
+    {% if colleagues_data %}
+    <div class="member-list">
+        {% for c in colleagues_data %}
+        <div class="member-card">
+            <div class="member-head">
+                <div class="member-info">
+                    <div class="member-avatar">
+                        {{ c.user.first_name|first|upper }}{{ c.user.last_name|first|upper }}
+                    </div>
+                    <div>
+                        <div class="member-name">{{ c.user.get_full_name|default:c.user.username }}</div>
+                        <div class="member-role">
+                            <i class="fas fa-briefcase"></i>
+                            {{ c.assignment.display_label|default:office.name }}
+                            · {{ c.granted_ids|length }} of {{ office_permission_count }} permission{{ office_permission_count|pluralize }}
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="member-toggle" onclick="toggleEditor('{{ c.user.pk }}', this)">
+                    <i class="fas fa-user-shield"></i> Manage Permissions
+                </button>
+            </div>
+
+            <div class="perm-editor" data-user="{{ c.user.pk }}">
+                <form method="post" action="{% url 'governance:delegation_home' %}" class="perm-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_id" value="{{ c.user.pk }}">
+
+                    <div class="perm-toolbar">
+                        <button type="button" class="tb" onclick="toggleAll('{{ c.user.pk }}', true)">
+                            <i class="fas fa-check-double"></i> Select all
+                        </button>
+                        <button type="button" class="tb" onclick="toggleAll('{{ c.user.pk }}', false)">
+                            <i class="fas fa-times"></i> Clear all
+                        </button>
+                        <span class="perm-count">
+                            <strong class="selected-count" data-user="{{ c.user.pk }}">0</strong>
+                            of {{ office_permission_count }} selected
+                        </span>
+                    </div>
+
+                    <div class="perm-groups">
+                        {% for app_label, perms in grouped_permissions.items %}
+                        <div class="perm-group" data-app="{{ app_label }}">
+                            <div class="perm-group-head">
+                                <div class="perm-group-title">
+                                    <i class="fas fa-cube"></i> {{ app_label|title }}
+                                </div>
+                                <div class="perm-group-actions">
+                                    <button type="button" onclick="groupToggle('{{ c.user.pk }}', '{{ app_label }}', true)">All</button>
+                                    <button type="button" onclick="groupToggle('{{ c.user.pk }}', '{{ app_label }}', false)">None</button>
+                                </div>
+                            </div>
+                            <div class="perm-items">
+                                {% for p in perms %}
+                                <label class="perm-check {% if p.id in c.granted_ids %}checked{% endif %}"
+                                       data-user="{{ c.user.pk }}"
+                                       data-app="{{ app_label }}">
+                                    <input type="checkbox"
+                                           name="permissions"
+                                           value="{{ p.id }}"
+                                           {% if p.id in c.granted_ids %}checked{% endif %}
+                                           onchange="updateSelectedCount('{{ c.user.pk }}')">
+                                    <span class="perm-name">{{ p.name }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="perm-actions">
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i> Save Permissions
+                        </button>
+                        <button type="button" class="btn-cancel-edit" onclick="toggleEditor('{{ c.user.pk }}', null, true)">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="ic">👥</span>
+        <h3>No teammates to manage</h3>
+        <p>
+            You're the only active member of your office right now. When other
+            brothers or sisters are assigned to your office, you'll be able to
+            delegate permissions to them here.
+        </p>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+function toggleEditor(userId, btn, forceClose) {
+    const editor = document.querySelector(`.perm-editor[data-user="${userId}"]`);
+    if (!editor) return;
+
+    const isOpen = editor.classList.contains('open');
+    const shouldOpen = forceClose ? false : !isOpen;
+
+    editor.classList.toggle('open', shouldOpen);
+
+    // Update the toggle button on the member card
+    const card = editor.closest('.member-card');
+    const toggleBtn = card.querySelector('.member-toggle');
+    if (toggleBtn) {
+        if (shouldOpen) {
+            toggleBtn.classList.add('open');
+            toggleBtn.innerHTML = '<i class="fas fa-times"></i> Close';
+        } else {
+            toggleBtn.classList.remove('open');
+            toggleBtn.innerHTML = '<i class="fas fa-user-shield"></i> Manage Permissions';
+        }
+    }
+
+    if (shouldOpen) updateSelectedCount(userId);
+}
+
+function updateSelectedCount(userId) {
+    const editor = document.querySelector(`.perm-editor[data-user="${userId}"]`);
+    if (!editor) return;
+
+    const checks = editor.querySelectorAll('input[type="checkbox"]');
+    let selected = 0;
+
+    checks.forEach(cb => {
+        const label = cb.closest('.perm-check');
+        if (cb.checked) {
+            selected++;
+            label?.classList.add('checked');
+        } else {
+            label?.classList.remove('checked');
+        }
+    });
+
+    const counter = editor.querySelector(`.selected-count[data-user="${userId}"]`);
+    if (counter) counter.textContent = selected;
+}
+
+function toggleAll(userId, on) {
+    const editor = document.querySelector(`.perm-editor[data-user="${userId}"]`);
+    if (!editor) return;
+    editor.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = on);
+    updateSelectedCount(userId);
+}
+
+function groupToggle(userId, appLabel, on) {
+    const editor = document.querySelector(`.perm-editor[data-user="${userId}"]`);
+    if (!editor) return;
+    editor.querySelectorAll(`.perm-group[data-app="${appLabel}"] input[type="checkbox"]`)
+        .forEach(cb => cb.checked = on);
+    updateSelectedCount(userId);
+}
+
+// Prevent double-submission on save
+document.querySelectorAll('.perm-form').forEach(form => {
+    form.addEventListener('submit', function() {
+        const btn = this.querySelector('button[type="submit"]');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+    });
+});
+</script>
+
+{% endblock %}

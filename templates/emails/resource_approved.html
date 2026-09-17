@@ -1,0 +1,22 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+    <h2>✅ Your Resource Has Been Approved</h2>
+    
+    <p>Assalamu Alaikum {{ name }},</p>
+    
+    <div class="content-block">
+        <p>Your resource <strong>"{{ title }}"</strong> has been approved and is now visible on our <a href="{{ resources_url }}">resources page</a>.</p>
+    </div>
+    
+    <p>Thank you for contributing to the NAMETS academic community.</p>
+    
+    <p style="margin-top: 20px;">
+        <a href="{{ resources_url }}" class="button">View Resources</a>
+    </p>
+    
+    <p style="color: #718096; font-size: 14px; margin-top: 20px;">
+        Jazakallah khair,<br>
+        <strong>NAMETS Team</strong>
+    </p>
+{% endblock %}

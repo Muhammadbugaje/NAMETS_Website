@@ -6,3 +6,5 @@ class AcademicsConfig(AppConfig):
 
     def ready(self):
         import academics.signals 
+        import academics.importers
+        import academics.dashboard_widgets

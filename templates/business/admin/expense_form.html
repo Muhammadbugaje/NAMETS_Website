@@ -1,0 +1,168 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 700px; margin: 0 auto; }
+.form-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none; font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+.form-back:hover { text-decoration: underline; }
+.form-header { margin-bottom: 1rem; }
+.form-header h2 { margin: 0; color: var(--text-primary); font-size: 1.4rem; font-weight: 700; }
+.form-header p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
+.form-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 2rem; box-shadow: var(--shadow-sm);
+    border-top: 4px solid #c0392b;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.8rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label { font-weight: 600; color: var(--text-primary); font-size: 0.8rem; margin-bottom: 0.2rem; }
+.form-group label .required { color: #e53e3e; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.5rem 0.8rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.9rem; background: #fff; transition: var(--transition);
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: #c0392b; outline: none; box-shadow: 0 0 0 3px rgba(192,57,43,0.12);
+}
+.form-group .help-text { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; }
+.form-group .error-text { font-size: 0.75rem; color: #e53e3e; margin-top: 0.15rem; }
+.form-group .file-input { padding: 0.3rem; background: #f8faf9; border-radius: 6px; }
+.form-actions {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-danger-primary {
+    background: #c0392b; color: #fff;
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 700; cursor: pointer; transition: var(--transition);
+    text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.btn-danger-primary:hover { background: #9b2c2c; transform: translateY(-2px); box-shadow: 0 8px 22px rgba(192,57,43,0.3); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; text-decoration: none; transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+
+.warning-banner {
+    background: linear-gradient(135deg, #fdf6f3 0%, #fdecea 100%);
+    border-left: 4px solid #c0392b;
+    border-radius: 10px;
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.85rem;
+    color: #9b2c2c;
+    font-weight: 500;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.warning-banner i { font-size: 1.1rem; }
+
+@media (max-width: 768px) {
+    .form-card { padding: 1.25rem; }
+    .form-row { grid-template-columns: 1fr; gap: 0.6rem; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="form-container">
+    <a href="{% url 'business:admin_expense_report' %}" class="form-back">
+        <i class="fas fa-arrow-left"></i> Back to Expenses
+    </a>
+    <div class="form-header">
+        <h2>💸 {{ title }}</h2>
+        <p>Record money that has been spent from a NAMETS account.</p>
+    </div>
+
+    <div class="warning-banner">
+        <i class="fas fa-info-circle"></i>
+        This will <strong>subtract</strong> the amount from the selected bank account's balance.
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="form-card" novalidate>
+        {% csrf_token %}
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.account.id_for_label }}">Paid From <span class="required">*</span></label>
+                {{ form.account }}
+                {% if form.account.errors %}<div class="error-text">{{ form.account.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.category.id_for_label }}">Expense Type <span class="required">*</span></label>
+                {{ form.category }}
+                {% if form.category.errors %}<div class="error-text">{{ form.category.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.amount.id_for_label }}">Amount Spent (₦) <span class="required">*</span></label>
+                {{ form.amount }}
+                {% if form.amount.errors %}<div class="error-text">{{ form.amount.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.date.id_for_label }}">Date/Time <span class="required">*</span></label>
+                {{ form.date }}
+                {% if form.date.errors %}<div class="error-text">{{ form.date.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.description.id_for_label }}">What was this for? <span class="required">*</span></label>
+                {{ form.description }}
+                {% if form.description.errors %}<div class="error-text">{{ form.description.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.internal_note.id_for_label }}">Internal Note</label>
+                {{ form.internal_note }}
+                <div class="help-text">Visible only to EXCO. Add context for future reference.</div>
+                {% if form.internal_note.errors %}<div class="error-text">{{ form.internal_note.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.receipt_attachment.id_for_label }}">Receipt / Proof</label>
+                <div class="file-input">{{ form.receipt_attachment }}</div>
+                {% if form.receipt_attachment.errors %}<div class="error-text">{{ form.receipt_attachment.errors }}</div>{% endif %}
+                {% if form.instance.receipt_attachment %}
+                <div class="help-text">Current: <a href="{{ form.instance.receipt_attachment.url }}" target="_blank">{{ form.instance.receipt_attachment.name }}</a></div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="form-row">
+            <div class="form-group full">
+                {% for error in form.non_field_errors %}
+                <div class="error-text" style="background:#fdecea; padding:0.5rem 1rem; border-radius:8px; border-left:4px solid #e53e3e;">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn-danger-primary"><i class="fas fa-minus-circle"></i> {{ button_text }}</button>
+            <a href="{% url 'business:admin_expense_report' %}" class="btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

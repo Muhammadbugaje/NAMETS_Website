@@ -7,7 +7,9 @@
 <link rel="stylesheet" href="{% static 'css/global.css' %}">
 <link rel="stylesheet" href="{% static 'academics/css/academics.css' %}">
 <style>
-/* Responsive table – no horizontal scroll, text wraps except time */
+/* ============================================================
+   TABLE — original styles (untouched)
+   ============================================================ */
 .islamiyya-table {
     width: 100%;
     border-collapse: collapse;
@@ -22,7 +24,6 @@
     word-break: break-word;
     white-space: normal;
 }
-/* Time column – never wrap */
 .islamiyya-table td:nth-child(2),
 .islamiyya-table th:nth-child(2) {
     white-space: nowrap;
@@ -42,12 +43,212 @@
         font-size: 0.78rem;
     }
 }
+
+/* ============================================================
+   ENROLLMENT CTA — green gradient banner with action cards
+   ============================================================ */
+.islamiyya-cta {
+    max-width: 1080px;
+    margin: 3.5rem auto 2rem;
+    padding: 0 20px;
+}
+
+.islamiyya-cta-inner {
+    position: relative;
+    border-radius: 24px;
+    padding: 3rem 2.75rem;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(200,169,81,0.18) 0%, transparent 55%),
+        radial-gradient(circle at 0% 100%, rgba(200,169,81,0.1) 0%, transparent 50%),
+        linear-gradient(135deg, #0F3D2E 0%, #1a5a44 60%, #0A2A1F 100%);
+    color: #fff;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(15,61,46,0.22);
+}
+.islamiyya-cta-inner::before {
+    content: '🕌';
+    position: absolute;
+    right: -2rem;
+    bottom: -3rem;
+    font-size: 14rem;
+    opacity: 0.06;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+}
+
+.islamiyya-cta-head {
+    position: relative;
+    z-index: 1;
+    max-width: 620px;
+    margin-bottom: 2.25rem;
+}
+.islamiyya-cta-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #C8A951;
+    background: rgba(200,169,81,0.14);
+    border: 1px solid rgba(200,169,81,0.3);
+    padding: 0.4rem 0.9rem;
+    border-radius: 50px;
+    margin-bottom: 1rem;
+}
+.islamiyya-cta-title {
+    font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin: 0 0 0.75rem;
+}
+.islamiyya-cta-title span {
+    color: #C8A951;
+}
+.islamiyya-cta-desc {
+    font-size: 0.98rem;
+    line-height: 1.65;
+    color: rgba(255,255,255,0.82);
+    margin: 0;
+}
+
+/* ---- Two action cards ---- */
+.islamiyya-cta-actions {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.islamiyya-action {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.35rem 1.5rem;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 16px;
+    text-decoration: none;
+    color: inherit;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+    overflow: hidden;
+}
+.islamiyya-action::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(200,169,81,0.12), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+.islamiyya-action:hover {
+    transform: translateY(-4px);
+    border-color: rgba(200,169,81,0.55);
+    background: rgba(255,255,255,0.1);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.25);
+}
+.islamiyya-action:hover::after { opacity: 1; }
+
+.islamiyya-action-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    transition: transform 0.35s ease;
+}
+.islamiyya-action:hover .islamiyya-action-icon {
+    transform: scale(1.08) rotate(-6deg);
+}
+.islamiyya-action.enroll .islamiyya-action-icon {
+    background: linear-gradient(135deg, #D9BC63 0%, #C8A951 100%);
+    color: #0F3D2E;
+    box-shadow: 0 6px 16px rgba(200,169,81,0.35);
+}
+.islamiyya-action.status .islamiyya-action-icon {
+    background: rgba(255,255,255,0.14);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+}
+
+.islamiyya-action-body {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+.islamiyya-action-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.islamiyya-action-title i.arrow {
+    font-size: 0.8rem;
+    color: #C8A951;
+    transition: transform 0.25s ease;
+}
+.islamiyya-action:hover .islamiyya-action-title i.arrow {
+    transform: translateX(4px);
+}
+.islamiyya-action-desc {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.72);
+    margin: 0;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 760px) {
+    .islamiyya-cta { margin: 2.5rem auto 1.5rem; }
+    .islamiyya-cta-inner { padding: 2.25rem 1.75rem; border-radius: 20px; }
+    .islamiyya-cta-head { margin-bottom: 1.75rem; }
+    .islamiyya-cta-actions {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    .islamiyya-action { padding: 1.15rem 1.25rem; }
+    .islamiyya-action-icon { width: 42px; height: 42px; font-size: 1.1rem; }
+    .islamiyya-cta-inner::before { font-size: 9rem; right: -1rem; bottom: -2rem; }
+}
+
+@media (max-width: 420px) {
+    .islamiyya-cta-inner { padding: 1.75rem 1.25rem; }
+    .islamiyya-cta-title { font-size: 1.35rem; }
+    .islamiyya-action-title { font-size: 0.94rem; }
+    .islamiyya-action-desc { font-size: 0.78rem; }
+}
+
+/* ---- Back link polish ---- */
+.back-link-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 2rem auto 3rem;
+    padding: 0 20px;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Page Hero -->
+<!-- ============================================================
+     PAGE HERO
+     ============================================================ -->
 <section class="page-hero card-reveal" data-bg="dark">
     <div class="page-hero-deco page-hero-deco-1" aria-hidden="true"></div>
     <div class="page-hero-deco page-hero-deco-2" aria-hidden="true"></div>
@@ -57,7 +258,9 @@
     <div class="page-hero-divider"></div>
 </section>
 
-<!-- Available Courses -->
+<!-- ============================================================
+     AVAILABLE COURSES
+     ============================================================ -->
 <div class="section-heading reveal mt-lg">
     <h2>Available Islamiyya Courses</h2>
     <div class="section-heading-line"></div>
@@ -86,7 +289,9 @@
 </div>
 {% endif %}
 
-<!-- Timetable -->
+<!-- ============================================================
+     TIMETABLE (unchanged)
+     ============================================================ -->
 {% if timetable %}
 <div class="section-heading reveal mt-lg">
     <h2>📖 Islamiyya Timetable</h2>
@@ -122,11 +327,66 @@
 </div>
 {% endif %}
 
-<div class="mt-4 isamiyyah-entroll">
-    <a href="{% url 'academics:islamiyya_register' %}" class="btn btn-primary">Enroll in Islamiyyah</a>
-    <a href="{% url 'academics:islamiyya_check_status' %}" class="btn btn-secondary">Check Status</a>
-</div>
+<!-- ============================================================
+     ENROLLMENT CTA — green gradient banner + action cards
+     ============================================================ -->
+<section class="islamiyya-cta card-reveal">
+    <div class="islamiyya-cta-inner">
 
+        <div class="islamiyya-cta-head">
+            <span class="islamiyya-cta-eyebrow">
+                <i class="fas fa-mosque"></i> Ready to Begin?
+            </span>
+            <h2 class="islamiyya-cta-title">
+                Join <span>Islamiyya</span> at NAMETS
+            </h2>
+            <p class="islamiyya-cta-desc">
+                Register for our structured Islamic classes, or check the status
+                of an application you've already submitted. All members are welcome.
+            </p>
+        </div>
+
+        <div class="islamiyya-cta-actions">
+
+            <!-- Enroll -->
+            <a href="{% url 'academics:islamiyya_register' %}" class="islamiyya-action enroll">
+                <div class="islamiyya-action-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="islamiyya-action-body">
+                    <h3 class="islamiyya-action-title">
+                        Enroll Now
+                        <i class="fas fa-arrow-right arrow"></i>
+                    </h3>
+                    <p class="islamiyya-action-desc">
+                        Fill the enrollment form and pick your preferred class.
+                    </p>
+                </div>
+            </a>
+
+            <!-- Check Status -->
+            <a href="{% url 'academics:islamiyya_check_status' %}" class="islamiyya-action status">
+                <div class="islamiyya-action-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="islamiyya-action-body">
+                    <h3 class="islamiyya-action-title">
+                        Check Your Status
+                        <i class="fas fa-arrow-right arrow"></i>
+                    </h3>
+                    <p class="islamiyya-action-desc">
+                        Already applied? Track your application in seconds.
+                    </p>
+                </div>
+            </a>
+
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     BACK LINK
+     ============================================================ -->
 <div class="back-link-wrap reveal">
     <a href="{% url 'academics:course_list' %}" class="btn btn-secondary">← Back to Academics</a>
 </div>

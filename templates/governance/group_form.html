@@ -1,0 +1,132 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · Groups{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 600px; margin: 0 auto; }
+.form-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.form-back:hover { text-decoration: underline; }
+.form-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.75rem 2rem;
+    margin-bottom: 1.25rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22);
+}
+.form-head::before { content: "🔐"; font-size: 5rem; position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.1; }
+.form-head-inner { position: relative; z-index: 1; }
+.form-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px; margin-bottom: 0.5rem;
+}
+.form-head h2 { font-size: 1.35rem; font-weight: 800; margin: 0 0 0.3rem; }
+.form-head p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+.form-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem; box-shadow: var(--shadow-sm);
+}
+.form-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
+.form-group label {
+    font-weight: 700; color: #0F3D2E;
+    font-size: 0.85rem; margin-bottom: 0.35rem;
+}
+.form-group input {
+    width: 100%; padding: 0.75rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 10px;
+    font-size: 0.95rem; background: #fff;
+    font-family: inherit; transition: all 0.2s;
+}
+.form-group input:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 4px rgba(200,169,81,0.15);
+}
+.form-group .help {
+    font-size: 0.75rem; color: #8a9b95;
+    margin-top: 0.35rem; line-height: 1.5;
+}
+.form-actions {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    margin-top: 1.5rem; padding-top: 1.5rem;
+    border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-submit {
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff; padding: 0.85rem 2rem;
+    border: none; border-radius: 50px;
+    font-weight: 800; font-size: 0.9rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    box-shadow: 0 6px 20px rgba(15,61,46,0.25);
+    transition: all 0.25s;
+}
+.btn-submit:hover:not(:disabled) { transform: translateY(-3px); }
+.btn-submit:disabled { opacity: 0.6; cursor: wait; }
+.btn-cancel {
+    background: var(--gold); color: var(--primary);
+    padding: 0.85rem 1.75rem;
+    border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.88rem;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.btn-cancel:hover { background: #E0C96E; color: var(--primary); transform: translateY(-2px); }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="form-container">
+    <a href="{% url 'governance:group_list' %}" class="form-back">
+        <i class="fas fa-arrow-left"></i> Back to Groups
+    </a>
+
+    <div class="form-head">
+        <div class="form-head-inner">
+            <span class="form-eyebrow">Governance · Groups</span>
+            <h2>{{ title }}</h2>
+            <p>{% if group %}Rename this group.{% else %}Give the group a clear, descriptive name.{% endif %}</p>
+        </div>
+    </div>
+
+    <form method="post" class="form-card" id="groupForm" novalidate>
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="name">Group Name <span style="color:#e53e3e;">*</span></label>
+            <input type="text" name="name" id="name"
+                   value="{{ group.name|default:'' }}"
+                   placeholder="e.g. PRO Team, Financial Officers, Moderators"
+                   required autofocus>
+            <div class="help">Use a name that clearly describes the group's purpose.</div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> {{ button_text }}
+            </button>
+            <a href="{% url 'governance:group_list' %}" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('groupForm').addEventListener('submit', function() {
+    const btn = this.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+});
+</script>
+
+{% endblock %}

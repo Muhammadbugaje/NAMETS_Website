@@ -1,10 +1,11 @@
 {% load static %}
-<section class="home-subscription reveal">
+
+<div class="home-subscription reveal">
     <div class="glass-card subscription-card">
         <h2 class="section-title">Stay Updated</h2>
         <p class="subscription-intro">Subscribe to receive notifications about announcements, events, and prayer time changes.</p>
-        
-        <form method="post" action="{% url 'communications:subscribe' %}" class="subscription-form">
+
+        <form method="post" action="{% url 'communications:subscribe' %}" class="subscription-form" id="homeSubscribeForm">
             {% csrf_token %}
             <div class="form-row">
                 <input type="email" name="email" placeholder="Your email address" required class="subscription-input">
@@ -24,4 +25,4 @@
         </form>
         <p class="subscription-note">We respect your privacy. <a href="{% url 'communications:unsubscribe_by_email' %}" style="color: #a89008; text-decoration: underline;"><b>Unsubscribe</b></a> at any time.</p>
     </div>
-</section>
+</div>

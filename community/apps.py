@@ -6,3 +6,6 @@ class CommunityConfig(AppConfig):
 
     def ready(self):
         import community.signals 
+        import community.dashboard_widgets 
+        import community.importers 
+        

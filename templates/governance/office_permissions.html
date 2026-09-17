@@ -1,0 +1,511 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Permissions · {{ office.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.perm-wrap { max-width: 1100px; margin: 0 auto; }
+.perm-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.perm-back:hover { text-decoration: underline; }
+
+.perm-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.85rem 2rem;
+    margin-bottom: 1.25rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22);
+}
+.perm-head::before {
+    content: "🔐"; font-size: 6rem;
+    position: absolute; bottom: -1.2rem; right: 1.5rem; opacity: 0.08;
+}
+.perm-head-inner { position: relative; z-index: 1; }
+.perm-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px; margin-bottom: 0.55rem;
+}
+.perm-head h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.4rem; }
+.perm-head p { color: rgba(255,255,255,0.82); font-size: 0.88rem; margin: 0; max-width: 620px; line-height: 1.6; }
+
+.perm-info-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+.info-mini {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 0.9rem 1.1rem;
+    box-shadow: var(--shadow-sm);
+    position: relative; overflow: hidden;
+}
+.info-mini::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.info-mini.assigned::before { background: linear-gradient(90deg,#0F3D2E,#38a169); }
+.info-mini.available::before { background: linear-gradient(90deg,#8a6a1a,#E0C96E); }
+.info-mini .num { font-size: 1.35rem; font-weight: 800; color: #0F3D2E; line-height: 1; }
+.info-mini .lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #8a9b95; margin-top: 0.3rem; }
+
+/* Warning banner */
+.warning-banner {
+    background: linear-gradient(135deg, #fef3e8 0%, #fef9ec 100%);
+    border-left: 4px solid #a8671a;
+    border-radius: 12px; padding: 1rem 1.35rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.85rem; color: #6b3a0a; line-height: 1.6;
+}
+.warning-banner strong { color: #a8671a; }
+.warning-banner i { margin-right: 0.4rem; }
+
+/* Toolbar */
+.perm-toolbar {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1.2rem;
+    display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;
+    margin-bottom: 1.25rem;
+}
+.perm-toolbar .tb {
+    padding: 0.45rem 1rem; border-radius: 50px;
+    font-size: 0.78rem; font-weight: 700;
+    background: #f0f4f2; color: #4a5568;
+    border: none; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.perm-toolbar .tb:hover { background: #e0e8e5; color: #0F3D2E; transform: translateY(-1px); }
+.perm-toolbar .search-input {
+    flex: 1; min-width: 200px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 50px;
+    font-size: 0.85rem; font-family: inherit;
+}
+.perm-toolbar .search-input:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.perm-toolbar .counter {
+    margin-left: auto;
+    font-size: 0.78rem; font-weight: 700;
+    color: #8a9b95;
+    white-space: nowrap;
+}
+.perm-toolbar .counter strong { color: #0F3D2E; font-weight: 800; }
+
+/* Permission groups */
+.perm-groups { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+
+.perm-group {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s;
+}
+.perm-group:hover { box-shadow: var(--shadow-md); }
+
+.pg-head {
+    display: flex; justify-content: space-between;
+    align-items: center; gap: 1rem;
+    padding: 1rem 1.35rem;
+    background: #f8faf9;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+}
+.pg-head:hover { background: #f2f7f4; }
+
+.pg-title {
+    font-size: 0.85rem; font-weight: 800;
+    color: #0F3D2E;
+    display: flex; align-items: center; gap: 0.55rem;
+    text-transform: capitalize;
+}
+.pg-title i { color: #C8A951; font-size: 0.9rem; }
+.pg-count {
+    font-size: 0.68rem; font-weight: 800;
+    background: rgba(200,169,81,0.15);
+    color: #8a6a1a;
+    padding: 0.15rem 0.6rem; border-radius: 20px;
+    margin-left: 0.5rem;
+}
+.pg-chevron {
+    color: #8a9b95;
+    transition: transform 0.25s;
+    font-size: 0.85rem;
+}
+.pg-head.collapsed .pg-chevron { transform: rotate(-90deg); }
+
+.pg-body {
+    display: block;
+    padding: 1rem 1.35rem 1.15rem;
+    border-top: 1px solid rgba(0,0,0,0.04);
+}
+.pg-body.collapsed { display: none; }
+
+.pg-toolbar {
+    display: flex; gap: 0.4rem;
+    margin-bottom: 0.85rem;
+    flex-wrap: wrap;
+}
+.pg-toolbar button {
+    padding: 0.3rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    background: #fff;
+    color: #4a5568;
+    border: 1px solid rgba(0,0,0,0.08);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+.pg-toolbar button:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.perm-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+}
+
+.perm-check {
+    display: flex; align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.6rem 0.85rem;
+    background: #fff;
+    border: 1.5px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.82rem;
+}
+.perm-check:hover {
+    border-color: rgba(200,169,81,0.4);
+    background: #fef9ec;
+}
+.perm-check input {
+    width: 16px; height: 16px;
+    accent-color: var(--gold);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+}
+.perm-check.checked {
+    background: linear-gradient(135deg, #e8f2ec 0%, #f0faf4 100%);
+    border-color: #38a169;
+}
+.perm-check.checked .perm-name {
+    color: #0F3D2E;
+    font-weight: 700;
+}
+.perm-name {
+    color: #4a5568;
+    line-height: 1.4;
+}
+
+/* Recent changes */
+.recent-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.35rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.25rem;
+}
+.recent-card h3 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #8a6a1a; margin: 0 0 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.recent-card h3::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent);
+}
+.recent-item {
+    display: flex; align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    font-size: 0.82rem;
+}
+.recent-item:last-child { border-bottom: none; }
+.recent-item .badge {
+    padding: 0.15rem 0.55rem;
+    border-radius: 12px;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+}
+.recent-item .badge.granted { background: #e8f2ec; color: #1a6b3c; }
+.recent-item .badge.revoked { background: #fdecea; color: #9b2c2c; }
+.recent-item .recent-body { flex: 1; }
+.recent-item .recent-text { color: #2d3748; line-height: 1.4; }
+.recent-item .recent-text strong { color: #0F3D2E; font-weight: 700; }
+.recent-item .recent-time { font-size: 0.68rem; color: #8a9b95; margin-top: 0.15rem; }
+
+/* Save bar */
+.save-bar {
+    position: sticky; bottom: 1rem;
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 18px;
+    padding: 0.85rem 1.35rem;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+    box-shadow: 0 12px 36px rgba(15,61,46,0.3);
+    z-index: 5;
+}
+.save-bar .hint {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.82rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.save-bar .hint i { color: #C8A951; }
+.save-bar .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.btn-save {
+    padding: 0.7rem 1.75rem;
+    background: #C8A951; color: #0F3D2E;
+    border: none; border-radius: 50px;
+    font-weight: 800; font-size: 0.88rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    box-shadow: 0 6px 20px rgba(200,169,81,0.35);
+    transition: all 0.25s;
+}
+.btn-save:hover:not(:disabled) { background: #E0C96E; transform: translateY(-2px); }
+.btn-save:disabled { opacity: 0.6; cursor: wait; }
+.btn-cancel-bar {
+    padding: 0.7rem 1.35rem;
+    background: rgba(255,255,255,0.15); color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 50px;
+    font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.btn-cancel-bar:hover { background: rgba(255,255,255,0.25); color: #fff; }
+
+@media (max-width: 768px) {
+    .perm-head { padding: 1.35rem 1.35rem 1.25rem; }
+    .perm-head h1 { font-size: 1.25rem; }
+    .perm-items { grid-template-columns: 1fr; }
+    .perm-toolbar { flex-direction: column; align-items: stretch; }
+    .save-bar { padding: 0.85rem 1rem; }
+    .save-bar .actions { width: 100%; }
+    .btn-save, .btn-cancel-bar { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="perm-wrap">
+
+    <a href="{% url 'governance:office_list' %}" class="perm-back">
+        <i class="fas fa-arrow-left"></i> Back to Offices
+    </a>
+
+    <div class="perm-head">
+        <div class="perm-head-inner">
+            <span class="perm-eyebrow">Governance · Permissions</span>
+            <h1>{{ office.name }}</h1>
+            <p>Choose which permissions this office holds. Every member assigned to this office automatically gets all of them.</p>
+        </div>
+    </div>
+
+    <!-- Info strip -->
+    <div class="perm-info-strip">
+        <div class="info-mini assigned">
+            <div class="num" id="currentCount">{{ current_count }}</div>
+            <div class="lbl">Currently Assigned</div>
+        </div>
+        <div class="info-mini available">
+            <div class="num">{{ total_perms }}</div>
+            <div class="lbl">Total Available</div>
+        </div>
+        <div class="info-mini assigned">
+            <div class="num" id="selectedCount">{{ current_count }}</div>
+            <div class="lbl">Selected Now</div>
+        </div>
+    </div>
+
+    <div class="warning-banner">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Careful:</strong> granting a permission here gives it to everyone in this office.
+        Removing a permission takes it away from all current members. Every change is logged in the audit trail.
+    </div>
+
+    <form method="post" id="permForm">
+        {% csrf_token %}
+
+        <!-- Toolbar -->
+        <div class="perm-toolbar">
+            <input type="text" class="search-input" id="searchInput"
+                   placeholder="Search permissions…" oninput="filterPermissions()">
+            <button type="button" class="tb" onclick="expandAll()">
+                <i class="fas fa-expand-alt"></i> Expand all
+            </button>
+            <button type="button" class="tb" onclick="collapseAll()">
+                <i class="fas fa-compress-alt"></i> Collapse all
+            </button>
+            <span class="counter">
+                Selected: <strong id="selectedCounter">{{ current_count }}</strong>
+                / {{ total_perms }}
+            </span>
+        </div>
+
+        <!-- Permission groups -->
+        <div class="perm-groups">
+            {% for app_label, perms in grouped_permissions.items %}
+            <div class="perm-group" data-app="{{ app_label }}">
+                <div class="pg-head" onclick="toggleGroup(this)">
+                    <div class="pg-title">
+                        <i class="fas fa-cube"></i>
+                        {{ app_label|title }}
+                        <span class="pg-count">{{ perms|length }} perm{{ perms|length|pluralize }}</span>
+                    </div>
+                    <i class="fas fa-chevron-down pg-chevron"></i>
+                </div>
+                <div class="pg-body">
+                    <div class="pg-toolbar">
+                        <button type="button" onclick="groupAll('{{ app_label }}', true)">✓ Select all in {{ app_label|title }}</button>
+                        <button type="button" onclick="groupAll('{{ app_label }}', false)">✕ Clear all in {{ app_label|title }}</button>
+                    </div>
+                    <div class="perm-items">
+                        {% for item in perms %}
+                        <label class="perm-check {% if item.granted %}checked{% endif %}"
+                               data-perm-name="{{ item.perm.name|lower }}"
+                               data-perm-codename="{{ item.perm.codename|lower }}">
+                            <input type="checkbox"
+                                   name="permissions"
+                                   value="{{ item.perm.id }}"
+                                   {% if item.granted %}checked{% endif %}
+                                   onchange="updateCounter()">
+                            <span class="perm-name">{{ item.perm.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Sticky save bar -->
+        <div class="save-bar" id="saveBar">
+            <div class="hint">
+                <i class="fas fa-info-circle"></i>
+                <span>Changes apply to every member of {{ office.name }} after saving.</span>
+            </div>
+            <div class="actions">
+                <a href="{% url 'governance:office_list' %}" class="btn-cancel-bar">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn-save" id="saveBtn">
+                    <i class="fas fa-save"></i> Save Permissions
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Recent changes -->
+    {% if recent_changes %}
+    <div class="recent-card" style="margin-top:1.75rem;">
+        <h3><i class="fas fa-history"></i> Recent Permission Changes</h3>
+        {% for log in recent_changes %}
+        <div class="recent-item">
+            <span class="badge {% if log.action == 'permission_granted' %}granted{% else %}revoked{% endif %}">
+                {% if log.action == 'permission_granted' %}Granted{% else %}Revoked{% endif %}
+            </span>
+            <div class="recent-body">
+                <div class="recent-text">
+                    <strong>{{ log.actor_display }}</strong> updated permissions
+                </div>
+                <div class="recent-time">{{ log.timestamp|timesince }} ago</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// ============ GROUP COLLAPSE ============
+function toggleGroup(head) {
+    const body = head.nextElementSibling;
+    head.classList.toggle('collapsed');
+    body.classList.toggle('collapsed');
+}
+function expandAll() {
+    document.querySelectorAll('.pg-head').forEach(h => h.classList.remove('collapsed'));
+    document.querySelectorAll('.pg-body').forEach(b => b.classList.remove('collapsed'));
+}
+function collapseAll() {
+    document.querySelectorAll('.pg-head').forEach(h => h.classList.add('collapsed'));
+    document.querySelectorAll('.pg-body').forEach(b => b.classList.add('collapsed'));
+}
+
+// ============ GROUP TOGGLE ============
+function groupAll(appLabel, on) {
+    document.querySelectorAll(`.perm-group[data-app="${appLabel}"] input[type="checkbox"]`)
+        .forEach(cb => cb.checked = on);
+    updateCounter();
+}
+
+// ============ UPDATE COUNTER + CHECKED STATE ============
+function updateCounter() {
+    const all = document.querySelectorAll('input[name="permissions"]');
+    const checked = document.querySelectorAll('input[name="permissions"]:checked');
+    document.getElementById('selectedCounter').textContent = checked.length;
+    document.getElementById('selectedCount').textContent = checked.length;
+
+    // Update checked class on labels
+    all.forEach(cb => {
+        const label = cb.closest('.perm-check');
+        if (cb.checked) label.classList.add('checked');
+        else label.classList.remove('checked');
+    });
+}
+
+// ============ SEARCH FILTER ============
+function filterPermissions() {
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    document.querySelectorAll('.perm-check').forEach(label => {
+        const name = label.dataset.permName || '';
+        const codename = label.dataset.permCodename || '';
+        const match = !q || name.includes(q) || codename.includes(q);
+        label.style.display = match ? '' : 'none';
+    });
+    // Hide empty groups
+    document.querySelectorAll('.perm-group').forEach(group => {
+        const visible = group.querySelectorAll('.perm-check:not([style*="display: none"])').length;
+        group.style.display = visible ? '' : 'none';
+    });
+}
+
+// ============ SUBMIT ============
+document.getElementById('permForm').addEventListener('submit', function() {
+    const btn = document.getElementById('saveBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+    }
+});
+
+// ============ INIT ============
+document.addEventListener('DOMContentLoaded', updateCounter);
+</script>
+
+{% endblock %}

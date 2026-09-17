@@ -1,0 +1,281 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Shop Orders · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.so-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.so-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #fff;
+}
+.so-eyebrow {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.3rem;
+}
+.so-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.so-header p { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+.so-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1.2rem;
+    margin-bottom: 1rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form input, .filter-form select {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #d0d9d6; border-radius: 8px; background: var(--card-bg);
+    flex: 1; min-width: 120px; font-size: 0.85rem;
+}
+.filter-form .btn { background: var(--primary); color: #fff; border: none; padding: 0.4rem 1rem; border-radius: 8px; cursor: pointer; }
+.filter-form .clear { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.bulk-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0.5rem 0;
+    padding: 0.5rem 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.bulk-actions select { padding: 0.3rem 0.8rem; border: 1px solid #d0d9d6; border-radius: 6px; background: var(--card-bg); }
+.bulk-actions .btn-sm {
+    padding: 0.3rem 1rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--primary);
+    color: #fff;
+}
+.bulk-actions .btn-sm:hover { background: var(--primary-dark); }
+.so-table-wrapper { overflow-x: auto; }
+.so-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.so-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+}
+.so-table td { padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 0.85rem; vertical-align: middle; }
+.so-table tr:hover { background: rgba(200,169,81,0.04); }
+.badge-sm {
+    font-size: 0.6rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 10px;
+    font-weight: 600;
+}
+.badge-sm.pending { background: #fef3e8; color: #a8671a; }
+.badge-sm.paid { background: #e0f7f4; color: #0d7a6b; }
+.badge-sm.collected { background: #e8f2ec; color: #1a3c2e; }
+.badge-sm.cancelled { background: #fdecea; color: #9b2c2c; }
+.btn-sm {
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-primary { background: var(--primary); color: #fff; }
+.btn-sm-primary:hover { background: var(--primary-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.btn-sm-success { background: #e8f2ec; color: #1a3c2e; }
+.btn-sm-success:hover { background: #c8e0d4; }
+.btn-sm-warning { background: #fef3e8; color: #a8671a; }
+.btn-sm-warning:hover { background: #fce4d4; }
+.empty { text-align: center; color: var(--text-muted); padding: 2rem; }
+.pagination { margin-top: 1rem; text-align: center; }
+.pagination .step-links a { color: var(--gold); text-decoration: none; margin: 0 0.2rem; padding: 0.2rem 0.5rem; border-radius: 4px; }
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.3rem; }
+
+@media (max-width: 768px) {
+    .so-header { padding: 1rem 1.25rem; }
+    .so-header-content { flex-direction: column; align-items: stretch; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .bulk-actions { flex-direction: column; align-items: stretch; }
+    .so-table th, .so-table td { font-size: 0.7rem; padding: 0.3rem 0.4rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="so-header">
+    <div class="so-header-content">
+        <div>
+            <span class="so-eyebrow">Business Office</span>
+            <h1>📦 Shop Orders</h1>
+            <p>Manage customer orders and track fulfillment.</p>
+        </div>
+    </div>
+</div>
+
+<div class="so-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search buyer, code..." value="{{ query }}">
+        <select name="status">
+            <option value="">All Status</option>
+            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
+            <option value="collected" {% if status_filter == 'collected' %}selected{% endif %}>Collected</option>
+            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+        <select name="item">
+            <option value="">All Items</option>
+            {% for item in items %}
+            <option value="{{ item.id }}" {% if item_filter == item.id|stringformat:"s" %}selected{% endif %}>{{ item.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query or status_filter or item_filter %}
+        <a href="{% url 'business:admin_shop_order_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<form method="post" id="bulkForm">
+    {% csrf_token %}
+    <div class="bulk-actions">
+        <span style="font-weight:600; font-size:0.75rem;">Bulk Actions:</span>
+        <select name="bulk_action">
+            <option value="">— Select —</option>
+            <option value="mark_paid">✅ Mark Paid</option>
+            <option value="mark_collected">📦 Mark Collected</option>
+            <option value="delete">🗑️ Delete Selected</option>
+        </select>
+        <button type="button" class="btn-sm" id="bulkApplyBtn">Apply</button>
+        <span style="font-size:0.7rem; color:var(--text-muted); margin-left:auto;">
+            <a href="#" onclick="toggleSelectAll(); return false;">Select All</a> / <a href="#" onclick="deselectAll(); return false;">Deselect All</a>
+        </span>
+    </div>
+
+    <div class="so-table-wrapper">
+        <table class="so-table">
+            <thead>
+                <tr>
+                    <th style="width:36px;"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"></th>
+                    <th>Code</th>
+                    <th>Item</th>
+                    <th>Buyer</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th style="width:90px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><input type="checkbox" name="selected_ids" value="{{ order.id }}" class="row-checkbox"></td>
+                    <td><span style="font-size:0.75rem; font-weight:600; color:var(--text-muted);">{{ order.collection_code }}</span></td>
+                    <td>{{ order.item.name }}</td>
+                    <td>{{ order.buyer_name }}</td>
+                    <td>{{ order.quantity }}</td>
+                    <td>₦{{ order.total_amount|floatformat:2 }}</td>
+                    <td><span class="badge-sm {{ order.status }}">{{ order.get_status_display }}</span></td>
+                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <div style="display:flex; gap:0.2rem; flex-wrap:wrap;">
+                            <a href="{% url 'business:admin_shop_order_edit' order.pk %}" class="btn-sm btn-sm-gold" title="Edit"><i class="fas fa-edit"></i></a>
+                            <a href="#" class="btn-sm btn-sm-danger" onclick="event.preventDefault(); if(confirm('Delete this order?')) document.getElementById('delete-form-{{ order.pk }}').submit();" title="Delete"><i class="fas fa-trash"></i></a>
+                            <form id="delete-form-{{ order.pk }}" method="post" action="{% url 'business:admin_shop_order_delete' order.pk %}" style="display:none;">{% csrf_token %}</form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" class="empty">
+                    <span style="font-size:2.5rem; display:block; margin-bottom:0.3rem;">📭</span>
+                    No orders found.
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">‹ Prev</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next ›</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+<script>
+function toggleAllCheckboxes(master) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
+}
+function toggleSelectAll() {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = true);
+    document.getElementById('selectAllCheckbox').checked = true;
+}
+function deselectAll() {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+    document.getElementById('selectAllCheckbox').checked = false;
+}
+document.getElementById('bulkApplyBtn').addEventListener('click', function() {
+    const action = document.querySelector('select[name="bulk_action"]').value;
+    const selected = document.querySelectorAll('.row-checkbox:checked');
+    if (!action || selected.length === 0) {
+        alert('Please select an action and at least one item.');
+        return;
+    }
+    if (confirm('Apply "' + action + '" to ' + selected.length + ' order(s)?')) {
+        document.getElementById('bulkForm').submit();
+    }
+});
+</script>
+
+{% endblock %}

@@ -29,12 +29,15 @@ urlpatterns = [
     path('lostfound/', include('lostfound.urls')),
     path('community/', include('community.urls')),
     path('gallery/', include('gallery.urls')),
-    path('api/communications/', include('communications.api_urls')),
-    path('api/events/', include('events.api_urls')),
-    path('api/', include('api.urls')),
     path('admin/communications/send-custom-message/', send_custom_message, name='admin_send_custom_message'),
     path('admin/', admin.site.urls),
-    path("dashboard/", include("namets_notifications.urls")),
+    path("my_dashboard/", include("namets_notifications.urls")),
+    path('importers/', include('core.importers.urls')),
+    path('accounts/', include('accounts.urls')),
+    path('dashboard/', include('dashboards.urls')),
+    path('business/', include('business.urls')),
+    path('ict/', include('ict.urls')),
+    path('governance/', include('governance.urls')),
 ]
 
 if settings.DEBUG:

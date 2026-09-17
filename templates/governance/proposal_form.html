@@ -1,0 +1,411 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 880px; margin: 0 auto; }
+
+.form-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.form-back:hover { text-decoration: underline; }
+
+.form-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.85rem 2rem;
+    margin-bottom: 1.25rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22);
+}
+.form-head::before {
+    content: "📜"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.1;
+}
+.form-head-inner { position: relative; z-index: 1; }
+.form-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.form-head h2 { font-size: 1.35rem; font-weight: 800; margin: 0 0 0.3rem; }
+.form-head p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+
+.form-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem; box-shadow: var(--shadow-sm);
+}
+
+.form-section-title {
+    font-size: 0.7rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a6a1a; margin: 0 0 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.form-section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent);
+}
+.form-section-title:not(:first-child) { margin-top: 2rem; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.9rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label {
+    font-weight: 700; color: #0F3D2E;
+    font-size: 0.8rem; margin-bottom: 0.35rem;
+}
+.form-group label .required { color: #e53e3e; margin-left: 0.15rem; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.65rem 0.9rem;
+    border: 1px solid #d0d9d6; border-radius: 10px;
+    font-size: 0.9rem; background: #fff;
+    font-family: inherit; transition: all 0.2s;
+    color: #0F3D2E;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 4px rgba(200,169,81,0.15);
+}
+.form-group .help {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.3rem; line-height: 1.4;
+}
+.form-group .error {
+    font-size: 0.78rem; color: #c0392b;
+    margin-top: 0.35rem;
+    padding: 0.4rem 0.7rem;
+    background: #fdecea; border-radius: 6px;
+}
+
+/* Budget input with ₦ prefix */
+.budget-input-wrap {
+    position: relative;
+}
+.budget-input-wrap::before {
+    content: '₦';
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 800;
+    color: #8a9b95;
+    pointer-events: none;
+    font-size: 0.95rem;
+}
+.budget-input-wrap input { padding-left: 1.9rem !important; }
+
+/* Voting window preset buttons */
+.presets {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+}
+.preset-btn {
+    padding: 0.4rem 1rem; border-radius: 50px;
+    font-size: 0.75rem; font-weight: 700;
+    background: #f0f4f2; color: #4a5568;
+    border: 1.5px solid transparent;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s;
+}
+.preset-btn:hover { background: #e0e8e5; color: #0F3D2E; transform: translateY(-1px); }
+.preset-btn.active {
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff;
+    border-color: #0F3D2E;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.2);
+}
+
+/* Rules explainer */
+.rules-explainer {
+    background: #f8faf9;
+    border-left: 4px solid #C8A951;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    font-size: 0.82rem;
+    color: #4a5568;
+    line-height: 1.65;
+}
+.rules-explainer strong { color: #0F3D2E; }
+.rules-explainer ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+.rules-explainer li { margin-bottom: 0.25rem; }
+
+/* Live preview */
+.preview-box {
+    background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 100%);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.25rem;
+}
+.preview-box .pb-title {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #8a6a1a; margin-bottom: 0.75rem;
+    display: flex; align-items: center; gap: 0.4rem;
+}
+.preview-box .pb-body {
+    font-size: 0.88rem; color: #4a3a10;
+    line-height: 1.6;
+}
+.preview-box .pb-body strong { color: #0F3D2E; }
+.preview-box .pb-body .highlight {
+    display: inline-block;
+    background: #0F3D2E; color: #C8A951;
+    padding: 0.1rem 0.6rem; border-radius: 20px;
+    font-weight: 800; font-size: 0.8rem;
+    margin: 0 0.15rem;
+}
+
+.form-actions {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    margin-top: 2rem; padding-top: 1.5rem;
+    border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-submit {
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff;
+    padding: 0.85rem 2rem;
+    border: none; border-radius: 50px;
+    font-weight: 800; font-size: 0.9rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    box-shadow: 0 6px 20px rgba(15,61,46,0.25);
+    transition: all 0.25s;
+}
+.btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(15,61,46,0.35); }
+.btn-submit:disabled { opacity: 0.6; cursor: wait; }
+
+.btn-cancel {
+    background: var(--gold); color: var(--primary);
+    padding: 0.85rem 1.75rem;
+    border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.88rem;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.btn-cancel:hover { background: #E0C96E; color: var(--primary); transform: translateY(-2px); }
+
+@media (max-width: 640px) {
+    .form-card { padding: 1.5rem 1.25rem; }
+    .form-row { grid-template-columns: 1fr; gap: 0.75rem; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn-submit, .form-actions .btn-cancel {
+        width: 100%; justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="form-container">
+
+    <a href="{% url 'governance:proposal_list' %}" class="form-back">
+        <i class="fas fa-arrow-left"></i> Back to Proposals
+    </a>
+
+    <div class="form-head">
+        <div class="form-head-inner">
+            <span class="form-eyebrow">Governance · Proposal</span>
+            <h2>{{ title }}</h2>
+            <p>{% if proposal %}Update the proposal.{% else %}Draft a proposal for the EXCO to vote on.{% endif %}</p>
+        </div>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div style="background:#fdecea;border-left:4px solid #c0392b;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;color:#9b2c2c;font-size:0.88rem;">
+        <strong style="display:block;margin-bottom:0.4rem;">Please fix the following:</strong>
+        <ul style="margin:0;padding-left:1.2rem;">
+            {% for err in form.non_field_errors %}<li>{{ err }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" class="form-card" novalidate id="proposalForm">
+        {% csrf_token %}
+
+        <!-- BASICS -->
+        <div class="form-section-title"><i class="fas fa-align-left"></i> The Proposal</div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.title.id_for_label }}">Title <span class="required">*</span></label>
+                {{ form.title }}
+                {% if form.title.errors %}<div class="error">{{ form.title.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.description.id_for_label }}">Description <span class="required">*</span></label>
+                {{ form.description }}
+                <div class="help">
+                    Explain the proposal clearly: what it is, why it matters, how much it costs,
+                    and any alternatives considered.
+                </div>
+                {% if form.description.errors %}<div class="error">{{ form.description.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.proposed_budget.id_for_label }}">Proposed Budget</label>
+                <div class="budget-input-wrap">
+                    {{ form.proposed_budget }}
+                </div>
+                <div class="help">Leave as 0 if this proposal has no financial cost.</div>
+                {% if form.proposed_budget.errors %}<div class="error">{{ form.proposed_budget.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- VOTING WINDOW -->
+        <div class="form-section-title"><i class="fas fa-clock"></i> Voting Window</div>
+
+        <div class="presets" id="presets">
+            <button type="button" class="preset-btn" data-days="1">1 day</button>
+            <button type="button" class="preset-btn active" data-days="7">1 week</button>
+            <button type="button" class="preset-btn" data-days="14">2 weeks</button>
+            <button type="button" class="preset-btn" data-days="30">1 month</button>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.voting_start.id_for_label }}">Voting Starts <span class="required">*</span></label>
+                {{ form.voting_start }}
+                {% if form.voting_start.errors %}<div class="error">{{ form.voting_start.errors|join:" " }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.voting_end.id_for_label }}">Voting Ends <span class="required">*</span></label>
+                {{ form.voting_end }}
+                {% if form.voting_end.errors %}<div class="error">{{ form.voting_end.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- RULES -->
+        <div class="form-section-title"><i class="fas fa-gavel"></i> Voting Rules</div>
+
+        <div class="rules-explainer">
+            <strong>How the result is decided:</strong>
+            <ul>
+                <li><strong>Quorum</strong> — minimum % of eligible voters who must vote for the result to count at all.</li>
+                <li><strong>Approval threshold</strong> — minimum % of votes cast that must be "Agree" for the proposal to pass.</li>
+                <li>If quorum isn't reached, the proposal is automatically <strong>rejected</strong> regardless of votes.</li>
+            </ul>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.quorum_percentage.id_for_label }}">Quorum (%)</label>
+                {{ form.quorum_percentage }}
+                <div class="help">{{ form.quorum_percentage.help_text }}</div>
+                {% if form.quorum_percentage.errors %}<div class="error">{{ form.quorum_percentage.errors|join:" " }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.approval_percentage.id_for_label }}">Approval Threshold (%)</label>
+                {{ form.approval_percentage }}
+                <div class="help">{{ form.approval_percentage.help_text }}</div>
+                {% if form.approval_percentage.errors %}<div class="error">{{ form.approval_percentage.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- LIVE PREVIEW -->
+        <div class="preview-box">
+            <div class="pb-title"><i class="fas fa-eye"></i> Preview</div>
+            <div class="pb-body" id="previewText">
+                Fill in the fields above to see a live summary.
+            </div>
+        </div>
+
+        <!-- SUBMIT -->
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> {{ button_text }}
+            </button>
+            <a href="{% url 'governance:proposal_list' %}" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+// ============ VOTING WINDOW PRESETS ============
+(function() {
+    const presets = document.querySelectorAll('.preset-btn');
+    const startField = document.getElementById('{{ form.voting_start.id_for_label }}');
+    const endField = document.getElementById('{{ form.voting_end.id_for_label }}');
+
+    if (!startField || !endField) return;
+
+    function toLocalISO(date) {
+        const pad = n => String(n).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    presets.forEach(btn => {
+        btn.addEventListener('click', () => {
+            presets.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const days = parseInt(btn.dataset.days);
+            const now = new Date();
+            const end = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+            startField.value = toLocalISO(now);
+            endField.value = toLocalISO(end);
+            updatePreview();
+        });
+    });
+})();
+
+// ============ LIVE PREVIEW ============
+(function() {
+    const titleField = document.getElementById('{{ form.title.id_for_label }}');
+    const budgetField = document.getElementById('{{ form.proposed_budget.id_for_label }}');
+    const endField = document.getElementById('{{ form.voting_end.id_for_label }}');
+    const quorumField = document.getElementById('{{ form.quorum_percentage.id_for_label }}');
+    const approvalField = document.getElementById('{{ form.approval_percentage.id_for_label }}');
+    const preview = document.getElementById('previewText');
+
+    function updatePreview() {
+        if (!preview) return;
+        const title = titleField?.value?.trim() || 'Untitled proposal';
+        const budget = parseFloat(budgetField?.value || 0);
+        const end = endField?.value ? new Date(endField.value).toLocaleString() : 'not set';
+        const quorum = quorumField?.value || '—';
+        const approval = approvalField?.value || '—';
+
+        let html = `<strong>${title}</strong>`;
+        if (budget > 0) {
+            html += ` — budget of <span class="highlight">₦${budget.toLocaleString()}</span>`;
+        }
+        html += `<br>Voting closes <strong>${end}</strong>.`;
+        html += `<br>Requires <strong>${quorum}%</strong> quorum and <strong>${approval}%</strong> approval to pass.`;
+        preview.innerHTML = html;
+    }
+
+    [titleField, budgetField, endField, quorumField, approvalField].forEach(el => {
+        if (el) {
+            el.addEventListener('input', updatePreview);
+            el.addEventListener('change', updatePreview);
+        }
+    });
+    updatePreview();
+})();
+
+// ============ SUBMIT STATE ============
+document.getElementById('proposalForm').addEventListener('submit', function() {
+    const btn = this.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+});
+</script>
+
+{% endblock %}

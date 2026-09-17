@@ -1,0 +1,130 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Membership Application Detail · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-container { max-width: 800px; margin: 0 auto; }
+.detail-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.detail-header-content { position: relative; color: #fff; }
+.detail-eyebrow { display: inline-block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #C8A951; background: rgba(200,169,81,0.15); padding: 0.2rem 0.8rem; border-radius: 20px; margin-bottom: 0.5rem; }
+.detail-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.3rem; }
+.detail-header p { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+
+.detail-card { background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 2rem; }
+.detail-card .section { margin-bottom: 1.5rem; }
+.detail-card .section:last-child { margin-bottom: 0; }
+.detail-card .section h3 { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid rgba(200,169,81,0.2); }
+.detail-card .field { display: flex; padding: 0.25rem 0; }
+.detail-card .field .label { font-weight: 600; color: var(--text-muted); min-width: 140px; flex-shrink: 0; }
+.detail-card .field .value { color: var(--text-secondary); }
+
+.detail-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.05); }
+.btn-primary { background: var(--primary); color: #fff; padding: 0.6rem 2rem; border: none; border-radius: 50px; font-weight: 600; text-decoration: none; transition: var(--transition); }
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-secondary { background: var(--gold); color: var(--text-primary); padding: 0.6rem 2rem; border: none; border-radius: 50px; font-weight: 600; text-decoration: none; transition: var(--transition); }
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+.btn-success { background: #2d7d4e; color: #fff; }
+.btn-success:hover { background: #1a5a44; transform: translateY(-2px); }
+.btn-warning { background: #d48b3a; color: #fff; }
+.btn-warning:hover { background: #b8732e; transform: translateY(-2px); }
+.badge-sm { font-size: 0.65rem; padding: 0.1rem 0.5rem; border-radius: 12px; font-weight: 600; }
+.badge-success { background: #e8f2ec; color: #1a3c2e; }
+.badge-warning { background: #fef3e8; color: #a8671a; }
+
+@media (max-width: 768px) {
+    .detail-header { padding: 1.4rem 1.25rem; border-radius: 18px; }
+    .detail-card { padding: 1.25rem; }
+    .detail-card .field { flex-direction: column; }
+    .detail-card .field .label { min-width: auto; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="detail-container">
+    <div class="detail-header">
+        <div class="detail-header-content">
+            <span class="detail-eyebrow">Membership Application</span>
+            <h1>{{ application.name }}</h1>
+            <p>{{ application.email }} &bull; {{ application.department|default:"No department" }}</p>
+        </div>
+    </div>
+
+    <div class="detail-card">
+        <div class="section">
+            <h3>👤 Personal Information</h3>
+            <div class="field"><span class="label">Full Name</span><span class="value">{{ application.name }}</span></div>
+            <div class="field"><span class="label">Email</span><span class="value">{{ application.email }}</span></div>
+            <div class="field"><span class="label">Phone</span><span class="value">{{ application.phone }}</span></div>
+            <div class="field"><span class="label">Gender</span><span class="value">{{ application.get_gender_display }}</span></div>
+            <div class="field"><span class="label">Registration Number</span><span class="value">{{ application.reg_number|default:"Not provided" }}</span></div>
+            <div class="field"><span class="label">Department</span><span class="value">{{ application.department|default:"Not provided" }}</span></div>
+            <div class="field"><span class="label">Campus Residence</span><span class="value">{{ application.campus_residence|yesno:"Yes,No" }}</span></div>
+        </div>
+
+        <div class="section">
+            <h3>🕌 Islamic Background</h3>
+            <div class="field"><span class="label">Islamic Knowledge</span><span class="value">{{ application.get_islamic_knowledge_display }}</span></div>
+            <div class="field"><span class="label">Quran Memorization</span><span class="value">{{ application.get_quran_memorization_display }}</span></div>
+        </div>
+
+        <div class="section">
+            <h3>🔧 Skills & Qualities</h3>
+            <div class="field"><span class="label">Skills</span><span class="value">
+                {% if application.skills.exists %}
+                    {{ application.skills.all|join:", " }}
+                {% else %}
+                    None selected
+                {% endif %}
+            </span></div>
+            {% if application.other_skill %}
+            <div class="field"><span class="label">Other Skill</span><span class="value">{{ application.other_skill }}</span></div>
+            {% endif %}
+            <div class="field"><span class="label">How Work With People</span><span class="value">{{ application.how_work_with_people|linebreaksbr }}</span></div>
+            <div class="field"><span class="label">Recommendations</span><span class="value">{{ application.recommendations|linebreaksbr }}</span></div>
+        </div>
+
+        <div class="section">
+            <h3>📌 Status</h3>
+            <div class="field"><span class="label">Status</span><span class="value">
+                {% if application.is_processed %}
+                <span class="badge-sm badge-success">Processed</span>
+                {% else %}
+                <span class="badge-sm badge-warning">Pending</span>
+                {% endif %}
+            </span></div>
+            <div class="field"><span class="label">Submitted</span><span class="value">{{ application.submitted_at|date:"M d, Y" }}</span></div>
+        </div>
+
+        <div class="detail-actions">
+            <a href="{% url 'community:admin_membership_application_list' %}" class="btn-secondary">← Back</a>
+            {% if not application.is_processed %}
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="mark_processed" value="{{ application.id }}">
+                <button type="submit" class="btn-success">✅ Mark Processed</button>
+            </form>
+            {% else %}
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="mark_unprocessed" value="{{ application.id }}">
+                <button type="submit" class="btn-warning">⛔ Mark Unprocessed</button>
+            </form>
+            {% endif %}
+            <a href="{% url 'community:admin_membership_application_edit' application.pk %}" class="btn-primary">
+                <i class="fas fa-edit"></i> Edit Application
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

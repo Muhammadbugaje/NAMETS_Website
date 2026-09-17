@@ -1,0 +1,330 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Documents · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.doc-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.doc-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.doc-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.doc-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.doc-header-text h1 { font-size: 1.6rem; font-weight: 700; color: #fff; margin: 0 0 0.3rem; }
+.doc-header-text p { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+.doc-header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.doc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.25s;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.doc-btn:hover { background: rgba(255,255,255,0.2); color: #fff; transform: translateY(-2px); }
+
+.doc-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.filter-form input {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 200px;
+}
+.filter-form .btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.filter-form .clear {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.bulk-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0.75rem 0;
+    padding: 0.75rem 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.bulk-actions select {
+    padding: 0.4rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+}
+.bulk-actions .btn-sm {
+    padding: 0.4rem 1.2rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--primary); color: #fff;
+}
+.bulk-actions .btn-sm:hover { background: var(--primary-dark); }
+
+.doc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+.doc-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+.doc-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--gold);
+}
+.doc-card .doc-title {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1.05rem;
+    margin: 0 0 0.2rem;
+}
+.doc-card .doc-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0.2rem 0 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.doc-card .doc-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+.doc-card .doc-meta i { margin-right: 0.2rem; }
+.doc-card .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.doc-card .footer .btn-sm {
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.badge-sm {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+.badge-success { background: #e8f2ec; color: #1a3c2e; }
+.badge-danger { background: #fdecea; color: #9b2c2c; }
+
+.empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 3rem 2rem; }
+.empty .empty-icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
+
+.pagination { margin-top: 1.5rem; text-align: center; }
+.pagination .step-links a {
+    color: var(--gold);
+    text-decoration: none;
+    margin: 0 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+}
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.5rem; }
+
+@media (max-width: 768px) {
+    .doc-header { padding: 1.4rem 1.25rem; border-radius: 18px; }
+    .doc-header-content { flex-direction: column; align-items: stretch; }
+    .doc-btn { width: 100%; justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .bulk-actions { flex-direction: column; align-items: stretch; }
+    .doc-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="doc-header">
+    <div class="doc-header-glow" aria-hidden="true"></div>
+    <div class="doc-header-content">
+        <div class="doc-header-text">
+            <span class="doc-eyebrow">Resources</span>
+            <h1>📄 Documents</h1>
+            <p>Manage NAMETS documents like constitution, reports, and guides.</p>
+        </div>
+        <div class="doc-header-actions">
+            {% if perms.community.add_nametsdocument %}
+            <a href="{% url 'community:admin_document_create' %}" class="doc-btn">
+                <i class="fas fa-plus-circle"></i> Upload Document
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="doc-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search by title or description..." value="{{ query }}">
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query %}
+        <a href="{% url 'community:admin_document_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<form method="post" id="bulkForm">
+    {% csrf_token %}
+    <div class="bulk-actions">
+        <span style="font-weight:600; font-size:0.9rem;">Bulk Actions:</span>
+        <select name="bulk_action">
+            <option value="">— Select —</option>
+            <option value="delete">🗑️ Delete Selected</option>
+            <option value="activate">✅ Activate</option>
+            <option value="deactivate">⛔ Deactivate</option>
+        </select>
+        <button type="submit" class="btn-sm" onclick="return confirm('Apply bulk action to selected documents?');">Apply</button>
+        <span style="font-size:0.8rem; color:var(--text-muted); margin-left:auto;">
+            <a href="#" onclick="toggleSelectAll(); return false;">Select All</a> / <a href="#" onclick="deselectAll(); return false;">Deselect All</a>
+        </span>
+    </div>
+
+    <div class="doc-grid">
+        {% for document in documents %}
+        <div class="doc-card" onclick="window.location.href='{% url 'community:admin_document_edit' document.pk %}'">
+            <div style="display:flex; align-items:flex-start; gap:0.5rem;">
+                <input type="checkbox" name="selected_ids" value="{{ document.id }}" class="row-checkbox" style="margin-top:0.2rem;" onclick="event.stopPropagation();">
+                <div style="flex:1;">
+                    <div class="doc-title">{{ document.title }}</div>
+                    <div class="doc-desc">{{ document.description|truncatechars:80 }}</div>
+                    <div class="doc-meta">
+                        <i class="far fa-calendar-alt"></i> {{ document.uploaded_at|date:"M d, Y" }}
+                        {% if document.file %}<i class="fas fa-file" style="margin-left:0.5rem;"></i> PDF{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                {% if document.is_active %}
+                <span class="badge-sm badge-success">Active</span>
+                {% else %}
+                <span class="badge-sm badge-danger">Inactive</span>
+                {% endif %}
+                <div style="display:flex; gap:0.3rem;">
+                    {% if document.file %}
+                    <a href="{{ document.file.url }}" target="_blank" class="btn-sm btn-sm-gold" onclick="event.stopPropagation();" title="Download">
+                        <i class="fas fa-download"></i>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'community:admin_document_edit' document.pk %}" class="btn-sm btn-sm-gold" onclick="event.stopPropagation();">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'community:admin_document_delete' document.pk %}" class="btn-sm btn-sm-danger" onclick="event.stopPropagation();">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty">
+            <span class="empty-icon">📄</span>
+            <h3>No documents found</h3>
+            <p>Upload your first NAMETS document.</p>
+        </div>
+        {% endfor %}
+    </div>
+</form>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% if query %}&q={{ query }}{% endif %}">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">previous</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+<script>
+    function toggleSelectAll() { document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = true); }
+    function deselectAll() { document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false); }
+</script>
+{% endblock %}

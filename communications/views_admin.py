@@ -3,18 +3,17 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from .models import Subscriber
 from community.models import Patron
-from core.services.webhooks import send_webhook
+from core.email_utils import send_templated_email
+
 
 @staff_member_required
 def send_custom_message(request):
     if request.method == 'POST':
-        # Get selected IDs from form
         subscriber_ids = request.POST.getlist('subscribers')
         patron_ids = request.POST.getlist('patrons')
         subject = request.POST.get('subject', '').strip()
         body = request.POST.get('body', '').strip()
 
-        # Collect emails
         emails = []
         if subscriber_ids:
             emails.extend(Subscriber.objects.filter(
@@ -30,17 +29,20 @@ def send_custom_message(request):
         elif not subject or not body:
             messages.error(request, "Subject and body are required.")
         else:
-            payload = {
-                'recipients': list(emails),
-                'subject': subject,
-                'body': body,
-            }
-            send_webhook('admin_message', payload)
+            for email in emails:
+                send_templated_email(
+                    subject=subject,
+                    recipients=[email],
+                    template_name='emails/admin_message.html',
+                    context={
+                        'subject': subject,
+                        'body': body,
+                    },
+                )
             messages.success(request, f"Message sent to {len(emails)} recipient(s).")
 
         return redirect('admin:communications_subscriber_changelist')
 
-    # GET: display form, with pre-selected subscribers from session
     selected_ids = request.session.pop('selected_subscriber_ids', [])
     subscribers = Subscriber.objects.filter(is_active=True).order_by('email')
     patrons = Patron.objects.filter(is_active=True).exclude(email='').order_by('name')

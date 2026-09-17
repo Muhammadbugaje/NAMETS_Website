@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .upload-section {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 0;
+    }
+    .upload-header {
+        background: linear-gradient(135deg, #0F3D2E 0%, #1A5A44 100%);
+        color: #ffffff;
+        padding: 2rem 2.5rem;
+        border-radius: 16px 16px 0 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .upload-header::after {
+        content: "📊";
+        position: absolute;
+        right: 2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 4rem;
+        opacity: 0.15;
+    }
+    .upload-header h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+    .upload-header p {
+        margin: 0.5rem 0 0;
+        opacity: 0.85;
+        font-size: 1rem;
+    }
+    .upload-body {
+        background: #ffffff;
+        padding: 2.5rem;
+        border-radius: 0 0 16px 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+    .upload-body .template-btn {
+        display: inline-block;
+        background: #f0f7f4;
+        color: #0F3D2E;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        border: 2px solid #C8A951;
+    }
+    .upload-body .template-btn:hover {
+        background: #C8A951;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(200, 169, 81, 0.3);
+    }
+    .drop-zone {
+        border: 3px dashed #d0d9d6;
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background: #fafcfb;
+        margin: 1.5rem 0;
+        position: relative;
+    }
+    .drop-zone:hover,
+    .drop-zone.dragover {
+        border-color: #C8A951;
+        background: #f8faf9;
+    }
+    .drop-zone .icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 0.75rem;
+    }
+    .drop-zone p {
+        color: #5a6b65;
+        margin: 0;
+        font-size: 1.05rem;
+    }
+    .drop-zone .sub {
+        color: #8a9b95;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+    .drop-zone input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+    .upload-btn {
+        background: linear-gradient(135deg, #0F3D2E 0%, #1A5A44 100%);
+        color: #ffffff;
+        border: none;
+        padding: 0.9rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        width: 100%;
+        max-width: 300px;
+        display: block;
+        margin: 0 auto;
+    }
+    .upload-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(15, 61, 46, 0.25);
+    }
+    .upload-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .columns-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 0.5rem 1.5rem;
+        margin: 1rem 0 0;
+        padding: 0;
+        list-style: none;
+    }
+    .columns-list li {
+        padding: 0.4rem 0;
+        border-bottom: 1px solid #f0f4f2;
+        font-size: 0.95rem;
+        color: #2d3748;
+    }
+    .columns-list li .optional {
+        color: #8a9b95;
+        font-size: 0.85rem;
+    }
+    .columns-list li .choices {
+        color: #C8A951;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .back-link {
+        display: inline-block;
+        margin-top: 1.5rem;
+        color: #0F3D2E;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .back-link:hover {
+        text-decoration: underline;
+    }
+    .required-badge {
+        background: #e8edec;
+        color: #0F3D2E;
+        font-size: 0.7rem;
+        padding: 0.1rem 0.6rem;
+        border-radius: 20px;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    .form-group {
+        margin: 1.5rem 0 1rem;
+    }
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #0F3D2E;
+        margin-bottom: 0.4rem;
+    }
+    .form-group select {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border: 2px solid #e0e8e5;
+        border-radius: 8px;
+        font-size: 1rem;
+        background: #ffffff;
+        transition: border-color 0.2s;
+    }
+    .form-group select:focus {
+        border-color: #C8A951;
+        outline: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-section">
+    <!-- Header -->
+    <div class="upload-header">
+        <h1>📂 Import {{ spec.label }}</h1>
+        <p>Upload your Excel file and we'll guide you through the review process.</p>
+    </div>
+
+    <!-- Body -->
+    <div class="upload-body">
+        <!-- Template Download -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h3 style="margin: 0; color: #0F3D2E;">Step 1: Get the template</h3>
+                <p style="color: #5a6b65; margin: 0.25rem 0 0;">Download the Excel template and fill it with your data.</p>
+            </div>
+            <a href="{% url 'importers:template' spec.key %}" class="template-btn">
+                📥 Download Template
+            </a>
+        </div>
+
+        <hr style="border: none; border-top: 2px solid #f0f4f2; margin: 1.5rem 0;">
+
+        <!-- Upload Form -->
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+
+            <!-- Evaluation Selector (only for results) -->
+            {% if evaluations %}
+            <div class="form-group">
+                <label for="evaluation_select">📋 Select the evaluation these results belong to</label>
+                <select name="evaluation_id" id="evaluation_select" required>
+                    <option value="">— Select an evaluation —</option>
+                    {% for eval in evaluations %}
+                    <option value="{{ eval.id }}">{{ eval.title }} — {{ eval.course.name }} ({{ eval.date|date:"M d, Y" }})</option>
+                    {% endfor %}
+                </select>
+                <small style="color: #8a9b95; display: block; margin-top: 0.3rem;">
+                    All results in this file will be added to this single evaluation.
+                </small>
+            </div>
+            {% endif %}
+
+            <!-- Drop Zone -->
+            <div class="drop-zone" id="dropZone">
+                <span class="icon">📤</span>
+                <p><strong>Drop your Excel file here</strong></p>
+                <p class="sub">or click to browse</p>
+                <input type="file" name="excel_file" accept=".xlsx" required>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="upload-btn" id="uploadBtn">
+                <span class="btn-text">🔄 Upload & Review</span>
+                <span class="spinner-border spinner-border-sm d-none" id="uploadSpinner" style="vertical-align: middle;"></span>
+            </button>
+        </form>
+
+        <!-- Expected Columns -->
+        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid #f0f4f2;">
+            <h4 style="color: #0F3D2E; margin: 0 0 0.5rem;">📋 Expected columns</h4>
+            <ul class="columns-list">
+                {% for col in spec.columns %}
+                <li>
+                    <strong>{{ col.header }}</strong>
+                    <span class="required-badge">
+                        {% if col.required %}Required{% else %}Optional{% endif %}
+                    </span>
+                    {% if col.choices %}
+                    <span class="choices">— one of: {{ col.choices|join:", " }}</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <a href="{% url 'ict:user_list' %}" class="back-link">← Back to Users</a>
+    </div>
+</div>
+
+<script>
+    // Drop zone behavior
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = dropZone.querySelector('input[type="file"]');
+    const form = document.getElementById('uploadForm');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const btnText = uploadBtn.querySelector('.btn-text');
+    const spinner = document.getElementById('uploadSpinner');
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            // Show file name
+            const name = e.dataTransfer.files[0].name;
+            dropZone.querySelector('p').innerHTML = `<strong>📄 ${name}</strong>`;
+            dropZone.querySelector('.sub').textContent = 'File ready!';
+            dropZone.style.borderColor = '#C8A951';
+            dropZone.style.background = '#f8faf9';
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+            const name = fileInput.files[0].name;
+            dropZone.querySelector('p').innerHTML = `<strong>📄 ${name}</strong>`;
+            dropZone.querySelector('.sub').textContent = 'File ready!';
+            dropZone.style.borderColor = '#C8A951';
+            dropZone.style.background = '#f8faf9';
+        }
+    });
+
+    // Submit spinner
+    form.addEventListener('submit', () => {
+        uploadBtn.disabled = true;
+        btnText.textContent = 'Uploading...';
+        spinner.classList.remove('d-none');
+    });
+</script>
+{% endblock %}

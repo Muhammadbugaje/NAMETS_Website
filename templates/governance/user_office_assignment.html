@@ -1,0 +1,343 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}User Assignments · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.uo-wrap { max-width: 1100px; margin: 0 auto; }
+.uo-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.uo-back:hover { text-decoration: underline; }
+
+.uo-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22);
+}
+.uo-head::before {
+    content: "👥"; font-size: 6rem;
+    position: absolute; bottom: -1.2rem; right: 1.5rem; opacity: 0.08;
+}
+.uo-head-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.uo-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px; margin-bottom: 0.5rem;
+}
+.uo-head h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.3rem; }
+.uo-head p { color: rgba(255,255,255,0.78); font-size: 0.88rem; margin: 0; max-width: 560px; line-height: 1.55; }
+
+/* Card */
+.card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem 1.75rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.25rem;
+}
+.card-title {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #8a6a1a; margin: 0 0 1.1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.card-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent);
+}
+
+/* Assignment form */
+.assign-form {
+    display: grid;
+    grid-template-columns: 1.5fr 1.5fr 1.5fr auto;
+    gap: 0.75rem;
+    align-items: end;
+}
+@media (max-width: 900px) {
+    .assign-form { grid-template-columns: 1fr; }
+}
+.assign-field { display: flex; flex-direction: column; }
+.assign-field label {
+    font-size: 0.75rem; font-weight: 700;
+    color: #0F3D2E; margin-bottom: 0.35rem;
+}
+.assign-field select, .assign-field input {
+    width: 100%; padding: 0.65rem 0.9rem;
+    border: 1px solid #d0d9d6; border-radius: 10px;
+    font-size: 0.88rem; background: #fff;
+    font-family: inherit; transition: all 0.2s;
+}
+.assign-field select:focus, .assign-field input:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 4px rgba(200,169,81,0.15);
+}
+.assign-btn {
+    padding: 0.7rem 1.5rem;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff; border: none; border-radius: 50px;
+    font-weight: 800; font-size: 0.85rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    box-shadow: 0 6px 18px rgba(15,61,46,0.22);
+    transition: all 0.25s;
+    white-space: nowrap;
+    height: 42px;
+}
+.assign-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(15,61,46,0.3); }
+.assign-btn:disabled { opacity: 0.6; cursor: wait; }
+
+/* Assignments list */
+.assign-group {
+    margin-bottom: 1.5rem;
+}
+.assign-group:last-child { margin-bottom: 0; }
+
+.assign-group-head {
+    display: flex; justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.15rem;
+    background: linear-gradient(135deg, #f8faf9 0%, #f0f4f2 100%);
+    border-left: 4px solid var(--gold);
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+}
+.assign-group-name {
+    font-size: 0.92rem; font-weight: 800;
+    color: #0F3D2E;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.assign-group-name i { color: #C8A951; }
+.assign-group-count {
+    font-size: 0.7rem; font-weight: 800;
+    background: rgba(200,169,81,0.18);
+    color: #8a6a1a;
+    padding: 0.2rem 0.65rem; border-radius: 20px;
+}
+
+.assign-list {
+    list-style: none; padding: 0; margin: 0;
+}
+.assign-item {
+    display: flex; align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.1rem;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s;
+}
+.assign-item:last-child { margin-bottom: 0; }
+.assign-item:hover {
+    border-color: rgba(200,169,81,0.4);
+    box-shadow: 0 4px 14px rgba(15,61,46,0.06);
+}
+.assign-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 800;
+    border: 2px solid #C8A951;
+    flex-shrink: 0;
+}
+.assign-info { flex: 1; min-width: 0; }
+.assign-name {
+    font-size: 0.9rem; font-weight: 700;
+    color: #0F3D2E;
+    margin: 0 0 0.15rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.assign-label {
+    font-size: 0.72rem; color: #8a6b1a;
+    font-weight: 600;
+}
+.assign-date {
+    font-size: 0.68rem; color: #8a9b95;
+    margin-top: 0.1rem;
+}
+.assign-remove {
+    padding: 0.45rem 1rem;
+    background: #fdecea; color: #9b2c2c;
+    border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.72rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.assign-remove:hover { background: #f5c2bc; }
+.assign-protected {
+    padding: 0.35rem 0.85rem;
+    background: #e6f0fb; color: #185fa5;
+    border-radius: 50px;
+    font-size: 0.68rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.empty-state {
+    text-align: center; padding: 3rem 1.5rem;
+    color: #8a9b95;
+}
+.empty-state .ic { font-size: 3rem; display: block; margin-bottom: 0.6rem; opacity: 0.5; }
+.empty-state h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1rem; }
+.empty-state p { font-size: 0.85rem; margin: 0; }
+
+@media (max-width: 768px) {
+    .uo-head { padding: 1.35rem 1.35rem 1.25rem; }
+    .uo-head h1 { font-size: 1.25rem; }
+    .uo-head-inner { flex-direction: column; align-items: stretch; }
+    .card { padding: 1.25rem 1.35rem; }
+    .assign-item { flex-wrap: wrap; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="uo-wrap">
+
+    <a href="{% url 'governance:office_list' %}" class="uo-back">
+        <i class="fas fa-arrow-left"></i> Back to Offices
+    </a>
+
+    <div class="uo-head">
+        <div class="uo-head-inner">
+            <div>
+                <span class="uo-eyebrow">Governance · Assignments</span>
+                <h1>User Office Assignments</h1>
+                <p>Assign members to offices. Each assignment gives them every permission their office holds.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment form -->
+    <div class="card">
+        <h3 class="card-title"><i class="fas fa-user-plus"></i> Assign User to Office</h3>
+        <form method="post" class="assign-form" id="assignForm">
+            {% csrf_token %}
+            <div class="assign-field">
+                <label for="user">Member</label>
+                <select name="user" id="user" required>
+                    <option value="">— Select member —</option>
+                    {% for u in active_users %}
+                    <option value="{{ u.pk }}" {% if target_user and target_user.pk == u.pk %}selected{% endif %}>
+                        {{ u.get_full_name|default:u.username }} ({{ u.email }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="assign-field">
+                <label for="office">Office</label>
+                <select name="office" id="office" required>
+                    <option value="">— Select office —</option>
+                    {% for o in all_offices %}
+                    <option value="{{ o.pk }}">{{ o.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="assign-field">
+                <label for="display_label">Display Label (optional)</label>
+                <input type="text" name="display_label" id="display_label"
+                       placeholder="e.g. Wakeelah, PRO I (Sister)">
+            </div>
+            <button type="submit" class="assign-btn" id="assignBtn">
+                <i class="fas fa-plus"></i> Assign
+            </button>
+        </form>
+    </div>
+
+    <!-- Current assignments grouped by office -->
+    <div class="card">
+        <h3 class="card-title"><i class="fas fa-list"></i> Current Assignments ({{ assignments|length }})</h3>
+
+        {% regroup assignments by office as office_groups %}
+
+        {% if assignments %}
+            {% for group in office_groups %}
+            <div class="assign-group">
+                <div class="assign-group-head">
+                    <div class="assign-group-name">
+                        <i class="fas fa-briefcase"></i> {{ group.grouper.name }}
+                    </div>
+                    <span class="assign-group-count">{{ group.list|length }} member{{ group.list|length|pluralize }}</span>
+                </div>
+                <ul class="assign-list">
+                    {% for a in group.list %}
+                    <li class="assign-item">
+                        <div class="assign-avatar">
+                            {{ a.user.first_name|first|upper }}{{ a.user.last_name|first|upper }}
+                        </div>
+                        <div class="assign-info">
+                            <div class="assign-name">{{ a.user.get_full_name|default:a.user.username }}</div>
+                            {% if a.display_label %}
+                            <div class="assign-label">{{ a.display_label }}</div>
+                            {% endif %}
+                            <div class="assign-date">
+                                <i class="far fa-clock"></i> Since {{ a.assigned_at|date:"M d, Y" }}
+                            </div>
+                        </div>
+                        {% if a.office.is_protected %}
+                        <span class="assign-protected">
+                            <i class="fas fa-lock"></i> Protected
+                        </span>
+                        {% else %}
+                        <button type="button" class="assign-remove"
+                                onclick="confirmUnassign('{{ a.pk }}', '{{ a.user.get_full_name|default:a.user.username|escapejs }}', '{{ a.office.name|escapejs }}')">
+                            <i class="fas fa-user-minus"></i> Remove
+                        </button>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <span class="ic">👥</span>
+                <h3>No assignments yet</h3>
+                <p>Use the form above to assign the first member to an office.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<form method="post" id="unassignForm" style="display:none;">{% csrf_token %}</form>
+
+<script>
+document.getElementById('assignForm').addEventListener('submit', function() {
+    const btn = document.getElementById('assignBtn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning…'; }
+});
+
+function confirmUnassign(pk, name, officeName) {
+    NAMETS.confirm({
+        title: 'Remove Assignment?',
+        message: `${name} will no longer be a member of ${officeName}. They will lose all permissions held through this office.`,
+        confirmText: 'Yes, Remove',
+        danger: true,
+    }).then(ok => {
+        if (!ok) return;
+        const form = document.getElementById('unassignForm');
+        form.action = `/governance/assignments/${pk}/unassign/`;
+        form.submit();
+    });
+}
+</script>
+
+{% endblock %}

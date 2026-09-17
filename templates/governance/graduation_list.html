@@ -1,0 +1,319 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Alumni Directory · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.alum-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px; padding: 2rem 2.25rem; margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 14px 40px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.alum-head::before {
+    content: "🎓"; font-size: 8rem;
+    position: absolute; bottom: -2rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.alum-head-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.alum-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #C8A951;
+    background: rgba(200,169,81,0.18);
+    padding: 0.28rem 0.9rem; border-radius: 20px; margin-bottom: 0.55rem;
+}
+.alum-head h1 { font-size: 1.65rem; font-weight: 800; margin: 0 0 0.35rem; }
+.alum-head p { color: rgba(255,255,255,0.82); font-size: 0.9rem; margin: 0; max-width: 560px; line-height: 1.55; }
+.alum-count {
+    background: rgba(200,169,81,0.2);
+    border: 1px solid rgba(200,169,81,0.35);
+    border-radius: 50px;
+    padding: 0.6rem 1.25rem;
+    font-weight: 800; font-size: 0.85rem;
+    color: #E0C96E;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+}
+
+/* Filters */
+.filters-bar {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.2rem; margin-bottom: 1.25rem;
+}
+.filters-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    gap: 0.5rem; align-items: center;
+}
+.filters-grid input, .filters-grid select {
+    padding: 0.55rem 0.85rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    background: #fff; font-size: 0.85rem;
+    font-family: inherit; width: 100%;
+}
+.filters-grid input:focus, .filters-grid select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.filters-grid .btn-search {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.55rem 1.1rem; border-radius: 8px; cursor: pointer;
+    font-weight: 700; font-size: 0.82rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    white-space: nowrap;
+}
+.filters-clear {
+    display: block; text-align: right;
+    color: #8a9b95; text-decoration: none;
+    font-size: 0.78rem; margin-top: 0.5rem;
+}
+.filters-clear:hover { color: var(--text-primary); text-decoration: underline; }
+
+@media (max-width: 900px) { .filters-grid { grid-template-columns: 1fr 1fr; } .filters-grid .btn-search { grid-column: 1 / -1; } }
+@media (max-width: 640px) { .filters-grid { grid-template-columns: 1fr; } }
+
+/* Alumni grid */
+.alumni-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+.alum-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 1.5rem 1.35rem 1.35rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative; overflow: hidden;
+    text-align: center;
+    display: flex; flex-direction: column;
+    text-decoration: none; color: inherit;
+}
+.alum-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #0F3D2E, #C8A951);
+    opacity: 0.9;
+}
+.alum-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(200,169,81,0.4);
+}
+
+.alum-avatar {
+    width: 84px; height: 84px; border-radius: 50%;
+    margin: 0 auto 0.9rem;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.7rem; font-weight: 800;
+    border: 3px solid #C8A951;
+    box-shadow: 0 8px 20px rgba(15,61,46,0.2);
+    overflow: hidden;
+    transition: transform 0.4s ease;
+}
+.alum-card:hover .alum-avatar { transform: scale(1.08) rotate(-3deg); }
+.alum-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.alum-name {
+    font-size: 1.05rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.3rem;
+    letter-spacing: -0.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.alum-meta {
+    font-size: 0.78rem; color: #8a9b95;
+    margin-bottom: 0.5rem;
+}
+.alum-class {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.25rem 0.8rem; border-radius: 50px;
+    font-size: 0.68rem; font-weight: 800;
+    background: rgba(200,169,81,0.18);
+    color: #8a6a1a;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.75rem;
+}
+.alum-offices {
+    font-size: 0.72rem; color: #5a4815;
+    margin-bottom: 0.75rem;
+    min-height: 2em;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+}
+.alum-stats {
+    display: flex; justify-content: center; gap: 1.25rem;
+    margin-top: auto;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.alum-stat {
+    text-align: center;
+}
+.alum-stat .num {
+    font-size: 1rem; font-weight: 800;
+    color: #0F3D2E; line-height: 1;
+}
+.alum-stat .lbl {
+    font-size: 0.58rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: #8a9b95; margin-top: 0.25rem;
+}
+
+/* Empty state */
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center; padding: 5rem 1.5rem;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 2px dashed rgba(200,169,81,0.35);
+    border-radius: 20px;
+}
+.empty-state .ic { font-size: 4rem; display: block; margin-bottom: 0.85rem; opacity: 0.5; }
+.empty-state h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1.1rem; }
+.empty-state p { color: #8a9b95; font-size: 0.88rem; margin: 0; max-width: 460px; margin: 0 auto; }
+
+/* Pagination */
+.pagination { margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap; }
+.pagination a, .pagination .current {
+    min-width: 38px; height: 38px; padding: 0 0.8rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.82rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: #0F3D2E;
+}
+.pagination a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pagination .current { background: var(--primary); color: #C8A951; border-color: var(--primary); }
+
+@media (max-width: 768px) {
+    .alum-head { padding: 1.5rem 1.35rem; }
+    .alum-head h1 { font-size: 1.3rem; }
+    .alum-head-inner { flex-direction: column; align-items: stretch; }
+    .alumni-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="alum-head">
+    <div class="alum-head-inner">
+        <div>
+            <span class="alum-eyebrow">🎓 NAMETS Alumni</span>
+            <h1>Alumni Directory</h1>
+            <p>The brothers and sisters who served NAMETS and moved on. Browse their profiles, contributions, and messages to future generations.</p>
+        </div>
+        <div class="alum-count">
+            <i class="fas fa-users"></i>
+            <span>{{ total_count }} member{{ total_count|pluralize }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+    <form method="get">
+        <div class="filters-grid">
+            <input type="text" name="q" placeholder="Search by name or email…" value="{{ query }}">
+
+            <select name="year">
+                <option value="">All Years</option>
+                {% for y in years %}
+                <option value="{{ y }}" {% if year_filter == y|stringformat:"s" %}selected{% endif %}>Class of {{ y }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="dept">
+                <option value="">All Departments</option>
+                {% for d in departments %}
+                <option value="{{ d }}" {% if dept_filter == d %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+            </select>
+
+            <input type="text" name="office" placeholder="Office held (e.g. PRO)" value="{{ office_filter }}">
+
+            <button type="submit" class="btn-search"><i class="fas fa-search"></i> Filter</button>
+        </div>
+        {% if query or year_filter or dept_filter or office_filter %}
+        <a href="{% url 'governance:graduation_list' %}" class="filters-clear">✕ Clear filters</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Grid -->
+<div class="alumni-grid">
+    {% for p in profiles %}
+    <a href="{% url 'governance:graduation_detail' p.pk %}" class="alum-card">
+        <div class="alum-avatar">
+            {% if p.profile_photo %}
+                <img src="{{ p.profile_photo.url }}" alt="{{ p.display_name }}">
+            {% else %}
+                {{ p.initials }}
+            {% endif %}
+        </div>
+        <h3 class="alum-name">{{ p.display_name }}</h3>
+        <div class="alum-meta">
+            {% if p.current_occupation %}
+                {{ p.current_occupation|truncatechars:36 }}
+            {% elif p.department_name %}
+                {{ p.department_name }}
+            {% else %}
+                NAMETS Alumnus
+            {% endif %}
+        </div>
+        <span class="alum-class">
+            <i class="fas fa-graduation-cap"></i> Class of {{ p.graduation_year }}
+        </span>
+        <div class="alum-offices">
+            {% if p.offices_held %}
+                {{ p.office_list_short }}
+            {% else %}
+                <em style="color:#8a9b95;">No offices recorded</em>
+            {% endif %}
+        </div>
+        <div class="alum-stats">
+            <div class="alum-stat">
+                <div class="num">{{ p.offices_held|length|default:0 }}</div>
+                <div class="lbl">Offices</div>
+            </div>
+            <div class="alum-stat">
+                <div class="num">{{ p.tasks_completed }}</div>
+                <div class="lbl">Tasks</div>
+            </div>
+            <div class="alum-stat">
+                <div class="num">{{ p.proposals_passed }}</div>
+                <div class="lbl">Proposals</div>
+            </div>
+        </div>
+    </a>
+    {% empty %}
+    <div class="empty-state">
+        <span class="ic">🎓</span>
+        <h3>No alumni yet</h3>
+        <p>Alumni profiles are created automatically during EXCO handover. When members finish their service, they'll appear here.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

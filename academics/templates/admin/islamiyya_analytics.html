@@ -1,0 +1,324 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Islamiyya Analytics · Academics{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px; padding: 1.75rem 2rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.page-header::before {
+    content: "📊"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.page-header-inner {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.page-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem; border-radius: 20px; margin-bottom: 0.3rem;
+}
+.page-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.page-header p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+.header-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.2rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem; text-decoration: none;
+    background: rgba(255,255,255,0.12); color: #fff;
+    border: 1px solid rgba(255,255,255,0.2); transition: all 0.25s;
+}
+.header-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); color: #fff; }
+
+.filter-bar {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 0.85rem 1.2rem; margin-bottom: 1.25rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form select {
+    padding: 0.5rem 0.85rem; border: 1px solid #d0d9d6;
+    border-radius: 8px; background: #fff; flex: 1; min-width: 160px; font-size: 0.85rem;
+}
+.filter-form .btn-search {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.5rem 1.1rem; border-radius: 8px; cursor: pointer;
+    font-weight: 600; font-size: 0.85rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+}
+
+/* KPI cards */
+.kpi-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem; margin-bottom: 1.5rem;
+}
+.kpi-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1.2rem 1.35rem; box-shadow: var(--shadow-sm);
+    position: relative; overflow: hidden;
+    transition: var(--transition);
+}
+.kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 4px;
+}
+.kpi-card.total::before { background: linear-gradient(90deg, #0F3D2E, #1a5a44); }
+.kpi-card.paid::before { background: linear-gradient(90deg, #38a169, #48bb78); }
+.kpi-card.pending::before { background: linear-gradient(90deg, #e6c84c, #f6e05e); }
+.kpi-card.refunded::before { background: linear-gradient(90deg, #c0392b, #e53e3e); }
+.kpi-card.waived::before { background: linear-gradient(90deg, #3182ce, #4299e1); }
+.kpi-card.collected::before { background: linear-gradient(90deg, #8a6a1a, #C8A951); }
+.kpi-card .lbl {
+    font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.07em;
+    color: #8a9b95; margin-bottom: 0.4rem;
+    display: flex; align-items: center; gap: 0.4rem;
+}
+.kpi-card .num {
+    font-size: 1.75rem; font-weight: 800;
+    color: var(--text-primary); line-height: 1.15;
+}
+.kpi-card .sub { font-size: 0.72rem; color: #8a9b95; margin-top: 0.2rem; }
+
+/* Chart card */
+.chart-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1.35rem 1.5rem; box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+}
+.chart-card h3 {
+    font-size: 0.9rem; font-weight: 700; color: var(--text-primary);
+    margin: 0 0 1rem; display: flex; align-items: center; gap: 0.5rem;
+}
+.chart-card h3 i { color: var(--gold); }
+.chart-container { position: relative; height: 280px; }
+
+/* Tables */
+.two-col {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+.data-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1.35rem 1.5rem; box-shadow: var(--shadow-sm);
+}
+.data-card h3 {
+    font-size: 0.9rem; font-weight: 700; color: var(--text-primary);
+    margin: 0 0 1rem; display: flex; align-items: center; gap: 0.5rem;
+}
+.data-card h3 i { color: var(--gold); }
+.bar-list { display: flex; flex-direction: column; gap: 0.65rem; }
+.bar-item {
+    display: flex; align-items: center; gap: 0.85rem;
+}
+.bar-item .label {
+    font-size: 0.82rem; font-weight: 600; color: var(--text-primary);
+    min-width: 100px; max-width: 140px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bar-item .bar-wrap {
+    flex: 1; height: 8px; background: #f0f4f2;
+    border-radius: 4px; overflow: hidden;
+}
+.bar-item .bar {
+    height: 100%; background: linear-gradient(90deg, #C8A951, #E0C96E);
+    border-radius: 4px; transition: width 0.6s ease-out;
+}
+.bar-item .count {
+    font-size: 0.8rem; font-weight: 700; color: var(--text-primary);
+    min-width: 40px; text-align: right;
+}
+
+.empty-row {
+    text-align: center; padding: 2rem 1rem;
+    color: var(--text-muted); font-size: 0.85rem;
+}
+
+@media (max-width: 900px) {
+    .two-col { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+    .page-header { padding: 1.4rem 1.25rem; }
+    .page-header-inner { flex-direction: column; align-items: stretch; }
+    .header-btn { justify-content: center; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+    .kpi-card { padding: 0.9rem 1rem; }
+    .kpi-card .num { font-size: 1.35rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="page-header">
+    <div class="page-header-inner">
+        <div>
+            <span class="page-eyebrow">Islamiyya</span>
+            <h1>📊 Analytics</h1>
+            <p>Registration trends, payment breakdown, and revenue insights.</p>
+        </div>
+        <div>
+            <a href="{% url 'academics:admin_islamiyya_registration_list' %}" class="header-btn">
+                <i class="fas fa-list"></i> All Registrations
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <select name="session">
+            <option value="">All Sessions</option>
+            {% for s in sessions %}
+            <option value="{{ s.pk }}" {% if session_filter == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.academic_session }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-search"><i class="fas fa-filter"></i> Apply</button>
+    </form>
+</div>
+
+<div class="kpi-grid">
+    <div class="kpi-card total">
+        <div class="lbl"><i class="fas fa-users"></i> Total</div>
+        <div class="num">{{ total }}</div>
+        <div class="sub">registration{{ total|pluralize }}</div>
+    </div>
+    <div class="kpi-card paid">
+        <div class="lbl"><i class="fas fa-check-circle"></i> Paid</div>
+        <div class="num">{{ paid }}</div>
+        <div class="sub">{% if total %}{{ paid|floatformat:0 }} / {{ total }}{% else %}—{% endif %}</div>
+    </div>
+    <div class="kpi-card pending">
+        <div class="lbl"><i class="fas fa-hourglass-half"></i> Pending</div>
+        <div class="num">{{ pending }}</div>
+        <div class="sub">awaiting payment</div>
+    </div>
+    <div class="kpi-card waived">
+        <div class="lbl"><i class="fas fa-hand-holding"></i> Waived</div>
+        <div class="num">{{ waived }}</div>
+        <div class="sub">fee waived</div>
+    </div>
+    <div class="kpi-card refunded">
+        <div class="lbl"><i class="fas fa-undo"></i> Refunded</div>
+        <div class="num">{{ refunded }}</div>
+        <div class="sub">returned</div>
+    </div>
+    <div class="kpi-card collected">
+        <div class="lbl"><i class="fas fa-coins"></i> Collected</div>
+        <div class="num">₦{{ total_collected|floatformat:0 }}</div>
+        <div class="sub">all-time revenue</div>
+    </div>
+</div>
+
+<!-- Daily trend chart -->
+<div class="chart-card">
+    <h3><i class="fas fa-chart-line"></i> Daily Registrations (Last 30 Days)</h3>
+    <div class="chart-container">
+        <canvas id="dailyChart"></canvas>
+    </div>
+</div>
+
+<div class="two-col">
+    <div class="data-card">
+        <h3><i class="fas fa-layer-group"></i> By Level</h3>
+        <div class="bar-list">
+            {% for l in by_level %}
+            <div class="bar-item">
+                <div class="label">{{ l.level|title }}</div>
+                <div class="bar-wrap">
+                    {% widthratio l.count total 100 as pct %}
+                    <div class="bar" style="width: {{ pct }}%;"></div>
+                </div>
+                <div class="count">{{ l.count }}</div>
+            </div>
+            {% empty %}
+            <div class="empty-row">No data yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="data-card">
+        <h3><i class="fas fa-book"></i> Top Courses</h3>
+        <div class="bar-list">
+            {% for c in by_course %}
+            <div class="bar-item">
+                <div class="label">{{ c.name|truncatechars:16 }}</div>
+                <div class="bar-wrap">
+                    {% widthratio c.count total 100 as pct %}
+                    <div class="bar" style="width: {{ pct }}%;"></div>
+                </div>
+                <div class="count">{{ c.count }}</div>
+            </div>
+            {% empty %}
+            <div class="empty-row">No course data yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    const dailyLabels = [{% for d in daily %}"{{ d.day|date:'M d' }}",{% endfor %}];
+    const dailyCounts = [{% for d in daily %}{{ d.count }},{% endfor %}];
+
+    const ctx = document.getElementById('dailyChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dailyLabels.length ? dailyLabels : ['No data'],
+                datasets: [{
+                    label: 'Registrations',
+                    data: dailyCounts.length ? dailyCounts : [0],
+                    borderColor: '#0F3D2E',
+                    backgroundColor: 'rgba(15,61,46,0.08)',
+                    borderWidth: 2.5,
+                    tension: 0.35,
+                    fill: true,
+                    pointBackgroundColor: '#C8A951',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0F3D2E',
+                        padding: 10,
+                        cornerRadius: 8,
+                        titleFont: { weight: 'bold' },
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, precision: 0 },
+                        grid: { color: 'rgba(0,0,0,0.04)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+})();
+</script>
+
+{% endblock %}

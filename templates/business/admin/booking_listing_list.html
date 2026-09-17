@@ -1,0 +1,266 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Booking Listings · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.bl-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.bl-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #fff;
+}
+.bl-eyebrow {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.3rem;
+}
+.bl-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.bl-header p { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+.bl-header-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.bl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-decoration: none;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.25s;
+}
+.bl-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); color:#fff; }
+.bl-btn-gold { background: var(--gold); color: var(--text-primary); border-color: var(--gold); }
+.bl-btn-gold:hover { background: var(--gold-light); color: var(--text-primary); }
+
+.bl-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1.2rem;
+    margin-bottom: 1rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form input, .filter-form select {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 120px;
+    font-size: 0.85rem;
+}
+.filter-form .btn { background: var(--primary); color: #fff; border: none; padding: 0.4rem 1rem; border-radius: 8px; cursor: pointer; }
+.filter-form .clear { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.bl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+.bl-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+}
+.bl-card:hover { transform: translateY(-4px); border-color: var(--gold); box-shadow: var(--shadow-md); }
+.bl-card .category {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.12);
+    padding: 0.15rem 0.6rem;
+    border-radius: 20px;
+    margin-bottom: 0.4rem;
+    width: fit-content;
+}
+.bl-card .title { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.3rem; }
+.bl-card .meta { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.2rem; }
+.bl-card .price { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin: 0.4rem 0 0.3rem; }
+.bl-card .stock {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+.bl-card .stock .avail { font-weight: 600; color: var(--primary); }
+.bl-card .stock .empty { color: #9b2c2c; font-weight: 600; }
+.bl-card .status-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+.bl-card .badge {
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 0.05rem 0.5rem;
+    border-radius: 10px;
+}
+.bl-card .badge.active { background: #e8f2ec; color: #1a3c2e; }
+.bl-card .badge.inactive { background: #f0f0f0; color: #777; }
+.bl-card .badge.public { background: #e6f0fb; color: #185fa5; }
+.bl-card .actions {
+    display: flex;
+    gap: 0.3rem;
+    margin-top: auto;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    padding-top: 0.5rem;
+}
+.bl-card .actions .btn-sm {
+    padding: 0.2rem 0.7rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.btn-sm-primary { background: var(--primary); color: #fff; }
+.btn-sm-primary:hover { background: var(--primary-dark); }
+.empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem; }
+.pagination { margin-top: 1rem; text-align: center; }
+.pagination .step-links a { color: var(--gold); text-decoration: none; margin: 0 0.2rem; padding: 0.2rem 0.5rem; border-radius: 4px; }
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.3rem; }
+
+@media (max-width: 768px) {
+    .bl-header { padding: 1rem 1.25rem; }
+    .bl-header-content { flex-direction: column; align-items: stretch; }
+    .bl-btn { width: 100%; justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .bl-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="bl-header">
+    <div class="bl-header-content">
+        <div>
+            <span class="bl-eyebrow">Business Office</span>
+            <h1>🎫 Booking Listings</h1>
+            <p>Manage events, travel, and workshop listings.</p>
+        </div>
+        <div class="bl-header-actions">
+            {% if perms.business.add_bookinglisting %}
+            <a href="{% url 'business:admin_booking_listing_create' %}" class="bl-btn bl-btn-gold">
+                <i class="fas fa-plus-circle"></i> Add Listing
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="bl-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search title..." value="{{ query }}">
+        <select name="category">
+            <option value="">All Categories</option>
+            <option value="event_ticket" {% if category_filter == 'event_ticket' %}selected{% endif %}>Event Ticket</option>
+            <option value="travel" {% if category_filter == 'travel' %}selected{% endif %}>Travel</option>
+            <option value="workshop" {% if category_filter == 'workshop' %}selected{% endif %}>Workshop</option>
+            <option value="other" {% if category_filter == 'other' %}selected{% endif %}>Other</option>
+        </select>
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query or category_filter %}
+        <a href="{% url 'business:admin_booking_listing_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="bl-grid">
+    {% for listing in listings %}
+    <div class="bl-card">
+        <span class="category">{{ listing.get_category_display }}</span>
+        <div class="title">{{ listing.title }}</div>
+        {% if listing.date_time %}
+        <div class="meta"><i class="far fa-calendar-alt"></i> {{ listing.date_time|date:"M d, Y · g:i A" }}</div>
+        {% endif %}
+        {% if listing.venue %}
+        <div class="meta"><i class="fas fa-map-marker-alt"></i> {{ listing.venue|truncatechars:30 }}</div>
+        {% endif %}
+        <div class="price">₦{{ listing.price|floatformat:2 }}</div>
+        <div class="stock">
+            {% if listing.quantity_available > 0 %}
+            <span class="avail">{{ listing.quantity_available }}</span> spot(s) available
+            {% else %}
+            <span class="empty">Fully booked</span>
+            {% endif %}
+        </div>
+        <div class="status-row">
+            {% if listing.is_active %}
+            <span class="badge active">Active</span>
+            {% else %}
+            <span class="badge inactive">Inactive</span>
+            {% endif %}
+            {% if listing.is_public %}
+            <span class="badge public">Public</span>
+            {% endif %}
+        </div>
+        <div class="actions">
+            <a href="{% url 'business:admin_booking_listing_edit' listing.pk %}" class="btn-sm btn-sm-gold"><i class="fas fa-edit"></i> Edit</a>
+            <a href="#" class="btn-sm btn-sm-danger" onclick="event.preventDefault(); if(confirm('Delete this listing?')) document.getElementById('delete-form-{{ listing.pk }}').submit();"><i class="fas fa-trash"></i></a>
+            <form id="delete-form-{{ listing.pk }}" method="post" action="{% url 'business:admin_booking_listing_delete' listing.pk %}" style="display:none;">{% csrf_token %}</form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+        <span style="font-size:2.5rem; display:block;">📭</span>
+        No booking listings yet. Click "Add Listing" to get started.
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">‹ Prev</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next ›</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+{% endblock %}

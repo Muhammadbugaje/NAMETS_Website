@@ -369,7 +369,7 @@ select {
   gap: 10px;
   padding: 14px 20px;
   font-size: 22px;
-  font-weight: 58 0;
+  font-weight: 580;
   color: white;
   transition: background 0.15s, color 0.15s;
   border-left: 3px solid transparent;
@@ -416,19 +416,7 @@ select {
 /* ---------- Main Content ---------- */
 .main-content {
   flex: 1;
-  padding: 8px 0;
-}
-
-@media (min-width: 768px) {
-  .main-content {
-    padding: 40px 0;
-  }
-}
-
-@media (min-width: 1024px) {
-  .main-content {
-    padding: 48px 0;
-  }
+  padding: 5px 0;
 }
 
 /* ---------- Site Footer ---------- */

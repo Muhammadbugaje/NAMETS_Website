@@ -1,0 +1,376 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Manage Session Documents · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.sdm-wrap { max-width: 1250px; margin: 0 auto; }
+
+.sdm-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 16px 44px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.sdm-hero::before {
+    content: "📖"; font-size: 10rem;
+    position: absolute; bottom: -2.5rem; right: 1rem;
+    opacity: 0.07; pointer-events: none;
+}
+.sdm-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.sdm-hero h1 { font-size: 1.7rem; font-weight: 800; margin: 0 0 0.35rem; }
+.sdm-hero p { color: rgba(255,255,255,0.82); font-size: 0.9rem; margin: 0; }
+.sdm-hero-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.sdm-hbtn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.65rem 1.35rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem;
+    text-decoration: none; border: 1px solid transparent;
+    transition: all 0.25s; cursor: pointer; font-family: inherit;
+}
+.sdm-hbtn.gold { background: #C8A951; color: #0F3D2E; }
+.sdm-hbtn.gold:hover { background: #E0C96E; transform: translateY(-3px); }
+.sdm-hbtn.outline {
+    background: rgba(255,255,255,0.12); color: #fff;
+    border-color: rgba(255,255,255,0.25);
+}
+.sdm-hbtn.outline:hover { background: rgba(255,255,255,0.22); transform: translateY(-3px); }
+
+.sdm-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.85rem; margin-bottom: 1.5rem;
+}
+.sdm-stat {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
+    padding: 1.1rem 1.25rem;
+    box-shadow: 0 4px 12px rgba(15,61,46,0.05);
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; gap: 0.85rem;
+    transition: all 0.25s;
+}
+.sdm-stat::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+}
+.sdm-stat.green::before  { background: linear-gradient(90deg,#0F3D2E,#38a169); }
+.sdm-stat.gold::before   { background: linear-gradient(90deg,#8a6a1a,#E0C96E); }
+.sdm-stat.blue::before   { background: linear-gradient(90deg,#185fa5,#4299e1); }
+.sdm-stat:hover { transform: translateY(-3px); }
+.sdm-stat .ic {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; flex-shrink: 0;
+}
+.sdm-stat.green .ic { background: #e8f2ec; color: #1a6b3c; }
+.sdm-stat.gold  .ic { background: #f5e9c8; color: #8a6a1a; }
+.sdm-stat.blue  .ic { background: #e6f0fb; color: #185fa5; }
+.sdm-stat .num { font-size: 1.45rem; font-weight: 800; color: #0F3D2E; line-height: 1; }
+.sdm-stat .lbl {
+    font-size: 0.66rem; color: #8a9b95;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    font-weight: 700; margin-top: 0.2rem;
+}
+
+.sdm-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    padding: 1.5rem 1.65rem;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+}
+
+.sdm-filters {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 0.55rem; align-items: center;
+    margin-bottom: 1.25rem;
+}
+@media (max-width: 768px) { .sdm-filters { grid-template-columns: 1fr; } }
+.sdm-filters input, .sdm-filters select {
+    padding: 0.6rem 0.85rem;
+    border: 1px solid #d5dcd9; border-radius: 10px;
+    background: #fff; font-size: 0.85rem; font-family: inherit;
+    width: 100%; color: #0F3D2E;
+}
+.sdm-filters input:focus, .sdm-filters select:focus {
+    border-color: #C8A951; outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.14);
+}
+.sdm-filters .btn-sm {
+    background: #0F3D2E; color: #fff; border: none;
+    padding: 0.6rem 1.15rem; border-radius: 10px;
+    cursor: pointer; font-weight: 700; font-size: 0.82rem;
+    white-space: nowrap; font-family: inherit;
+    transition: all 0.2s;
+}
+.sdm-filters .btn-sm:hover { background: #1a5a44; }
+
+.sdm-table-wrap { overflow-x: auto; }
+.sdm-table {
+    width: 100%; border-collapse: collapse; font-size: 0.85rem;
+}
+.sdm-table th {
+    background: #f8faf9; color: #0F3D2E;
+    padding: 0.75rem 1rem; text-align: left;
+    font-size: 0.66rem; text-transform: uppercase;
+    letter-spacing: 0.06em; font-weight: 800;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.sdm-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    vertical-align: middle;
+}
+.sdm-table tbody tr:hover { background: rgba(200,169,81,0.04); }
+.sdm-table tbody tr:last-child td { border-bottom: none; }
+
+.sdm-doc-cell { display: flex; align-items: center; gap: 0.75rem; }
+.sdm-doc-mini {
+    width: 42px; height: 56px; border-radius: 6px;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0;
+    color: rgba(200,169,81,0.7); font-size: 1rem;
+}
+.sdm-doc-mini img { width: 100%; height: 100%; object-fit: cover; }
+.sdm-doc-info { min-width: 0; }
+.sdm-doc-name {
+    font-size: 0.85rem; font-weight: 700;
+    color: #0F3D2E;
+    overflow: hidden; text-overflow: ellipsis;
+    max-width: 240px; white-space: nowrap;
+}
+.sdm-doc-meta { font-size: 0.7rem; color: #8a9b95; margin-top: 0.15rem; }
+
+.sdm-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.22rem 0.65rem; border-radius: 20px;
+    font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+.sdm-badge.published { background: #e8f2ec; color: #1a6b3c; }
+.sdm-badge.draft     { background: #fef3e8; color: #a8671a; }
+.sdm-badge.featured  { background: #f5e9c8; color: #8a6a1a; }
+
+.sdm-action-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; cursor: pointer; font-size: 0.78rem;
+    text-decoration: none; transition: all 0.2s;
+    font-family: inherit;
+    margin-right: 0.25rem;
+}
+.sdm-action-btn.view { background: #f0f4f2; color: #0F3D2E; }
+.sdm-action-btn.view:hover { background: #0F3D2E; color: #fff; }
+.sdm-action-btn.edit { background: #e6f0fb; color: #185fa5; }
+.sdm-action-btn.edit:hover { background: #185fa5; color: #fff; }
+.sdm-action-btn.delete { background: #fdecea; color: #9b2c2c; }
+.sdm-action-btn.delete:hover { background: #dc3545; color: #fff; }
+
+.sdm-empty {
+    text-align: center; padding: 3.5rem 1.5rem;
+    color: #8a9b95;
+}
+.sdm-empty .ic {
+    font-size: 3rem; display: block;
+    margin-bottom: 0.75rem; opacity: 0.5; color: #0F3D2E;
+}
+.sdm-empty h3 { color: #0F3D2E; margin: 0 0 0.4rem; font-size: 1.05rem; }
+
+.sdm-pagination {
+    margin-top: 1.5rem;
+    display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap;
+}
+.sdm-pagination a, .sdm-pagination .current {
+    min-width: 38px; height: 38px; padding: 0 0.75rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.82rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fff; border: 1px solid rgba(0,0,0,0.08);
+    color: #0F3D2E; transition: all 0.15s;
+}
+.sdm-pagination a:hover { background: #0F3D2E; color: #C8A951; }
+.sdm-pagination .current { background: #0F3D2E; color: #C8A951; }
+
+@media (max-width: 768px) {
+    .sdm-hero { padding: 1.5rem 1.35rem; }
+    .sdm-hero h1 { font-size: 1.35rem; }
+    .sdm-hero-inner { flex-direction: column; align-items: stretch; }
+    .sdm-hero-actions { flex-direction: column; }
+    .sdm-hbtn { justify-content: center; }
+    .sdm-card { padding: 1.15rem 1.15rem; }
+    .sdm-doc-name { max-width: 160px; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="sdm-wrap">
+
+    <div class="sdm-hero">
+        <div class="sdm-hero-inner">
+            <div>
+                <h1>📖 Manage Session Documents</h1>
+                <p>Upload magazines, reports, and archives from each session.</p>
+            </div>
+            <div class="sdm-hero-actions">
+                <a href="{% url 'governance:session_document_list' %}" class="sdm-hbtn outline">
+                    <i class="fas fa-eye"></i> View Public Archive
+                </a>
+                <a href="{% url 'governance:session_document_create' %}" class="sdm-hbtn gold">
+                    <i class="fas fa-plus"></i> Upload New
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="sdm-stats">
+        <div class="sdm-stat green">
+            <div class="ic"><i class="fas fa-file-alt"></i></div>
+            <div>
+                <div class="num">{{ total_all }}</div>
+                <div class="lbl">All Documents</div>
+            </div>
+        </div>
+        <div class="sdm-stat gold">
+            <div class="ic"><i class="fas fa-check-circle"></i></div>
+            <div>
+                <div class="num">{{ total_published }}</div>
+                <div class="lbl">Published</div>
+            </div>
+        </div>
+        <div class="sdm-stat blue">
+            <div class="ic"><i class="fas fa-pencil-alt"></i></div>
+            <div>
+                <div class="num">{{ total_drafts }}</div>
+                <div class="lbl">Drafts</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTERS + TABLE -->
+    <div class="sdm-card">
+        <form method="get" class="sdm-filters">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search by title…">
+            <select name="type">
+                <option value="">All types</option>
+                {% for code, label in type_choices %}
+                <option value="{{ code }}" {% if type_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="published">
+                <option value="">Any status</option>
+                <option value="published" {% if publish_filter == 'published' %}selected{% endif %}>Published</option>
+                <option value="draft" {% if publish_filter == 'draft' %}selected{% endif %}>Drafts</option>
+            </select>
+            <button type="submit" class="btn-sm"><i class="fas fa-search"></i> Filter</button>
+        </form>
+
+        {% if documents %}
+        <div class="sdm-table-wrap">
+            <table class="sdm-table">
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        <th>Type</th>
+                        <th>Session</th>
+                        <th>Status</th>
+                        <th style="width:130px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documents %}
+                    <tr>
+                        <td>
+                            <div class="sdm-doc-cell">
+                                <div class="sdm-doc-mini">
+                                    {% if doc.has_cover %}
+                                        <img src="{{ doc.cover_url }}" alt="">
+                                    {% else %}
+                                        <i class="fas {{ doc.type_icon }}"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="sdm-doc-info">
+                                    <div class="sdm-doc-name">{{ doc.title }}</div>
+                                    <div class="sdm-doc-meta">
+                                        Uploaded {{ doc.uploaded_at|date:"M j, Y" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="font-size:0.8rem; color:#4a5568;">
+                                <i class="fas {{ doc.type_icon }}" style="color:#C8A951;"></i>
+                                {{ doc.get_document_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="font-size:0.82rem; font-weight:700; color:#0F3D2E;">
+                                {{ doc.session_label }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if doc.is_published %}
+                                <span class="sdm-badge published">Published</span>
+                            {% else %}
+                                <span class="sdm-badge draft">Draft</span>
+                            {% endif %}
+                            {% if doc.is_featured %}
+                                <span class="sdm-badge featured" style="margin-left:0.25rem;">⭐ Featured</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'governance:session_document_detail' doc.pk %}"
+                               class="sdm-action-btn view" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'governance:session_document_edit' doc.pk %}"
+                               class="sdm-action-btn edit" title="Edit">
+                                <i class="fas fa-pen"></i>
+                            </a>
+                            <a href="{% url 'governance:session_document_delete' doc.pk %}"
+                               class="sdm-action-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+        <div class="sdm-pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹</a>
+            {% endif %}
+            <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">›</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="sdm-empty">
+            <i class="fas fa-file-upload ic"></i>
+            <h3>No session documents yet</h3>
+            <p>Click <strong>Upload New</strong> to add the first archive.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Forms | NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.forms-page { max-width: 1000px; margin: 0 auto; padding: 20px; }
+
+.forms-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.forms-hero::before {
+    content: "📄";
+    font-size: 4rem;
+    position: absolute; bottom: -0.5rem; right: 2rem;
+    opacity: 0.08;
+}
+.forms-hero .hero-badge {
+    display: inline-block; background: rgba(200,169,81,0.2);
+    color: #C8A951; font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.2rem 0.8rem; border-radius: 20px; margin-bottom: 0.5rem;
+}
+.forms-hero h1 { font-size: 2rem; font-weight: 700; color: #fff; margin: 0 0 0.3rem; }
+.forms-hero p { color: rgba(255,255,255,0.8); font-size: 0.95rem; margin: 0; }
+
+.forms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+.form-card {
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    display: flex; flex-direction: column;
+}
+.form-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); border-color: rgba(200,169,81,0.3); }
+.form-card .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.form-card .title { font-size: 1.05rem; font-weight: 700; color: #1A1A1A; margin: 0 0 0.3rem; }
+.form-card .desc { font-size: 0.85rem; color: #5A5A5A; margin: 0.3rem 0 0.75rem; flex: 1; }
+.form-card .price { font-size: 1.3rem; font-weight: 700; color: #0F3D2E; margin-bottom: 0.75rem; }
+.form-card .btn-buy {
+    background: #0F3D2E; color: #fff;
+    padding: 0.5rem 1.5rem; border: none; border-radius: 50px;
+    font-weight: 600; text-decoration: none; text-align: center;
+    transition: all 0.2s ease; font-size: 0.85rem;
+}
+.form-card .btn-buy:hover { background: #1a5a44; transform: translateY(-2px); color: #fff; }
+.form-card .methods { font-size: 0.7rem; color: #8a9b95; margin-top: 0.3rem; }
+
+.empty-state {
+    grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;
+    background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); border-radius: 16px;
+}
+.empty-state .icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
+
+@media (max-width: 768px) {
+    .forms-hero { padding: 1.75rem 1.25rem; }
+    .forms-hero h1 { font-size: 1.6rem; }
+    .forms-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="forms-page">
+    <div class="forms-hero">
+        <span class="hero-badge">Paid Forms</span>
+        <h1>📄 Forms & Registration</h1>
+        <p>Purchase access to registration forms and applications.</p>
+    </div>
+
+    <div class="forms-grid">
+        {% for form in forms %}
+        <div class="form-card">
+            <div class="icon">📄</div>
+            <div class="title">{{ form.title }}</div>
+            <div class="desc">{{ form.description|default:"Click to purchase and get access."|truncatechars:100 }}</div>
+            <div class="price">₦{{ form.price|floatformat:2 }}</div>
+            <a href="{% url 'business:sellable_form_purchase' form.id %}" class="btn-buy">Purchase →</a>
+            <div class="methods">{{ form.get_payment_methods_display }}</div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <span class="icon">📄</span>
+            <h3>No forms available</h3>
+            <p>Check back later for available forms.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% include "business/public/includes/back_to_business.html" %}
+{% endblock %}

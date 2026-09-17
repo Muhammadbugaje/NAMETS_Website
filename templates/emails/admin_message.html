@@ -1,0 +1,19 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+    <h2>{{ subject }}</h2>
+    
+    <p>Assalamu Alaikum,</p>
+    
+    <div class="content-block">
+        {{ body|safe }}
+    </div>
+    
+    <p style="color: #718096; font-size: 14px; margin-top: 20px;">
+        You're receiving this because you're subscribed to NAMETS updates.
+    </p>
+    
+    <p style="color: #718096; font-size: 14px; margin-top: 10px;">
+        <a href="{{ site_url }}/communications/unsubscribe/">Unsubscribe</a> at any time.
+    </p>
+{% endblock %}

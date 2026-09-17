@@ -1,0 +1,458 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit Hero Slide{% else %}New Hero Slide{% endif %} · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.hsf-wrap { max-width: 900px; margin: 0 auto; }
+
+.hsf-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.25rem;
+    color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 12px 36px rgba(15,61,46,0.22);
+}
+.hsf-hero::before {
+    content: "✨"; font-size: 7rem;
+    position: absolute; right: 1rem; top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.1; pointer-events: none;
+}
+.hsf-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.hsf-hero h1 { font-size: 1.4rem; font-weight: 800; margin: 0 0 0.3rem; }
+.hsf-hero p { color: rgba(255,255,255,0.82); font-size: 0.85rem; margin: 0; }
+.hsf-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.2rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem;
+    text-decoration: none;
+    background: rgba(255,255,255,0.12); color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    transition: all 0.25s;
+}
+.hsf-back:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+
+.hsf-form { display: flex; flex-direction: column; gap: 1.15rem; }
+
+.hsf-section {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    padding: 1.5rem 1.65rem;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+}
+.hsf-section h2 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #8a6a1a;
+    margin: 0 0 1.1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.hsf-section h2::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.35), transparent);
+}
+
+/* Colored top accent per section type */
+.hsf-section.primary-btn   { border-top: 3px solid #C8A951; }
+.hsf-section.secondary-btn { border-top: 3px solid #0F3D2E; }
+
+.hsf-hint {
+    font-size: 0.76rem; color: #8a9b95;
+    margin: -0.5rem 0 1rem; line-height: 1.55;
+    padding: 0.6rem 0.85rem;
+    background: #f8faf9;
+    border-left: 3px solid #C8A951;
+    border-radius: 8px;
+}
+
+.hsf-field { margin-bottom: 1rem; }
+.hsf-field:last-child { margin-bottom: 0; }
+.hsf-field label {
+    display: block;
+    font-size: 0.78rem; font-weight: 700;
+    color: #0F3D2E; margin-bottom: 0.35rem;
+}
+.hsf-field input[type="text"],
+.hsf-field input[type="url"],
+.hsf-field input[type="number"],
+.hsf-field input[type="datetime-local"],
+.hsf-field textarea {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid #d5dcd9;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    background: #fff;
+    color: #0F3D2E;
+    transition: all 0.2s;
+}
+.hsf-field textarea { resize: vertical; min-height: 80px; line-height: 1.55; }
+.hsf-field input:focus,
+.hsf-field textarea:focus {
+    outline: none;
+    border-color: #C8A951;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.15);
+}
+.hsf-field .helper {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.35rem; line-height: 1.5;
+}
+
+.hsf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 640px) { .hsf-row { grid-template-columns: 1fr; } }
+
+/* ---- Image upload with preview ---- */
+.hsf-image-block {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1rem;
+}
+@media (min-width: 720px) {
+    .hsf-image-block { grid-template-columns: 1fr 1fr; }
+}
+
+.hsf-image-panel {
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 14px;
+    padding: 1rem;
+    background: #fafcfb;
+    text-align: center;
+}
+.hsf-image-panel.desktop { border-left: 4px solid #185fa5; }
+.hsf-image-panel.mobile  { border-left: 4px solid #C8A951; }
+
+.hsf-image-label {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.75rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: #4a5568; margin-bottom: 0.75rem;
+}
+.hsf-image-label .spec {
+    font-size: 0.62rem; font-weight: 700;
+    background: #fff; color: #8a9b95;
+    padding: 0.15rem 0.55rem; border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* Neutral checkerboard placeholder — no more green */
+.hsf-preview {
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    background:
+      linear-gradient(45deg, #f4f4f4 25%, transparent 25%) 0 0 / 14px 14px,
+      linear-gradient(-45deg, #f4f4f4 25%, transparent 25%) 0 7px / 14px 14px,
+      linear-gradient(45deg, transparent 75%, #f4f4f4 75%) 7px -7px / 14px 14px,
+      linear-gradient(-45deg, transparent 75%, #f4f4f4 75%) -7px 0 / 14px 14px,
+      #fbfbfb;
+    margin-bottom: 0.85rem;
+    position: relative;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+}
+.hsf-preview.desktop { aspect-ratio: 16 / 9; }
+.hsf-preview.mobile  { aspect-ratio: 4 / 5; max-width: 55%; margin-left: auto; margin-right: auto; }
+.hsf-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hsf-preview .placeholder {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #b0b8b5; font-size: 0.75rem; flex-direction: column; gap: 0.35rem;
+}
+.hsf-preview .placeholder i { font-size: 1.5rem; opacity: 0.6; }
+
+.hsf-file-input {
+    font-size: 0.78rem;
+    padding: 0.5rem;
+    border: 1px dashed #c0c9c6;
+    border-radius: 9px;
+    width: 100%;
+    background: #fff;
+    cursor: pointer;
+}
+.hsf-file-input::file-selector-button {
+    background: #0F3D2E; color: #fff;
+    border: none; padding: 0.35rem 0.85rem;
+    border-radius: 6px; font-size: 0.75rem;
+    font-weight: 600; cursor: pointer;
+    margin-right: 0.5rem;
+    font-family: inherit;
+}
+
+/* ---- Checkbox row ---- */
+.hsf-check {
+    display: flex; align-items: flex-start; gap: 0.65rem;
+    padding: 0.75rem 0.9rem;
+    background: #f8faf9;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.hsf-check:hover { background: #f0f4f2; }
+.hsf-check input[type="checkbox"] {
+    width: 18px; height: 18px; accent-color: #0F3D2E;
+    margin-top: 0.15rem; cursor: pointer; flex-shrink: 0;
+}
+.hsf-check .txt { font-size: 0.82rem; }
+.hsf-check .txt strong { color: #0F3D2E; display: block; margin-bottom: 0.1rem; }
+.hsf-check .txt span { color: #8a9b95; font-size: 0.74rem; line-height: 1.5; }
+
+.hsf-actions {
+    display: flex; justify-content: flex-end; gap: 0.65rem;
+    padding-top: 0.35rem; flex-wrap: wrap;
+}
+.hsf-btn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.8rem 1.6rem; border-radius: 50px;
+    font-size: 0.86rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    border: none; transition: all 0.25s;
+    font-family: inherit;
+}
+.hsf-btn.cancel {
+    background: transparent; color: #8a9b95;
+    border: 1px solid #d5dcd9;
+}
+.hsf-btn.cancel:hover { background: #f0f4f2; color: #0F3D2E; }
+.hsf-btn.save {
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(15,61,46,0.25);
+    padding-right: 1.85rem;
+}
+.hsf-btn.save:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(15,61,46,0.35); }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="hsf-wrap">
+
+    <div class="hsf-hero">
+        <div class="hsf-hero-inner">
+            <div>
+                <h1>{% if is_edit %}✏️ Edit Hero Slide{% else %}➕ New Hero Slide{% endif %}</h1>
+                <p>{% if is_edit %}Update the images and copy for this slide.{% else %}Upload a paired desktop + mobile image and set optional text.{% endif %}</p>
+            </div>
+            <a href="{% url 'core:hero_slide_list' %}" class="hsf-back">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="hsf-form">
+        {% csrf_token %}
+
+        <!-- IMAGES -->
+        <div class="hsf-section">
+            <h2><i class="fas fa-images"></i> Images (required)</h2>
+            <div class="hsf-hint">
+                <strong>Format:</strong> WebP, quality 80.<br>
+                <strong>Desktop:</strong> 16:9 · 1920 × 1080 · <strong>Mobile:</strong> 4:5 · 1080 × 1350.
+            </div>
+
+            <div class="hsf-image-block">
+
+                <!-- Desktop -->
+                <div class="hsf-image-panel desktop">
+                    <div class="hsf-image-label">
+                        <span>💻 Desktop Image</span>
+                        <span class="spec">16:9</span>
+                    </div>
+                    <div class="hsf-preview desktop">
+                        {% if slide and slide.desktop_url %}
+                            <img src="{{ slide.desktop_url }}" alt="Current desktop image" id="desktopPreviewImg">
+                        {% else %}
+                            <div class="placeholder">
+                                <i class="fas fa-image"></i>
+                                <span>No image yet</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <input type="file" name="desktop_image"
+                           accept="image/webp,image/jpeg,image/png"
+                           class="hsf-file-input"
+                           onchange="previewFile(this, 'desktopPreviewImg')">
+                </div>
+
+                <!-- Mobile -->
+                <div class="hsf-image-panel mobile">
+                    <div class="hsf-image-label">
+                        <span>📱 Mobile Image</span>
+                        <span class="spec">4:5</span>
+                    </div>
+                    <div class="hsf-preview mobile">
+                        {% if slide and slide.mobile_url %}
+                            <img src="{{ slide.mobile_url }}" alt="Current mobile image" id="mobilePreviewImg">
+                        {% else %}
+                            <div class="placeholder">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>No image yet</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <input type="file" name="mobile_image"
+                           accept="image/webp,image/jpeg,image/png"
+                           class="hsf-file-input"
+                           onchange="previewFile(this, 'mobilePreviewImg')">
+                </div>
+            </div>
+        </div>
+
+        <!-- TEXT -->
+        <div class="hsf-section">
+            <h2><i class="fas fa-paragraph"></i> Slide Text</h2>
+            <div class="hsf-hint">
+                <strong>Leave both fields blank</strong> to show only the image.<br>
+                <strong>Fill them in</strong> to display custom text over the slide.
+            </div>
+
+            <div class="hsf-field">
+                <label>Title <span style="color:#8a9b95; font-weight:500;">(optional)</span></label>
+                <input type="text" name="title"
+                       value="{{ slide.title|default:'' }}"
+                       placeholder="e.g. Ramadan Iftar Drive 2026"
+                       maxlength="200">
+            </div>
+
+            <div class="hsf-field">
+                <label>Subtitle <span style="color:#8a9b95; font-weight:500;">(optional)</span></label>
+                <textarea name="subtitle"
+                          maxlength="300"
+                          placeholder="A short supporting sentence…">{{ slide.subtitle|default:'' }}</textarea>
+            </div>
+        </div>
+
+        <!-- PRIMARY BUTTON -->
+        <div class="hsf-section primary-btn">
+            <h2><i class="fas fa-star"></i> Primary Button (optional)</h2>
+            <div class="hsf-hint">
+                Renders as a <strong>solid gold button</strong>. Fill <em>both</em> fields to show it — leave both blank to hide.
+            </div>
+
+            <div class="hsf-row">
+                <div class="hsf-field">
+                    <label>Button text</label>
+                    <input type="text" name="primary_button_text"
+                           value="{{ slide.primary_button_text|default:'' }}"
+                           placeholder="e.g. Register now"
+                           maxlength="60">
+                </div>
+                <div class="hsf-field">
+                    <label>Button link</label>
+                    <input type="text" name="primary_button_url"
+                           value="{{ slide.primary_button_url|default:'' }}"
+                           placeholder="e.g. /academics/ or https://…"
+                           maxlength="300">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECONDARY BUTTON -->
+        <div class="hsf-section secondary-btn">
+            <h2><i class="fas fa-circle-notch"></i> Secondary Button (optional)</h2>
+            <div class="hsf-hint">
+                Renders as a <strong>glassy ghost button</strong>, sitting next to the primary. Fill <em>both</em> fields to show it — leave both blank to hide.
+            </div>
+
+            <div class="hsf-row">
+                <div class="hsf-field">
+                    <label>Button text</label>
+                    <input type="text" name="secondary_button_text"
+                           value="{{ slide.secondary_button_text|default:'' }}"
+                           placeholder="e.g. Learn more"
+                           maxlength="60">
+                </div>
+                <div class="hsf-field">
+                    <label>Button link</label>
+                    <input type="text" name="secondary_button_url"
+                           value="{{ slide.secondary_button_url|default:'' }}"
+                           placeholder="e.g. /events/ or https://…"
+                           maxlength="300">
+                </div>
+            </div>
+        </div>
+
+        <!-- VISIBILITY -->
+        <div class="hsf-section">
+            <h2><i class="fas fa-toggle-on"></i> Visibility &amp; Order</h2>
+
+            <label class="hsf-check">
+                <input type="checkbox" name="is_active"
+                       {% if not slide or slide.is_active %}checked{% endif %}>
+                <div class="txt">
+                    <strong>Active</strong>
+                    <span>Show this slide in the homepage carousel.</span>
+                </div>
+            </label>
+
+            <div class="hsf-field" style="margin-top:1rem;">
+                <label>Display order</label>
+                <input type="number" name="order" min="0"
+                       value="{{ slide.order|default:0 }}">
+                <div class="helper">Lower numbers appear first. Use 0, 1, 2, … to control the rotation order.</div>
+            </div>
+        </div>
+
+        <!-- SCHEDULING -->
+        <div class="hsf-section">
+            <h2><i class="fas fa-calendar-alt"></i> Scheduling (optional)</h2>
+            <div class="hsf-hint">
+                Leave both fields blank to run the slide indefinitely. Fill them in to auto-show and auto-hide the slide on specific dates.
+            </div>
+
+            <div class="hsf-row">
+                <div class="hsf-field">
+                    <label>Active from</label>
+                    <input type="datetime-local" name="active_from"
+                           value="{% if slide and slide.active_from %}{{ slide.active_from|date:'Y-m-d\\TH:i' }}{% endif %}">
+                </div>
+                <div class="hsf-field">
+                    <label>Active until</label>
+                    <input type="datetime-local" name="active_until"
+                           value="{% if slide and slide.active_until %}{{ slide.active_until|date:'Y-m-d\\TH:i' }}{% endif %}">
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="hsf-actions">
+            <a href="{% url 'core:hero_slide_list' %}" class="hsf-btn cancel">Cancel</a>
+            <button type="submit" class="hsf-btn save">
+                <i class="fas fa-save"></i> {% if is_edit %}Save Changes{% else %}Create Slide{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function previewFile(input, targetId) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const wrapper = input.closest('.hsf-image-panel').querySelector('.hsf-preview');
+        const placeholder = wrapper.querySelector('.placeholder');
+        if (placeholder) placeholder.remove();
+
+        let img = document.getElementById(targetId);
+        if (!img) {
+            img = document.createElement('img');
+            img.id = targetId;
+            wrapper.appendChild(img);
+        }
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+</script>
+{% endblock %}

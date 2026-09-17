@@ -1,0 +1,133 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Import Attendance · {{ session.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 720px; margin: 0 auto; }
+.form-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none; font-weight: 600;
+    margin-bottom: 0.6rem; font-size: 0.85rem;
+}
+.form-back:hover { text-decoration: underline; }
+.form-header { margin-bottom: 1rem; }
+.form-header h2 { margin: 0; color: var(--text-primary); font-size: 1.4rem; font-weight: 700; }
+.form-header p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
+.form-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 2rem; box-shadow: var(--shadow-sm);
+}
+.info-banner {
+    background: linear-gradient(135deg, #e6f0fb 0%, #f0f7ff 100%);
+    border-left: 4px solid #3182ce;
+    border-radius: 10px; padding: 1rem 1.15rem;
+    margin-bottom: 1.25rem; font-size: 0.83rem; color: #1e40af;
+    line-height: 1.6;
+}
+.info-banner strong { color: #1e3a8a; }
+.info-banner ol { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+.file-drop {
+    border: 2px dashed rgba(200,169,81,0.4);
+    border-radius: 14px; padding: 2rem 1.5rem; text-align: center;
+    background: #fbfaf5; transition: all 0.25s; cursor: pointer;
+}
+.file-drop:hover { border-color: var(--gold); background: #fef9ec; }
+.file-drop input[type="file"] { display: none; }
+.file-drop .icon { font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--gold); }
+.file-drop .title { font-weight: 700; color: #0F3D2E; font-size: 0.95rem; }
+.file-drop .sub { font-size: 0.78rem; color: #8a9b95; margin-top: 0.3rem; }
+.file-drop .filename {
+    display: none; margin-top: 0.75rem; padding: 0.5rem 0.9rem;
+    background: #fff; border-radius: 8px; font-size: 0.82rem;
+    color: #0F3D2E; font-weight: 600;
+    border: 1px solid rgba(0,0,0,0.06); word-break: break-all;
+}
+.file-drop.has-file .filename { display: inline-block; }
+.form-actions {
+    display: flex; gap: 0.85rem; flex-wrap: wrap;
+    margin-top: 1.5rem; padding-top: 1.5rem;
+    border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-primary {
+    background: var(--primary); color: #fff;
+    padding: 0.7rem 2rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-primary:disabled { opacity: 0.7; cursor: wait; }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.7rem 2rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    text-decoration: none; display: inline-flex;
+    align-items: center; gap: 0.4rem;
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+@media (max-width: 768px) {
+    .form-card { padding: 1.25rem; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn { justify-content: center; width: 100%; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="form-container">
+    <a href="{% url 'academics:admin_attendance_edit' session.pk %}" class="form-back">
+        <i class="fas fa-arrow-left"></i> Back to Session
+    </a>
+
+    <div class="form-header">
+        <h2>📤 Import Attendance</h2>
+        <p>{{ session.title }}</p>
+    </div>
+
+    <div class="form-card">
+        <div class="info-banner">
+            <i class="fas fa-info-circle"></i> <strong>Excel format:</strong>
+            <ol>
+                <li>Column A: Name (required)</li>
+                <li>Column B: Role (optional — e.g. Tutor, Guest)</li>
+                <li>Column C: Present (Yes / No — defaults to Yes)</li>
+            </ol>
+            Imported rows are <strong>added</strong> to the session — they don't replace existing records.
+        </div>
+
+        <form method="post" enctype="multipart/form-data" novalidate id="importForm">
+            {% csrf_token %}
+
+            <label for="excel_file" class="file-drop" id="fileDrop">
+                <div class="icon">📄</div>
+                <div class="title">Click to select an Excel file</div>
+                <div class="sub">.xlsx or .xls — max 10MB</div>
+                <input type="file" name="excel_file" id="excel_file" accept=".xlsx,.xls" onchange="onFileSelected(this)" required>
+                <div class="filename" id="fileName"></div>
+            </label>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary"><i class="fas fa-upload"></i> Upload & Import</button>
+                <a href="{% url 'academics:admin_attendance_edit' session.pk %}" class="btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function onFileSelected(input) {
+    const drop = document.getElementById('fileDrop');
+    const label = document.getElementById('fileName');
+    if (input.files && input.files[0]) {
+        label.textContent = '📎 ' + input.files[0].name;
+        drop.classList.add('has-file');
+    } else { label.textContent = ''; drop.classList.remove('has-file'); }
+}
+document.getElementById('importForm').addEventListener('submit', function() {
+    const btn = this.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading…'; }
+});
+</script>
+{% endblock %}

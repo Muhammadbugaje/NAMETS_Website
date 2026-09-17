@@ -1,0 +1,667 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Set Up Your Test · CBT{% endblock %}
+
+{% block extra_css %}
+<style>
+.setup-page {
+    max-width: 780px; margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+}
+
+/* Inline toast (replaces alert) */
+.setup-toast {
+    display: none;
+    position: fixed;
+    top: 1.5rem; left: 50%;
+    transform: translateX(-50%) translateY(-12px);
+    background: #fdecea;
+    color: #9b2c2c;
+    border-left: 4px solid #dc3545;
+    padding: 0.85rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+    z-index: 9999;
+    max-width: 90vw;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    display: flex; align-items: center; gap: 0.6rem;
+}
+.setup-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+.setup-toast.warning {
+    background: #fef3e8;
+    color: #a8671a;
+    border-left-color: #C8A951;
+}
+.setup-toast.success {
+    background: #e8f2ec;
+    color: #1a6b3c;
+    border-left-color: #38a169;
+}
+.setup-toast i { font-size: 1.05rem; flex-shrink: 0; }
+
+/* Progress indicator */
+.setup-progress {
+    display: flex; align-items: center; gap: 0.5rem;
+    justify-content: center; margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+}
+.sp-step {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.72rem; font-weight: 700;
+    color: #8a9b95; letter-spacing: 0.04em;
+}
+.sp-step .num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #f0f4f2; color: #8a9b95;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 800;
+}
+.sp-step.active { color: #0F3D2E; }
+.sp-step.active .num { background: #0F3D2E; color: #C8A951; }
+.sp-step.done .num { background: #38a169; color: #fff; }
+.sp-divider {
+    width: 30px; height: 2px; background: #f0f4f2;
+    border-radius: 2px;
+}
+.sp-divider.active { background: #38a169; }
+
+/* Main card */
+.setup-card {
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    padding: 2.25rem 2rem;
+    box-shadow: 0 12px 40px rgba(15,61,46,0.1);
+    border: 1px solid rgba(200,169,81,0.15);
+    animation: setupIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes setupIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.setup-head {
+    text-align: center; margin-bottom: 2rem;
+}
+.setup-head .badge {
+    display: inline-block; font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.15);
+    padding: 0.3rem 0.9rem; border-radius: 20px;
+    margin-bottom: 0.75rem;
+}
+.setup-head h1 {
+    font-size: 1.65rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.4rem;
+    letter-spacing: -0.02em;
+}
+.setup-head p {
+    font-size: 0.9rem; color: #5A5A5A; margin: 0;
+}
+
+/* Section */
+.setup-section { margin-bottom: 1.75rem; }
+.setup-section .sec-label {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a6a1a; margin-bottom: 0.85rem;
+}
+.setup-section .sec-label::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent);
+}
+
+/* Course cards */
+.course-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+.course-radio {
+    position: relative;
+    cursor: pointer;
+    padding: 1rem 1.15rem;
+    background: #f8faf9;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    transition: all 0.25s ease;
+    display: flex; align-items: center; gap: 0.75rem;
+}
+.course-radio:hover {
+    border-color: rgba(200,169,81,0.4);
+    background: #fef9ec;
+    transform: translateY(-2px);
+}
+.course-radio input {
+    position: absolute; opacity: 0; pointer-events: none;
+}
+.course-radio.selected {
+    background: linear-gradient(135deg, #e8f2ec, #f0faf4);
+    border-color: #0F3D2E;
+    box-shadow: 0 4px 16px rgba(15,61,46,0.15);
+}
+.course-radio.selected::after {
+    content: '✓';
+    position: absolute; top: 8px; right: 10px;
+    width: 20px; height: 20px;
+    background: #0F3D2E; color: #C8A951;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 900;
+}
+.cr-icon { font-size: 1.75rem; line-height: 1; }
+.cr-info { flex: 1; min-width: 0; }
+.cr-name {
+    font-size: 0.9rem; font-weight: 800;
+    color: #0F3D2E; margin-bottom: 0.15rem;
+}
+.cr-meta { font-size: 0.7rem; color: #8a9b95; }
+
+/* Difficulty chips */
+.chip-group {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+}
+.chip-radio {
+    position: relative; cursor: pointer;
+    padding: 0.65rem 1.3rem;
+    background: #f8faf9;
+    border: 2px solid transparent;
+    border-radius: 50px;
+    font-size: 0.83rem; font-weight: 700;
+    color: #5A5A5A;
+    transition: all 0.2s ease;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.chip-radio input {
+    position: absolute; opacity: 0; pointer-events: none;
+}
+.chip-radio:hover {
+    background: #fef9ec;
+    border-color: rgba(200,169,81,0.4);
+}
+.chip-radio.selected {
+    background: #0F3D2E; color: #C8A951;
+    border-color: #0F3D2E;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.25);
+}
+
+/* Count + range */
+.count-row {
+    display: flex; align-items: center; gap: 1rem;
+    flex-wrap: wrap;
+}
+.count-slider {
+    flex: 1; min-width: 200px;
+    -webkit-appearance: none;
+    height: 6px; border-radius: 4px;
+    background: #e8edec;
+    outline: none;
+}
+.count-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #0F3D2E;
+    border: 3px solid #C8A951;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: all 0.2s;
+}
+.count-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(15,61,46,0.3);
+}
+.count-slider::-moz-range-thumb {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #0F3D2E; border: 3px solid #C8A951;
+    cursor: pointer;
+}
+.count-value {
+    min-width: 60px; text-align: center;
+    font-size: 1.15rem; font-weight: 800;
+    color: #0F3D2E;
+    background: #f5e9c8;
+    padding: 0.35rem 0.75rem; border-radius: 10px;
+    border: 1px solid rgba(200,169,81,0.3);
+}
+
+/* Name/Email fields */
+.field-group { margin-bottom: 1rem; }
+.field-group label {
+    display: block; font-size: 0.8rem;
+    font-weight: 700; color: #0F3D2E;
+    margin-bottom: 0.35rem;
+}
+.field-group label .optional {
+    font-weight: 500; color: #8a9b95;
+    font-size: 0.72rem; margin-left: 0.3rem;
+}
+.field-group input {
+    width: 100%; padding: 0.75rem 1rem;
+    border: 1.5px solid #d0d9d6; border-radius: 12px;
+    font-size: 0.92rem; background: #fff;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+.field-group input:focus {
+    border-color: #C8A951; outline: none;
+    box-shadow: 0 0 0 4px rgba(200,169,81,0.15);
+}
+.field-group input.invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 4px rgba(220,53,69,0.12);
+}
+.field-group .field-help {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.3rem;
+}
+
+/* Summary preview */
+.summary-preview {
+    background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 100%);
+    border-left: 4px solid #C8A951;
+    border-radius: 14px;
+    padding: 1.15rem 1.35rem;
+    margin: 1.5rem 0 1.75rem;
+    display: flex; gap: 1rem; align-items: center;
+    flex-wrap: wrap;
+}
+.summary-preview .sum-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: #0F3D2E;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+}
+.summary-preview .sum-text { flex: 1; min-width: 200px; }
+.summary-preview .sum-title {
+    font-size: 0.75rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a6a1a; margin-bottom: 0.25rem;
+}
+.summary-preview .sum-body {
+    font-size: 0.9rem; color: #4a3a10;
+    line-height: 1.5; font-weight: 600;
+}
+.summary-preview .sum-body strong { color: #0F3D2E; font-weight: 800; }
+
+/* Action buttons */
+.setup-actions {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(0,0,0,0.06);
+}
+.btn-start {
+    flex: 1; min-width: 200px;
+    padding: 0.95rem 2rem; border-radius: 50px;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff; border: none; cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 0.55rem;
+    box-shadow: 0 8px 24px rgba(15,61,46,0.3);
+    transition: all 0.25s ease;
+    letter-spacing: 0.01em;
+}
+.btn-start:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 36px rgba(15,61,46,0.4);
+    color: #fff;
+}
+.btn-start:disabled {
+    opacity: 0.6; cursor: not-allowed;
+}
+.btn-back {
+    padding: 0.95rem 1.75rem; border-radius: 50px;
+    background: transparent; color: #0F3D2E;
+    border: 1.5px solid rgba(15,61,46,0.25);
+    font-family: inherit;
+    font-size: 0.9rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    transition: all 0.2s ease;
+}
+.btn-back:hover {
+    background: #0F3D2E; color: #fff;
+    border-color: #0F3D2E;
+    transform: translateY(-2px);
+}
+
+/* No questions state */
+.no-questions {
+    text-align: center; padding: 3rem 1.5rem;
+}
+.no-questions .nq-icon {
+    font-size: 3.5rem; margin-bottom: 0.75rem;
+    display: inline-block;
+}
+.no-questions h2 {
+    font-size: 1.15rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.4rem;
+}
+.no-questions p {
+    font-size: 0.88rem; color: #5A5A5A;
+    margin: 0 0 1.5rem; line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+    .setup-card { padding: 1.5rem 1.25rem; }
+    .setup-head h1 { font-size: 1.35rem; }
+    .count-row { flex-direction: column; align-items: stretch; }
+    .count-value { align-self: center; }
+    .setup-actions { flex-direction: column; }
+    .btn-start, .btn-back { width: 100%; justify-content: center; }
+    .setup-toast { max-width: calc(100vw - 2rem); font-size: 0.82rem; padding: 0.75rem 1rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Inline toast (replaces native alerts) -->
+<div class="setup-toast" id="setupToast" role="alert" aria-live="polite">
+    <i class="fas fa-exclamation-circle" id="setupToastIcon"></i>
+    <span id="setupToastText">Message</span>
+</div>
+
+<div class="setup-page">
+
+    <div class="setup-progress">
+        <span class="sp-step done"><span class="num">✓</span> Home</span>
+        <span class="sp-divider active"></span>
+        <span class="sp-step active"><span class="num">2</span> Setup</span>
+        <span class="sp-divider"></span>
+        <span class="sp-step"><span class="num">3</span> Test</span>
+        <span class="sp-divider"></span>
+        <span class="sp-step"><span class="num">4</span> Results</span>
+    </div>
+
+    <div class="setup-card">
+
+        {% if no_questions %}
+        <div class="no-questions">
+            <span class="nq-icon">🚧</span>
+            <h2>No Questions Available</h2>
+            <p>
+                There are no questions available in the CBT bank yet.
+                Please check back later or contact the Academics team.
+            </p>
+            <a href="{% url 'academics:cbt_home' %}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to CBT Home
+            </a>
+        </div>
+
+        {% else %}
+
+        <div class="setup-head">
+            <span class="badge">Step 2 of 4</span>
+            <h1>Set Up Your Test</h1>
+            <p>Choose your preferences. Every test is unique — questions are randomized.</p>
+        </div>
+
+        <form method="post" action="{% url 'academics:cbt_start' %}" id="setupForm" novalidate>
+            {% csrf_token %}
+
+            <!-- Course -->
+            <div class="setup-section">
+                <div class="sec-label"><i class="fas fa-book"></i> Choose a Course</div>
+                <div class="course-picker">
+                    {% for c in courses %}
+                    <label class="course-radio {% if course and course.pk == c.pk %}selected{% endif %}">
+                        <input type="radio" name="course" value="{{ c.slug }}"
+                               {% if course and course.pk == c.pk %}checked{% endif %}
+                               required>
+                        <span class="cr-icon">{{ c.icon|default:"📘" }}</span>
+                        <div class="cr-info">
+                            <div class="cr-name">{{ c.name }}</div>
+                            <div class="cr-meta">{{ c.q_total }} question{{ c.q_total|pluralize }}</div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Difficulty -->
+            {% if allow_difficulty %}
+            <div class="setup-section">
+                <div class="sec-label"><i class="fas fa-tachometer-alt"></i> Difficulty</div>
+                <div class="chip-group" id="difficultyGroup">
+                    <label class="chip-radio selected">
+                        <input type="radio" name="difficulty" value="mixed" checked>
+                        🎲 Mixed
+                    </label>
+                    <label class="chip-radio">
+                        <input type="radio" name="difficulty" value="easy">
+                        🟢 Easy
+                    </label>
+                    <label class="chip-radio">
+                        <input type="radio" name="difficulty" value="medium">
+                        🟡 Medium
+                    </label>
+                    <label class="chip-radio">
+                        <input type="radio" name="difficulty" value="hard">
+                        🔴 Hard
+                    </label>
+                </div>
+            </div>
+            {% else %}
+            <input type="hidden" name="difficulty" value="mixed">
+            {% endif %}
+
+            <!-- Topic (optional) -->
+            {% if allow_topic %}
+            <div class="setup-section">
+                <div class="sec-label"><i class="fas fa-tag"></i> Topic (optional)</div>
+                <div class="field-group">
+                    <input type="text" name="topic" placeholder="e.g. Tajweed, Wudu, Salah — leave blank for all topics">
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Count slider -->
+            <div class="setup-section">
+                <div class="sec-label"><i class="fas fa-list-ol"></i> Number of Questions</div>
+                <div class="count-row">
+                    <input type="range" name="num_questions" id="countSlider"
+                           class="count-slider"
+                           min="{{ min_questions }}" max="{{ max_questions }}"
+                           value="{{ default_count }}" step="1">
+                    <div class="count-value" id="countValue">{{ default_count }}</div>
+                </div>
+                <div class="field-help" style="margin-top:0.5rem;">
+                    Between {{ min_questions }} and {{ max_questions }} questions.
+                    More questions give a fuller picture.
+                </div>
+            </div>
+
+            <!-- Name / Email -->
+            <div class="setup-section">
+                <div class="sec-label"><i class="fas fa-user"></i> About You</div>
+
+                <div class="field-group">
+                    <label>Your Name <span style="color:#c0392b;">*</span></label>
+                    <input type="text" name="student_name" id="studentName"
+                           placeholder="e.g. Ibrahim Musa"
+                           required autocomplete="name">
+                    <div class="field-help">Used only on your result page — nothing is saved to our database.</div>
+                </div>
+
+                <div class="field-group">
+                    <label>Email <span class="optional">(optional)</span></label>
+                    <input type="email" name="student_email"
+                           placeholder="you@example.com" autocomplete="email">
+                    <div class="field-help">Optional. Not stored, not emailed — for your reference only.</div>
+                </div>
+            </div>
+
+            <!-- Summary preview -->
+            <div class="summary-preview">
+                <div class="sum-icon">🎯</div>
+                <div class="sum-text">
+                    <div class="sum-title">Your Test</div>
+                    <div class="sum-body" id="summaryText">
+                        <strong>{{ default_count }}</strong> questions · Mixed difficulty · ~{{ default_minutes }} minutes
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="setup-actions">
+                <a href="{% url 'academics:cbt_home' %}" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+                <button type="submit" class="btn-start" id="startBtn">
+                    <i class="fas fa-play"></i> Continue
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function() {
+    // ============================================================
+    //  INLINE TOAST (replaces native alert)
+    // ============================================================
+    let toastTimer = null;
+
+    function showSetupToast(message, type) {
+        const toast = document.getElementById('setupToast');
+        const textEl = document.getElementById('setupToastText');
+        const iconEl = document.getElementById('setupToastIcon');
+
+        textEl.textContent = message;
+
+        toast.className = 'setup-toast';
+        iconEl.className = 'fas fa-exclamation-circle';
+
+        if (type === 'success') {
+            toast.classList.add('success');
+            iconEl.className = 'fas fa-check-circle';
+        } else if (type === 'warning') {
+            toast.classList.add('warning');
+            iconEl.className = 'fas fa-exclamation-triangle';
+        } else {
+            iconEl.className = 'fas fa-exclamation-circle';
+        }
+
+        // Force reflow so animation restarts even if called twice fast
+        void toast.offsetWidth;
+        toast.classList.add('show');
+
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function() {
+            toast.classList.remove('show');
+        }, 4000);
+    }
+
+    // ============================================================
+    //  Course card selection visual
+    // ============================================================
+    document.querySelectorAll('.course-radio').forEach(function(label) {
+        const input = label.querySelector('input[type="radio"]');
+        if (input && input.checked) label.classList.add('selected');
+
+        label.addEventListener('click', function() {
+            document.querySelectorAll('.course-radio').forEach(l => l.classList.remove('selected'));
+            label.classList.add('selected');
+        });
+    });
+
+    // ============================================================
+    //  Difficulty chip visual
+    // ============================================================
+    document.querySelectorAll('.chip-radio').forEach(function(label) {
+        label.addEventListener('click', function() {
+            document.querySelectorAll('.chip-radio').forEach(l => l.classList.remove('selected'));
+            label.classList.add('selected');
+        });
+    });
+
+    // ============================================================
+    //  Count slider
+    // ============================================================
+    const slider = document.getElementById('countSlider');
+    const valueBox = document.getElementById('countValue');
+    const summary = document.getElementById('summaryText');
+
+    function updateSummary() {
+        if (!slider || !valueBox) return;
+        const count = slider.value;
+        valueBox.textContent = count;
+
+        const diffInput = document.querySelector('input[name="difficulty"]:checked');
+        const diffText = diffInput ? diffInput.value : 'mixed';
+
+        const minutes = Math.max(1, Math.round(count * 1.2));
+        summary.innerHTML =
+            `<strong>${count}</strong> question${count > 1 ? 's' : ''} · ` +
+            `${diffText.charAt(0).toUpperCase() + diffText.slice(1)} · ` +
+            `~${minutes} minute${minutes > 1 ? 's' : ''}`;
+    }
+
+    if (slider) slider.addEventListener('input', updateSummary);
+
+    document.querySelectorAll('input[name="difficulty"]').forEach(function(r) {
+        r.addEventListener('change', updateSummary);
+    });
+    document.querySelectorAll('input[name="course"]').forEach(function(r) {
+        r.addEventListener('change', updateSummary);
+    });
+
+    // ============================================================
+    //  Submit: validate inline (no native alert)
+    // ============================================================
+    const form = document.getElementById('setupForm');
+    const startBtn = document.getElementById('startBtn');
+    const nameInput = document.getElementById('studentName');
+
+    // Clear invalid state on typing
+    if (nameInput) {
+        nameInput.addEventListener('input', function() {
+            nameInput.classList.remove('invalid');
+        });
+    }
+
+    if (form && startBtn) {
+        form.addEventListener('submit', function(e) {
+            const courseChecked = document.querySelector('input[name="course"]:checked');
+            const nameFilled = nameInput ? nameInput.value.trim() : '';
+
+            if (!courseChecked) {
+                e.preventDefault();
+                showSetupToast('Please choose a course to continue.', 'warning');
+                // Scroll to course picker
+                const picker = document.querySelector('.course-picker');
+                if (picker) picker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            if (!nameFilled) {
+                e.preventDefault();
+                showSetupToast('Please enter your name.', 'warning');
+                if (nameInput) {
+                    nameInput.classList.add('invalid');
+                    nameInput.focus();
+                }
+                return;
+            }
+
+            startBtn.disabled = true;
+            startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing…';
+        });
+    }
+
+    updateSummary();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,364 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Developers · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.dev-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.dev-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.dev-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.dev-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.dev-header-text h1 { font-size: 1.6rem; font-weight: 700; color: #fff; margin: 0 0 0.3rem; }
+.dev-header-text p { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+.dev-header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.dev-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.25s;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.dev-btn:hover { background: rgba(255,255,255,0.2); color: #fff; transform: translateY(-2px); }
+
+.dev-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.filter-form input {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 200px;
+}
+.filter-form .btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.filter-form .clear {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.bulk-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0.75rem 0;
+    padding: 0.75rem 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.bulk-actions select {
+    padding: 0.4rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+}
+.bulk-actions .btn-sm {
+    padding: 0.4rem 1.2rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--primary); color: #fff;
+}
+.bulk-actions .btn-sm:hover { background: var(--primary-dark); }
+
+.dev-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+}
+.dev-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: var(--transition);
+    cursor: pointer;
+}
+.dev-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--gold);
+}
+.dev-card .photo {
+    height: 180px;
+    overflow: hidden;
+    background: #f0f4f2;
+    position: relative;
+}
+.dev-card .photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+.dev-card:hover .photo img { transform: scale(1.05); }
+.dev-card .photo .no-photo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 3.5rem;
+    color: #c0c8c5;
+}
+.dev-card .photo .checkbox-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+}
+.dev-card .photo .checkbox-overlay input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--gold);
+    cursor: pointer;
+}
+.dev-card .body {
+    padding: 0.75rem 1rem 1rem;
+}
+.dev-card .body .name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.1rem;
+}
+.dev-card .body .role {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.dev-card .body .bio {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin: 0.3rem 0 0.4rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.dev-card .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.3rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.dev-card .footer .btn-sm {
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.badge-sm {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+.badge-success { background: #e8f2ec; color: #1a3c2e; }
+.badge-danger { background: #fdecea; color: #9b2c2c; }
+
+.empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 3rem 2rem; }
+.empty .empty-icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
+
+.pagination { margin-top: 1.5rem; text-align: center; }
+.pagination .step-links a {
+    color: var(--gold);
+    text-decoration: none;
+    margin: 0 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+}
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.5rem; }
+
+@media (max-width: 768px) {
+    .dev-header { padding: 1.4rem 1.25rem; border-radius: 18px; }
+    .dev-header-content { flex-direction: column; align-items: stretch; }
+    .dev-btn { width: 100%; justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .bulk-actions { flex-direction: column; align-items: stretch; }
+    .dev-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="dev-header">
+    <div class="dev-header-glow" aria-hidden="true"></div>
+    <div class="dev-header-content">
+        <div class="dev-header-text">
+            <span class="dev-eyebrow">Technology</span>
+            <h1>💻 Developers</h1>
+            <p>Manage the team behind the NAMETS platform.</p>
+        </div>
+        <div class="dev-header-actions">
+            {% if perms.community.add_developer %}
+            <a href="{% url 'community:admin_developer_create' %}" class="dev-btn">
+                <i class="fas fa-plus-circle"></i> Add Developer
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="dev-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search by name or role..." value="{{ query }}">
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query %}
+        <a href="{% url 'community:admin_developer_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<form method="post" id="bulkForm">
+    {% csrf_token %}
+    <div class="bulk-actions">
+        <span style="font-weight:600; font-size:0.9rem;">Bulk Actions:</span>
+        <select name="bulk_action">
+            <option value="">— Select —</option>
+            <option value="delete">🗑️ Delete Selected</option>
+            <option value="activate">✅ Activate</option>
+            <option value="deactivate">⛔ Deactivate</option>
+        </select>
+        <button type="submit" class="btn-sm" onclick="return confirm('Apply bulk action to selected developers?');">Apply</button>
+        <span style="font-size:0.8rem; color:var(--text-muted); margin-left:auto;">
+            <a href="#" onclick="toggleSelectAll(); return false;">Select All</a> / <a href="#" onclick="deselectAll(); return false;">Deselect All</a>
+        </span>
+    </div>
+
+    <div class="dev-grid">
+        {% for developer in developers %}
+        <div class="dev-card" onclick="window.location.href='{% url 'community:admin_developer_edit' developer.pk %}'">
+            <div class="photo">
+                <div class="checkbox-overlay">
+                    <input type="checkbox" name="selected_ids" value="{{ developer.id }}" class="row-checkbox" onclick="event.stopPropagation();">
+                </div>
+                {% if developer.photo %}
+                    <img src="{{ developer.photo.url }}" alt="{{ developer.name }}" loading="lazy">
+                {% else %}
+                    <div class="no-photo">💻</div>
+                {% endif %}
+            </div>
+            <div class="body">
+                <div class="name">{{ developer.name }}</div>
+                <div class="role">{{ developer.role }}</div>
+                <div class="bio">{{ developer.bio|truncatechars:80 }}</div>
+                <div class="footer">
+                    {% if developer.is_active %}
+                    <span class="badge-sm badge-success">Active</span>
+                    {% else %}
+                    <span class="badge-sm badge-danger">Inactive</span>
+                    {% endif %}
+                    <div style="display:flex; gap:0.3rem;">
+                        <a href="{% url 'community:admin_developer_edit' developer.pk %}" class="btn-sm btn-sm-gold" onclick="event.stopPropagation();">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'community:admin_developer_delete' developer.pk %}" class="btn-sm btn-sm-danger" onclick="event.stopPropagation();">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty">
+            <span class="empty-icon">📭</span>
+            <h3>No developers found</h3>
+            <p>Add your team members.</p>
+        </div>
+        {% endfor %}
+    </div>
+</form>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% if query %}&q={{ query }}{% endif %}">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">previous</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+<script>
+    function toggleSelectAll() { document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = true); }
+    function deselectAll() { document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false); }
+</script>
+{% endblock %}

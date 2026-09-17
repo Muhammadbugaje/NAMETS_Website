@@ -1,0 +1,433 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Revenue Report · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.rv-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px; padding: 2rem 2rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.rv-header::before {
+    content: "💰"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 2rem; opacity: 0.08;
+}
+.rv-header-content {
+    position: relative; color: #fff;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.rv-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #C8A951; background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem; border-radius: 20px; margin-bottom: 0.4rem;
+}
+.rv-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.3rem; }
+.rv-header p { color: rgba(255,255,255,0.75); font-size: 0.9rem; margin: 0; }
+.rv-export-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1.4rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.85rem; text-decoration: none;
+    background: #C8A951; color: #0F3D2E;
+    border: 1px solid #C8A951;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px rgba(200,169,81,0.3);
+}
+.rv-export-btn:hover {
+    background: #E0C96E; transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(200,169,81,0.45);
+    color: #0F3D2E;
+}
+
+/* Filter */
+.rv-filter {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 0.8rem 1.2rem; margin-bottom: 1.5rem;
+    display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center;
+}
+.rv-filter form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; width: 100%; }
+.rv-filter input[type="date"] {
+    padding: 0.4rem 0.8rem; border: 1px solid #d0d9d6;
+    border-radius: 8px; background: #fff; font-size: 0.85rem;
+}
+.rv-filter .btn {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.45rem 1.2rem; border-radius: 8px;
+    font-weight: 600; font-size: 0.82rem; cursor: pointer;
+}
+.rv-filter .btn:hover { background: var(--primary-dark); }
+.rv-filter .clear { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+.rv-filter .clear:hover { color: var(--text-primary); }
+
+/* AI insights */
+.insights-section {
+    background: linear-gradient(135deg, #f0f7f4 0%, #e8f2ec 100%);
+    border: 1px solid rgba(15,61,46,0.1);
+    border-radius: var(--radius-md);
+    padding: 1.4rem 1.5rem 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+.insights-section::before {
+    content: "✨"; position: absolute; top: 1rem; right: 1.5rem;
+    font-size: 3rem; opacity: 0.1;
+}
+.insights-header {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 1rem; position: relative;
+}
+.insights-header .ai-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.6rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #fff; background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    padding: 0.2rem 0.6rem; border-radius: 20px;
+}
+.insights-header h3 {
+    font-size: 1rem; font-weight: 700;
+    color: #0F3D2E; margin: 0;
+}
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.85rem;
+    position: relative;
+}
+.insight-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    border-left: 4px solid #C8A951;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex; gap: 0.75rem; align-items: flex-start;
+}
+.insight-card .ic-icon {
+    font-size: 1.5rem; flex-shrink: 0; line-height: 1;
+}
+.insight-card .ic-body { flex: 1; min-width: 0; }
+.insight-card .ic-title {
+    font-size: 0.85rem; font-weight: 700;
+    color: #0F3D2E; margin: 0 0 0.25rem;
+}
+.insight-card .ic-text {
+    font-size: 0.78rem; color: #5A5A5A;
+    line-height: 1.5; margin: 0;
+}
+.insight-card.positive { border-left-color: #38a169; }
+.insight-card.info     { border-left-color: #3182ce; }
+.insight-card.warning  { border-left-color: #d69e2e; }
+.insight-card.neutral  { border-left-color: #a0aec0; }
+
+/* Summary */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem; margin-bottom: 1.5rem;
+}
+.sum-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1.25rem 1.35rem; transition: var(--transition);
+    box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+}
+.sum-card:hover { transform: translateY(-4px); border-color: var(--gold); box-shadow: var(--shadow-md); }
+.sum-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+}
+.sum-card.total::before  { background: linear-gradient(90deg, #0F3D2E, #1a5a44); }
+.sum-card.shop::before   { background: linear-gradient(90deg, #38a169, #48bb78); }
+.sum-card.booking::before { background: linear-gradient(90deg, #6b21a8, #9333ea); }
+.sum-card.form::before   { background: linear-gradient(90deg, #185fa5, #3182ce); }
+.sum-card .sum-label {
+    font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-muted); margin-bottom: 0.4rem;
+    display: flex; align-items: center; gap: 0.4rem;
+}
+.sum-card .sum-value {
+    font-size: 1.55rem; font-weight: 800;
+    color: var(--text-primary); line-height: 1.2; margin-bottom: 0.15rem;
+}
+.sum-card .sum-sub { font-size: 0.72rem; color: var(--text-muted); }
+
+/* Section */
+.rv-section {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);
+}
+.rv-section h3 {
+    font-size: 0.95rem; font-weight: 700; color: var(--text-primary);
+    margin: 0 0 0.85rem; display: flex; align-items: center; gap: 0.5rem;
+}
+.rv-section h3 .sub {
+    font-size: 0.72rem; font-weight: 500;
+    color: var(--text-muted); margin-left: auto;
+}
+
+.rv-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.rv-table thead { background: #f8faf9; }
+.rv-table th {
+    padding: 0.6rem 0.8rem; text-align: left;
+    font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-muted); border-bottom: 2px solid #e8edec;
+}
+.rv-table td {
+    padding: 0.75rem 0.8rem; border-bottom: 1px solid #eef2f0;
+    color: #2d3748; vertical-align: middle;
+}
+.rv-table tbody tr:last-child td { border-bottom: none; }
+.rv-table tbody tr:hover { background: #fafcfb; }
+.rv-table .acct-name { font-weight: 700; color: #0F3D2E; }
+.rv-table .acct-meta { font-size: 0.72rem; color: var(--text-muted); }
+.rv-table .amount { font-weight: 700; color: #0F3D2E; text-align: right; }
+.rv-table .amount.zero { color: #b0b8b5; font-weight: 500; }
+.rv-table .amount.shop   { color: #1a3c2e; }
+.rv-table .amount.booking{ color: #6b21a8; }
+.rv-table .amount.form   { color: #185fa5; }
+.badge-count {
+    display: inline-block; font-size: 0.7rem; font-weight: 700;
+    background: #f0f4f2; color: #4a5568;
+    padding: 0.15rem 0.55rem; border-radius: 10px;
+}
+
+.source-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.source-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.6rem 0.8rem; background: #f8faf9; border-radius: 10px;
+    gap: 1rem; font-size: 0.85rem; border-left: 3px solid var(--gold);
+}
+.source-item .src-desc {
+    color: var(--text-primary); font-weight: 500; flex: 1;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.source-item .src-total { font-weight: 700; color: #0F3D2E; white-space: nowrap; }
+.source-item .src-count { font-size: 0.72rem; color: var(--text-muted); margin-left: 0.5rem; }
+
+.empty-row {
+    text-align: center; padding: 1.5rem 1rem;
+    color: var(--text-muted); font-size: 0.85rem;
+}
+.rv-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.recent-list { display: flex; flex-direction: column; }
+.recent-item {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 1rem; padding: 0.6rem 0;
+    border-bottom: 1px solid #eef2f0; font-size: 0.85rem;
+}
+.recent-item:last-child { border-bottom: none; }
+.recent-item .r-desc { color: var(--text-primary); }
+.recent-item .r-meta { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; }
+.recent-item .r-amt { font-weight: 700; color: #0F3D2E; white-space: nowrap; }
+
+@media (max-width: 900px) { .rv-grid-2 { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+    .rv-header { padding: 1.5rem 1.25rem; }
+    .rv-header h1 { font-size: 1.35rem; }
+    .rv-header-content { flex-direction: column; align-items: stretch; }
+    .rv-export-btn { justify-content: center; }
+    .rv-filter form { flex-direction: column; align-items: stretch; }
+    .summary-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .sum-card { padding: 1rem; }
+    .sum-card .sum-value { font-size: 1.2rem; }
+    .rv-table th, .rv-table td { padding: 0.5rem 0.4rem; font-size: 0.78rem; }
+    .rv-table .hide-sm { display: none; }
+    .insights-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 500px) { .summary-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="rv-header">
+    <div class="rv-header-content">
+        <div>
+            <span class="rv-eyebrow">Business Office</span>
+            <h1>📊 Revenue Report</h1>
+            <p>Track where the money comes from and which account it lands in.</p>
+        </div>
+        <a href="{% url 'business:admin_revenue_export' %}{% if date_from or date_to %}?{% if date_from %}date_from={{ date_from }}{% endif %}{% if date_from and date_to %}&{% endif %}{% if date_to %}date_to={{ date_to }}{% endif %}{% endif %}" class="rv-export-btn">
+            <i class="fas fa-file-excel"></i> Export Excel
+        </a>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="rv-filter">
+    <form method="get">
+        <input type="date" name="date_from" value="{{ date_from }}" placeholder="From date">
+        <input type="date" name="date_to" value="{{ date_to }}" placeholder="To date">
+        <button type="submit" class="btn"><i class="fas fa-filter"></i> Apply</button>
+        {% if date_from or date_to %}
+        <a href="{% url 'business:admin_revenue_report' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- AI Insights -->
+{% if insights %}
+<div class="insights-section">
+    <div class="insights-header">
+        <span class="ai-badge"><i class="fas fa-sparkles"></i> Smart Insights</span>
+        <h3>What your data is telling you</h3>
+    </div>
+    <div class="insights-grid">
+        {% for insight in insights %}
+        <div class="insight-card {{ insight.tone }}">
+            <div class="ic-icon">{{ insight.icon }}</div>
+            <div class="ic-body">
+                <div class="ic-title">{{ insight.title }}</div>
+                <p class="ic-text">{{ insight.body }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Summary -->
+<div class="summary-grid">
+    <div class="sum-card total">
+        <div class="sum-label"><i class="fas fa-coins"></i> Total Revenue</div>
+        <div class="sum-value">₦{{ totals|floatformat:2 }}</div>
+        <div class="sum-sub">All sources combined</div>
+    </div>
+    <div class="sum-card shop">
+        <div class="sum-label"><i class="fas fa-shopping-bag"></i> Shop Sales</div>
+        <div class="sum-value">₦{{ shop_total|floatformat:2 }}</div>
+        <div class="sum-sub">Merchandise revenue</div>
+    </div>
+    <div class="sum-card booking">
+        <div class="sum-label"><i class="fas fa-ticket-alt"></i> Bookings</div>
+        <div class="sum-value">₦{{ booking_total|floatformat:2 }}</div>
+        <div class="sum-sub">Event & travel tickets</div>
+    </div>
+    <div class="sum-card form">
+        <div class="sum-label"><i class="fas fa-file-invoice"></i> Forms</div>
+        <div class="sum-value">₦{{ form_total|floatformat:2 }}</div>
+        <div class="sum-sub">Registration & paid forms</div>
+    </div>
+</div>
+
+<!-- Per-account -->
+<div class="rv-section">
+    <h3><i class="fas fa-university" style="color: var(--gold);"></i> Money In Each Account <span class="sub">Revenue landing in each bank account</span></h3>
+    {% if per_account %}
+    <div style="overflow-x: auto;">
+        <table class="rv-table">
+            <thead>
+                <tr>
+                    <th>Account</th>
+                    <th class="hide-sm">Txns</th>
+                    <th style="text-align: right;">Shop</th>
+                    <th style="text-align: right;">Bookings</th>
+                    <th style="text-align: right;">Forms</th>
+                    <th style="text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in per_account %}
+                <tr>
+                    <td>
+                        <div class="acct-name">{{ a.account__name }}</div>
+                        {% if a.account__bank_name or a.account__account_number %}
+                        <div class="acct-meta">{{ a.account__bank_name }}{% if a.account__account_number %} · {{ a.account__account_number }}{% endif %}</div>
+                        {% endif %}
+                    </td>
+                    <td class="hide-sm"><span class="badge-count">{{ a.count }}</span></td>
+                    <td class="amount shop">
+                        {% if a.shop %}₦{{ a.shop|floatformat:2 }}{% else %}<span class="zero">—</span>{% endif %}
+                    </td>
+                    <td class="amount booking">
+                        {% if a.bookings %}₦{{ a.bookings|floatformat:2 }}{% else %}<span class="zero">—</span>{% endif %}
+                    </td>
+                    <td class="amount form">
+                        {% if a.forms %}₦{{ a.forms|floatformat:2 }}{% else %}<span class="zero">—</span>{% endif %}
+                    </td>
+                    <td class="amount" style="font-size:0.95rem;">₦{{ a.total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-row">No revenue recorded yet for the selected period.</div>
+    {% endif %}
+</div>
+
+<!-- Top sources -->
+<div class="rv-grid-2">
+    <div class="rv-section">
+        <h3><i class="fas fa-ticket-alt" style="color:#6b21a8;"></i> Top Booking Revenue</h3>
+        <div class="source-list">
+            {% for s in booking_sales %}
+            <div class="source-item">
+                <span class="src-desc">{{ s.description|truncatechars:45 }}</span>
+                <span class="src-total">₦{{ s.total|floatformat:2 }}<span class="src-count">· {{ s.count }}</span></span>
+            </div>
+            {% empty %}
+            <div class="empty-row">No booking revenue yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="rv-section">
+        <h3><i class="fas fa-shopping-bag" style="color:#38a169;"></i> Top Shop Sales</h3>
+        <div class="source-list">
+            {% for s in shop_sales %}
+            <div class="source-item">
+                <span class="src-desc">{{ s.description|truncatechars:45 }}</span>
+                <span class="src-total">₦{{ s.total|floatformat:2 }}<span class="src-count">· {{ s.count }}</span></span>
+            </div>
+            {% empty %}
+            <div class="empty-row">No shop revenue yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="rv-section">
+    <h3><i class="fas fa-file-invoice" style="color:#185fa5;"></i> Form Revenue</h3>
+    <div class="source-list">
+        {% for s in form_sales %}
+        <div class="source-item">
+            <span class="src-desc">{{ s.description|truncatechars:60 }}</span>
+            <span class="src-total">₦{{ s.total|floatformat:2 }}<span class="src-count">· {{ s.count }}</span></span>
+        </div>
+        {% empty %}
+        <div class="empty-row">No form revenue yet.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="rv-section">
+    <h3><i class="fas fa-history" style="color: var(--gold);"></i> Recent Revenue Entries <span class="sub">Last 20</span></h3>
+    <div class="recent-list">
+        {% for tx in recent %}
+        <div class="recent-item">
+            <div>
+                <div class="r-desc">{{ tx.description|truncatechars:70 }}</div>
+                <div class="r-meta">
+                    {{ tx.date|date:"M d, Y · g:i A" }} · {{ tx.account.name }}
+                    {% if tx.category == 'shop_sales' %}· <span style="color:#38a169;">Shop</span>
+                    {% elif tx.category == 'booking_revenue' %}· <span style="color:#6b21a8;">Booking</span>
+                    {% elif tx.category == 'form_revenue' %}· <span style="color:#185fa5;">Form</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="r-amt">+₦{{ tx.amount|floatformat:2 }}</div>
+        </div>
+        {% empty %}
+        <div class="empty-row">No revenue entries yet.</div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

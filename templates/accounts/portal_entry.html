@@ -1,0 +1,50 @@
+{% extends "accounts/base_accounts.html" %}
+{% load static %}
+
+{% block auth_content %}
+    <h2>🔐 Welcome Back</h2>
+    <p class="sub">Enter your credentials to access the NAMETS platform.</p>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" id="loginForm">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email" placeholder="your@email.com" required autofocus>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="btn-submit" id="loginBtn">
+            <span class="btn-text">Sign In</span>
+            <span class="spinner-border spinner-border-sm d-none" id="loginSpinner"></span>
+        </button>
+    </form>
+
+    <div class="auth-links">
+        <a href="{% url 'accounts:password_reset' %}">Forgot Password?</a>
+    </div>
+
+    <p class="back-link">This login page is private. Contact the ICT Head if you need access.</p>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function() {
+            const btn = document.getElementById('loginBtn');
+            const text = btn.querySelector('.btn-text');
+            const spinner = document.getElementById('loginSpinner');
+            btn.disabled = true;
+            text.textContent = 'Signing in...';
+            spinner.classList.remove('d-none');
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,354 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Islamiyya Sessions · Academics{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px; padding: 1.5rem 2rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.page-header::before {
+    content: "🕌"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.page-header-inner {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.page-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem; border-radius: 20px; margin-bottom: 0.3rem;
+}
+.page-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.page-header p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+.header-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.2rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem; text-decoration: none;
+    background: var(--gold); color: var(--text-primary);
+    border: 1px solid var(--gold); transition: all 0.25s;
+    cursor: pointer; font-family: inherit;
+}
+.header-btn:hover { background: #E0C96E; transform: translateY(-2px); }
+
+.set-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.1rem;
+}
+.set-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1.4rem 1.4rem 1.1rem;
+    transition: var(--transition); box-shadow: var(--shadow-sm);
+    position: relative; overflow: hidden;
+}
+.set-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 4px; background: #cbd5d1;
+}
+.set-card.is-active::before {
+    background: linear-gradient(90deg, #C8A951, #E0C96E);
+}
+.set-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+.set-card.is-active {
+    border-color: rgba(200,169,81,0.5);
+    background: linear-gradient(180deg, #fff 0%, #fbfaf5 100%);
+}
+.set-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 0.75rem; margin-bottom: 1rem;
+}
+.set-session {
+    font-size: 1.25rem; font-weight: 800; color: #0F3D2E;
+    letter-spacing: -0.01em; line-height: 1.2;
+}
+.set-session-sub {
+    font-size: 0.68rem; color: #8a9b95; margin-top: 0.2rem;
+    font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.set-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.3rem 0.75rem; border-radius: 30px;
+    font-size: 0.68rem; font-weight: 700;
+    white-space: nowrap;
+}
+.set-badge::before {
+    content: ''; width: 6px; height: 6px;
+    border-radius: 50%; background: currentColor;
+}
+.set-badge.open { background: #d4edda; color: #155724; }
+.set-badge.closed { background: #f0f0f0; color: #666; }
+.set-badge.current { background: #f5e9c8; color: #8a6a1a; }
+
+.set-stats {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem; margin-bottom: 1rem;
+}
+.set-stat {
+    background: #f8faf9; border-radius: 10px; padding: 0.7rem 0.85rem;
+}
+.set-stat .lbl {
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.07em;
+    color: #8a9b95; text-transform: uppercase;
+}
+.set-stat .val { font-size: 1.05rem; font-weight: 800; color: #0F3D2E; margin-top: 0.15rem; }
+.set-stat .val.green { color: #1a6b3c; }
+.set-stat .val.amber { color: #a8671a; }
+
+.set-meta {
+    font-size: 0.75rem; color: #8a9b95; margin-bottom: 0.9rem;
+    display: flex; align-items: center; gap: 0.4rem;
+    min-height: 1.2rem;
+}
+.set-meta i { color: var(--gold); width: 14px; }
+
+.set-actions {
+    display: flex; gap: 0.35rem; flex-wrap: wrap;
+    padding-top: 0.9rem; border-top: 1px solid rgba(0,0,0,0.05);
+}
+.btn-mini {
+    padding: 0.4rem 0.85rem; border-radius: 50px;
+    font-size: 0.72rem; font-weight: 700;
+    text-decoration: none; border: none; cursor: pointer;
+    transition: all 0.2s; display: inline-flex;
+    align-items: center; gap: 0.3rem;
+    font-family: inherit;
+}
+.btn-mini.primary { background: var(--primary); color: #fff; }
+.btn-mini.primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-mini.gold { background: var(--gold); color: var(--text-primary); }
+.btn-mini.gold:hover { background: #E0C96E; transform: translateY(-1px); }
+.btn-mini.danger { background: #fdecea; color: #9b2c2c; }
+.btn-mini.danger:hover { background: #f5c2bc; color: #721c24; }
+.btn-mini.outline {
+    background: transparent; color: var(--text-primary);
+    border: 1px solid rgba(0,0,0,0.15);
+}
+.btn-mini.outline:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.empty-state {
+    grid-column: 1 / -1; text-align: center;
+    padding: 4rem 1rem; color: var(--text-muted);
+    background: var(--card-bg); border: 1px dashed rgba(200,169,81,0.3);
+    border-radius: var(--radius-md);
+}
+.empty-state .icon { font-size: 3.5rem; display: block; margin-bottom: 0.6rem; }
+.empty-state h3 { color: var(--text-primary); margin: 0.3rem 0 0.5rem; font-size: 1.1rem; }
+
+/* Modal */
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,42,31,0.55); backdrop-filter: blur(4px);
+    z-index: 9999; justify-content: center; align-items: center; padding: 1rem;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+    background: #fff; border-radius: 20px; max-width: 460px; width: 100%;
+    padding: 2rem 1.75rem 1.75rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25); text-align: center;
+    animation: modalIn 0.25s ease-out;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-icon {
+    width: 64px; height: 64px; margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+}
+.modal-icon.danger { background: #fdecea; color: #9b2c2c; }
+.modal-icon.info { background: #e6f0fb; color: #185fa5; }
+.modal h3 { color: #0F3D2E; margin: 0 0 0.4rem; font-size: 1.15rem; font-weight: 700; }
+.modal p { color: #5A5A5A; font-size: 0.9rem; margin: 0 0 1.25rem; line-height: 1.5; }
+.modal .info-box {
+    background: #f8faf9; border-radius: 10px; padding: 0.85rem 1rem;
+    margin: 0 0 1.25rem; text-align: left; border-left: 3px solid var(--gold);
+}
+.modal .info-box .field {
+    display: flex; justify-content: space-between;
+    padding: 0.25rem 0; font-size: 0.83rem; gap: 0.5rem;
+}
+.modal .info-box .field .label { color: #8a9b95; font-weight: 500; }
+.modal .info-box .field .value { color: #0F3D2E; font-weight: 600; text-align: right; }
+.modal-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+.modal-actions .btn {
+    padding: 0.65rem 1.5rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.85rem; cursor: pointer;
+    transition: all 0.2s ease; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.modal-actions .btn-secondary { background: #f0f4f2; color: #0F3D2E; }
+.modal-actions .btn-secondary:hover { background: #e0e8e5; }
+.modal-actions .btn-danger { background: #c0392b; color: #fff; box-shadow: 0 4px 14px rgba(192,57,43,0.25); }
+.modal-actions .btn-danger:hover { background: #9b2c2c; transform: translateY(-2px); }
+.modal-actions .btn-success { background: var(--primary); color: #fff; box-shadow: 0 4px 14px rgba(15,61,46,0.25); }
+.modal-actions .btn-success:hover { background: var(--primary-dark); transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+    .page-header { padding: 1.15rem 1.25rem; }
+    .page-header-inner { flex-direction: column; align-items: stretch; }
+    .header-btn { justify-content: center; }
+    .set-grid { grid-template-columns: 1fr; }
+    .modal { padding: 1.5rem 1.25rem; }
+    .modal-actions .btn { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="page-header">
+    <div class="page-header-inner">
+        <div>
+            <span class="page-eyebrow">Islamiyya</span>
+            <h1>🕌 Session Settings</h1>
+            <p>One row per academic session. Only one session is active at a time.</p>
+        </div>
+        <div>
+            {% if perms.academics.add_islamiyyasettings %}
+            <a href="{% url 'academics:admin_islamiyya_settings_create' %}" class="header-btn">
+                <i class="fas fa-plus"></i> New Session
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="set-grid">
+    {% for s in settings_list %}
+    <div class="set-card {% if s.is_active %}is-active{% endif %}">
+        <div class="set-head">
+            <div>
+                <div class="set-session">{{ s.academic_session }}</div>
+                <div class="set-session-sub">
+                    {% if s.is_active %}Current Session{% else %}Archived Session{% endif %}
+                </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.3rem; align-items:flex-end;">
+                {% if s.is_active %}<span class="set-badge current">Active</span>{% endif %}
+                {% if s.is_currently_open %}
+                <span class="set-badge open">Open</span>
+                {% else %}
+                <span class="set-badge closed">Closed</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="set-stats">
+            <div class="set-stat">
+                <div class="lbl">Fee</div>
+                <div class="val">₦{{ s.registration_fee|floatformat:0 }}</div>
+            </div>
+            <div class="set-stat">
+                <div class="lbl">Collected</div>
+                <div class="val green">₦{{ s.total_collected|floatformat:0 }}</div>
+            </div>
+            <div class="set-stat">
+                <div class="lbl">Paid</div>
+                <div class="val green">{{ s.paid_count_ann|default:s.paid_count }}</div>
+            </div>
+            <div class="set-stat">
+                <div class="lbl">Pending</div>
+                <div class="val amber">{{ s.pending_count_ann|default:s.pending_count }}</div>
+            </div>
+        </div>
+
+        <div class="set-meta">
+            {% if s.account %}
+            <i class="fas fa-university"></i> {{ s.account.name }}
+            {% else %}
+            <span style="color:#c0392b;"><i class="fas fa-exclamation-triangle"></i> No account set</span>
+            {% endif %}
+        </div>
+
+        <div class="set-actions">
+            <a href="{% url 'academics:admin_islamiyya_settings_edit' s.pk %}" class="btn-mini primary">
+                <i class="fas fa-pen"></i> Edit
+            </a>
+            {% if not s.is_active %}
+            <form method="post" action="{% url 'academics:admin_islamiyya_settings_activate' s.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-mini gold">
+                    <i class="fas fa-check-circle"></i> Make Active
+                </button>
+            </form>
+            {% endif %}
+            <form method="post" action="{% url 'academics:admin_islamiyya_settings_toggle_open' s.pk %}" style="display:inline;">
+                {% csrf_token %}
+                {% if s.is_open %}
+                <button type="submit" class="btn-mini outline">
+                    <i class="fas fa-lock"></i> Close Reg.
+                </button>
+                {% else %}
+                <button type="submit" class="btn-mini outline">
+                    <i class="fas fa-lock-open"></i> Open Reg.
+                </button>
+                {% endif %}
+            </form>
+            <button type="button" class="btn-mini danger"
+                    onclick="openDeleteModal('{{ s.pk }}', '{{ s.academic_session|escapejs }}')">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <span class="icon">🕌</span>
+        <h3>No Islamiyya sessions yet</h3>
+        <p>Create the first session to start accepting registrations.</p>
+        <a href="{% url 'academics:admin_islamiyya_settings_create' %}" class="header-btn" style="margin-top:0.8rem;">
+            <i class="fas fa-plus"></i> Create First Session
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Delete modal -->
+<div class="modal-overlay" id="delModal">
+    <div class="modal">
+        <div class="modal-icon danger"><i class="fas fa-trash"></i></div>
+        <h3>Delete Session?</h3>
+        <p>This will unlink all registrations from this session. Their payment history stays intact, but they won't be tied to a session. This cannot be undone.</p>
+        <div class="info-box">
+            <div class="field"><span class="label">Session</span><span class="value" id="delName">—</span></div>
+        </div>
+        <form method="post" id="delForm">
+            {% csrf_token %}
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Yes, Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const DELETE_URL = '{% url "academics:admin_islamiyya_settings_delete" 0 %}';
+
+function openDeleteModal(pk, name) {
+    document.getElementById('delName').textContent = name;
+    document.getElementById('delForm').action = DELETE_URL.replace('/0/', '/' + pk + '/');
+    document.getElementById('delModal').classList.add('active');
+}
+function closeDeleteModal() {
+    document.getElementById('delModal').classList.remove('active');
+}
+document.getElementById('delModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDeleteModal();
+});
+</script>
+
+{% endblock %}

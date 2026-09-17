@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 2rem auto; padding: 0 1.5rem;">
+    <h1 style="color: #0F3D2E;">🔄 Reassign Office</h1>
+    <p style="color: #8a9b95; margin-bottom: 1.5rem;">End one office assignment and start a new one for the same user.</p>
+
+    <table style="width:100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <thead>
+            <tr style="background: #f8faf9; border-bottom: 2px solid #e8edec;">
+                <th style="padding: 0.75rem 1rem; text-align: left; font-weight: 600; color: #0F3D2E;">Member</th>
+                <th style="padding: 0.75rem 1rem; text-align: left; font-weight: 600; color: #0F3D2E;">Current Office</th>
+                <th style="padding: 0.75rem 1rem; text-align: left; font-weight: 600; color: #0F3D2E;">Reassign To</th>
+                <th style="padding: 0.75rem 1rem; text-align: left; font-weight: 600; color: #0F3D2E;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in active_assignments %}
+            <tr style="border-bottom: 1px solid #e8edec;">
+                <form method="post" style="display: contents;">
+                    {% csrf_token %}
+                    <input type="hidden" name="assignment_id" value="{{ a.id }}">
+                    <td style="padding: 0.75rem 1rem;">{{ a.user.get_full_name }}</td>
+                    <td style="padding: 0.75rem 1rem;">{{ a.display_label|default:a.office.name }}</td>
+                    <td style="padding: 0.75rem 1rem;">
+                        <select name="new_office_id" required style="padding:0.4rem 0.8rem; border-radius:6px; border:1px solid #d0d9d6; background:#fff; width:100%;">
+                            {% for o in offices %}
+                            <option value="{{ o.id }}">{{ o.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td style="padding: 0.75rem 1rem;">
+                        <button type="submit" style="background: #C8A951; color: #0F3D2E; border: none; padding:0.4rem 1.2rem; border-radius:6px; cursor:pointer; font-weight:600; transition: background 0.2s;">
+                            Reassign
+                        </button>
+                    </td>
+                </form>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="padding: 2rem; text-align: center; color: #8a9b95;">No active office assignments found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

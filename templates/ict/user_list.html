@@ -1,0 +1,732 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}User Management · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== USER MANAGEMENT HEADER ===== */
+.um-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.um-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.um-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.um-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.um-header-text h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 0.3rem;
+}
+.um-header-text p {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.88rem;
+    margin: 0;
+}
+.um-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.um-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+}
+.um-btn-primary {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.um-btn-primary:hover { background: rgba(255,255,255,0.2); color: #fff; transform: translateY(-2px); }
+.um-btn-gold {
+    background: #C8A951;
+    color: #0F3D2E;
+    border: 1px solid #C8A951;
+}
+.um-btn-gold:hover {
+    background: #E0C96E;
+    color: #0F3D2E;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(200,169,81,0.4);
+}
+
+/* ===== STATS GRID ===== */
+.um-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.um-stat {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 1.1rem 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+.um-stat:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--gold); }
+.um-stat-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+}
+.icon-blue   { background: #e6f0fb; color: #185fa5; }
+.icon-green  { background: #e8f2ec; color: #1a3c2e; }
+.icon-gold   { background: #f5e9c8; color: #8a6a1a; }
+.icon-purple { background: #f0eafb; color: #6b21a8; }
+.um-stat-body { display: flex; flex-direction: column; }
+.um-stat-num { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); line-height: 1.1; }
+.um-stat-lbl { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+
+/* ===== RESULTS COUNT ===== */
+.um-results-count {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.um-results-count strong { color: var(--text-primary); }
+
+/* ===== FILTER SECTION ===== */
+.filter-section {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-form { display: flex; flex-direction: column; gap: 0.75rem; }
+.filter-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+.search-wrap { position: relative; flex: 1; min-width: 200px; }
+.search-wrap .search-input {
+    width: 100%; padding: 0.5rem 2.2rem 0.5rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 8px; background: var(--card-bg);
+}
+.search-clear-btn {
+    position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 0.9rem; display: none; padding: 0.2rem;
+}
+.search-clear-btn.show { display: block; }
+.search-clear-btn:hover { color: #9b2c2c; }
+.filter-row select { padding: 0.5rem 1rem; border: 1px solid #d0d9d6; border-radius: 8px; background: var(--card-bg); flex: 1; min-width: 120px; }
+.btn-search { padding: 0.5rem 1.2rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+.btn-filter { padding: 0.5rem 1.2rem; background: var(--gold); color: var(--text-primary); border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.clear-btn { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
+.clear-btn:hover { color: var(--text-primary); }
+.advanced { border-top: 1px solid rgba(0,0,0,0.05); padding-top: 0.75rem; }
+
+/* Mobile "Filters" toggle */
+.filters-toggle-btn {
+    display: none;
+    align-items: center; gap: 0.4rem;
+    background: rgba(200,169,81,0.1); color: var(--text-primary);
+    border: 1px solid rgba(200,169,81,0.25); border-radius: 8px;
+    padding: 0.5rem 1rem; font-weight: 600; font-size: 0.85rem;
+    cursor: pointer; width: 100%; justify-content: space-between;
+}
+.filters-toggle-btn i.chevron { transition: transform 0.25s ease; }
+.filters-toggle-btn.open i.chevron { transform: rotate(180deg); }
+
+/* View Toggle */
+.view-toggle {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem; color: var(--text-muted);
+}
+.view-toggle a {
+    padding: 0.2rem 0.8rem; border-radius: 20px; text-decoration: none;
+    color: var(--text-muted); transition: var(--transition);
+}
+.view-toggle a.active { background: var(--primary); color: #fff; }
+.view-toggle a:hover:not(.active) { background: rgba(200,169,81,0.1); }
+
+/* ===== AVATAR STYLES (circular, with initials) ===== */
+.user-card-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-bottom: 0.75rem;
+    background: linear-gradient(135deg, var(--av-color-1, #0F3D2E), var(--av-color-2, #2D7D5A));
+}
+.user-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.avatar-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    background: transparent; /* background is set on parent */
+    border-radius: 50%;
+}
+.avatar-mini {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--av-color-1, #0F3D2E), var(--av-color-2, #2D7D5A));
+}
+.avatar-mini img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* ===== USER CARD (Your design) ===== */
+.user-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+.user-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+.user-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+.user-card.inactive { opacity: 0.6; }
+
+.user-card-info h4 {
+    margin: 0.5rem 0 0.1rem;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+}
+.user-card-info h4 a { color: var(--text-primary); text-decoration: none; }
+.user-card-info h4 a:hover { color: var(--gold); }
+.user-email-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    margin: 0.1rem 0 0.5rem;
+}
+.user-email { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
+.copy-email-btn {
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 0.75rem; padding: 0.15rem 0.3rem; border-radius: 4px;
+    transition: var(--transition); position: relative;
+}
+.copy-email-btn:hover { color: var(--gold); background: rgba(200,169,81,0.1); }
+.copy-email-btn .copied-tip {
+    position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+    background: var(--primary); color: #fff; font-size: 0.65rem;
+    padding: 0.2rem 0.5rem; border-radius: 6px; white-space: nowrap;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+}
+.copy-email-btn.show-tip .copied-tip { opacity: 1; }
+.user-meta { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; }
+.badge {
+    display: inline-block; padding: 0.1rem 0.6rem; border-radius: 20px;
+    font-size: 0.65rem; font-weight: 600;
+}
+.badge.success { background: #e8f2ec; color: #1a3c2e; }
+.badge.danger { background: #fdecea; color: #9b2c2c; }
+.badge.alumni { background: #f0eafb; color: #6b21a8; }
+.badge.current { background: #e6f0fb; color: #185fa5; }
+.badge.gender { background: #f5e9c8; color: #8a6a1a; }
+.user-offices { margin-top: 0.5rem; }
+.office-tag {
+    display: inline-block; background: rgba(200,169,81,0.15); color: #8a6a1a;
+    padding: 0.1rem 0.5rem; border-radius: 20px; font-size: 0.7rem; margin: 0.1rem;
+}
+.no-office { color: var(--text-muted); font-size: 0.75rem; }
+.user-card-actions { margin-top: 0.75rem; width: 100%; }
+
+/* Table */
+.table-wrapper { overflow-x: auto; }
+.users-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.users-table th {
+    background: var(--primary); color: #fff;
+    padding: 0.75rem 1rem; text-align: left;
+    font-weight: 600; font-size: 0.75rem; text-transform: uppercase;
+}
+.users-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+.users-table tbody tr { cursor: pointer; transition: background 0.15s; }
+.users-table tr:hover { background: rgba(200,169,81,0.06); }
+.table-name-cell { display: flex; align-items: center; gap: 0.6rem; }
+.user-link { color: var(--text-primary); text-decoration: none; font-weight: 500; }
+.user-link:hover { color: var(--gold); }
+.status-badge {
+    display: inline-block; padding: 0.1rem 0.6rem; border-radius: 20px;
+    font-weight: 600; font-size: 0.75rem;
+}
+.status-badge.active { background: #e8f2ec; color: #1a3c2e; }
+.status-badge.inactive { background: #fdecea; color: #9b2c2c; }
+.btn-sm { padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.75rem; text-decoration: none; font-weight: 600; display: inline-block; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); color: #fff; }
+.empty { text-align: center; color: var(--text-muted); padding: 2rem !important; }
+.empty-icon-lg { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; opacity: 0.5; }
+
+/* Pagination */
+.pagination { margin-top: 1.5rem; text-align: center; }
+.pagination .step-links a {
+    color: var(--gold); text-decoration: none; margin: 0 0.3rem; padding: 0.2rem 0.6rem; border-radius: 4px;
+}
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.5rem; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .um-header { padding: 1.4rem 1.25rem; border-radius: 18px; }
+    .um-header-content { flex-direction: column; align-items: stretch; }
+    .um-header-text h1 { font-size: 1.35rem; }
+    .um-header-actions { flex-direction: column; }
+    .um-btn { width: 100%; justify-content: center; padding: 0.75rem 1rem; }
+    .um-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.65rem; }
+    .um-stat { padding: 0.85rem 1rem; gap: 0.7rem; }
+    .um-stat-icon { width: 40px; height: 40px; font-size: 1.05rem; }
+    .um-stat-num { font-size: 1.25rem; }
+
+    .filters-toggle-btn { display: flex; }
+    .filter-row.advanced-collapsible { display: none; flex-direction: column; align-items: stretch; }
+    .filter-row.advanced-collapsible.open { display: flex; }
+    .filter-row .search-input { min-width: auto; }
+    .filter-row select { min-width: auto; }
+    .view-toggle { justify-content: center; }
+    .user-grid { grid-template-columns: 1fr; }
+    .users-table { font-size: 0.8rem; }
+    .users-table th, .users-table td { padding: 0.5rem 0.6rem; }
+    .avatar-mini { width: 26px; height: 26px; font-size: 0.6rem; }
+}
+@media (max-width: 480px) {
+    .um-stats-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="user-management">
+
+    <!-- ====== HEADER ====== -->
+    <div class="um-header">
+        <div class="um-header-glow" aria-hidden="true"></div>
+        <div class="um-header-content">
+            <div class="um-header-text">
+                <span class="um-eyebrow">EXCO Management</span>
+                <h1>👥 User Management</h1>
+                <p>Manage all NAMETS users — EXCO, members, and alumni.</p>
+            </div>
+            <div class="um-header-actions">
+                <a href="{% url 'ict:add_user' %}" class="um-btn um-btn-primary">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Add User</span>
+                </a>
+                <a href="{% url 'importers:upload' 'exco' %}" class="um-btn um-btn-gold">
+                    <i class="fas fa-file-upload"></i>
+                    <span>Import EXCO</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== STATS ====== -->
+    <div class="um-stats-grid">
+        <div class="um-stat">
+            <div class="um-stat-icon icon-blue"><i class="fas fa-users"></i></div>
+            <div class="um-stat-body">
+                <span class="um-stat-num">{{ total_users }}</span>
+                <span class="um-stat-lbl">Total Users</span>
+            </div>
+        </div>
+        <div class="um-stat">
+            <div class="um-stat-icon icon-green"><i class="fas fa-check-circle"></i></div>
+            <div class="um-stat-body">
+                <span class="um-stat-num">{{ active_users }}</span>
+                <span class="um-stat-lbl">Active</span>
+            </div>
+        </div>
+        <div class="um-stat">
+            <div class="um-stat-icon icon-gold"><i class="fas fa-building"></i></div>
+            <div class="um-stat-body">
+                <span class="um-stat-num">{{ exco_count }}</span>
+                <span class="um-stat-lbl">EXCO Members</span>
+            </div>
+        </div>
+        <div class="um-stat">
+            <div class="um-stat-icon icon-purple"><i class="fas fa-graduation-cap"></i></div>
+            <div class="um-stat-body">
+                <span class="um-stat-num">{{ alumni_count }}</span>
+                <span class="um-stat-lbl">Alumni</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== SEARCH & FILTERS ====== -->
+    <div class="filter-section">
+        <form method="get" class="filter-form" id="userFilterForm">
+            <div class="filter-row">
+                <div class="search-wrap">
+                    <input type="text" name="q" id="searchInput" placeholder="Search by name, email, matric..." value="{{ query }}" class="search-input" autocomplete="off">
+                    <button type="button" class="search-clear-btn {% if query %}show{% endif %}" id="searchClearBtn" aria-label="Clear search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <button type="submit" class="btn-search"><i class="fas fa-search"></i></button>
+                {% if query or status_filter or gender_filter or office_filter or alumni_filter %}
+                <a href="{% url 'ict:user_list' %}" class="clear-btn">Clear All</a>
+                {% endif %}
+            </div>
+
+            <button type="button" class="filters-toggle-btn" id="filtersToggleBtn">
+                <span><i class="fas fa-sliders-h"></i> Advanced Filters</span>
+                <i class="fas fa-chevron-down chevron"></i>
+            </button>
+
+            <div class="filter-row advanced advanced-collapsible" id="advancedFilters">
+                <select name="status">
+                    <option value="">All Status</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Suspended</option>
+                </select>
+                <select name="gender">
+                    <option value="">All Genders</option>
+                    <option value="male" {% if gender_filter == 'male' %}selected{% endif %}>Male</option>
+                    <option value="female" {% if gender_filter == 'female' %}selected{% endif %}>Female</option>
+                </select>
+                <select name="office">
+                    <option value="">All Offices</option>
+                    {% for o in offices %}
+                    <option value="{{ o.id }}" {% if office_filter == o.id|stringformat:"s" %}selected{% endif %}>{{ o.name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="alumni">
+                    <option value="">All Status</option>
+                    <option value="no" {% if alumni_filter == 'no' %}selected{% endif %}>Current</option>
+                    <option value="yes" {% if alumni_filter == 'yes' %}selected{% endif %}>Alumni</option>
+                </select>
+                <button type="submit" class="btn-filter">Apply</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ====== RESULTS COUNT ====== -->
+    {% if users.paginator %}
+    <div class="um-results-count">
+        <i class="fas fa-list-ul"></i>
+        Showing <strong>{{ users.start_index }}–{{ users.end_index }}</strong> of <strong>{{ users.paginator.count }}</strong> user{{ users.paginator.count|pluralize }}
+    </div>
+    {% endif %}
+
+    <!-- ====== VIEW TOGGLE ====== -->
+    <div class="view-toggle">
+        <span>View:</span>
+        <a href="?view=cards{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="{% if view_mode == 'cards' %}active{% endif %}">
+            <i class="fas fa-th-large"></i> Cards
+        </a>
+        <a href="?view=table{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="{% if view_mode == 'table' %}active{% endif %}">
+            <i class="fas fa-table"></i> Table
+        </a>
+    </div>
+
+    <!-- ====== USERS DISPLAY ====== -->
+    {% if view_mode == 'cards' %}
+    <div class="user-grid">
+        {% for u in users %}
+        <div class="user-card {% if not u.is_active %}inactive{% endif %}">
+            <div class="user-card-avatar" style="--av-color-1: var(--av-color-1, #0F3D2E); --av-color-2: var(--av-color-2, #2D7D5A);">
+                {% if u.profile_picture %}
+                    <img src="{{ u.profile_picture.url }}" alt="{{ u.get_full_name }}">
+                {% else %}
+                    <span class="avatar-initials" data-avatar-seed="{{ u.get_full_name|default:u.username }}">
+                        {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                    </span>
+                {% endif %}
+            </div>
+            <div class="user-card-info">
+                <h4><a href="{% url 'ict:user_detail' u.id %}">{{ u.get_full_name|default:u.username }}</a></h4>
+                <div class="user-email-row">
+                    <p class="user-email">{{ u.email }}</p>
+                    <button type="button" class="copy-email-btn" data-copy-email="{{ u.email }}" aria-label="Copy email">
+                        <i class="far fa-copy"></i>
+                        <span class="copied-tip">Copied!</span>
+                    </button>
+                </div>
+                <p class="user-meta">
+                    <span class="badge {% if u.is_active %}success{% else %}danger{% endif %}">
+                        {% if u.is_active %}Active{% else %}Suspended{% endif %}
+                    </span>
+                    {% if u.is_alumni %}
+                    <span class="badge alumni">🎓 Alumni</span>
+                    {% else %}
+                    <span class="badge current">👤 Current</span>
+                    {% endif %}
+                    {% if u.gender %}
+                    <span class="badge gender">{{ u.get_gender_display }}</span>
+                    {% endif %}
+                </p>
+                <div class="user-offices">
+                    {% for a in u.office_assignments.all %}
+                        {% if a.is_active %}
+                        <span class="office-tag">{{ a.display_label|default:a.office.name }}</span>
+                        {% endif %}
+                    {% empty %}
+                    <span class="no-office">No office</span>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="user-card-actions">
+                <a href="{% url 'ict:user_detail' u.id %}" class="btn-sm btn-primary">View</a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="empty"><span class="empty-icon-lg"><i class="fas fa-user-slash"></i></span>No users found.</p>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="table-wrapper">
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Office(s)</th>
+                    <th>Status</th>
+                    <th>Gender</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr data-row-href="{% url 'ict:user_detail' u.id %}">
+                    <td>
+                        <div class="table-name-cell">
+                            {% if u.profile_picture %}
+                            <span class="avatar-mini"><img src="{{ u.profile_picture.url }}" alt="{{ u.get_full_name }}"></span>
+                            {% else %}
+                            <span class="avatar-mini" data-avatar-seed="{{ u.get_full_name|default:u.username }}">
+                                {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                            </span>
+                            {% endif %}
+                            <a href="{% url 'ict:user_detail' u.id %}" class="user-link">{{ u.get_full_name|default:u.username }}</a>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-email-cell">
+                            {{ u.email }}
+                            <button type="button" class="copy-email-btn" data-copy-email="{{ u.email }}" aria-label="Copy email">
+                                <i class="far fa-copy"></i>
+                                <span class="copied-tip">Copied!</span>
+                            </button>
+                        </div>
+                    </td>
+                    <td>
+                        {% for a in u.office_assignments.all %}
+                            {% if a.is_active %}
+                            <span class="office-tag">{{ a.display_label|default:a.office.name }}</span>
+                            {% endif %}
+                        {% empty %}
+                        <span class="no-office">None</span>
+                        {% endfor %}
+                    </td>
+                    <td><span class="status-badge {% if u.is_active %}active{% else %}inactive{% endif %}">{% if u.is_active %}✅ Active{% else %}⛔ Suspended{% endif %}</span></td>
+                    <td>{{ u.get_gender_display|default:"—" }}</td>
+                    <td>
+                        <a href="{% url 'ict:user_detail' u.id %}" class="btn-sm btn-primary">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="empty"><span class="empty-icon-lg"><i class="fas fa-user-slash"></i></span>No users found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- ====== PAGINATION ====== -->
+    {% if users.has_other_pages %}
+    <div class="pagination">
+        <span class="step-links">
+            {% if users.has_previous %}
+            <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; first</a>
+            <a href="?page={{ users.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">previous</a>
+            {% endif %}
+            <span class="current">Page {{ users.number }} of {{ users.paginator.num_pages }}</span>
+            {% if users.has_next %}
+            <a href="?page={{ users.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">next</a>
+            <a href="?page={{ users.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    /* ── Deterministic avatar colors ──────────────────────── */
+    const AVATAR_PALETTE = [
+        ['#0F3D2E', '#2D7D5A'],
+        ['#8a6a1a', '#C8A951'],
+        ['#185fa5', '#4A9FE0'],
+        ['#6b21a8', '#A855F7'],
+        ['#9b2c2c', '#E05252'],
+        ['#0d7a6b', '#2DD4BF'],
+    ];
+    function hashString(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash << 5) - hash + str.charCodeAt(i);
+            hash |= 0;
+        }
+        return Math.abs(hash);
+    }
+    document.querySelectorAll('[data-avatar-seed]').forEach(function(el) {
+        const seed = el.getAttribute('data-avatar-seed') || 'user';
+        const pair = AVATAR_PALETTE[hashString(seed) % AVATAR_PALETTE.length];
+        const parent = el.closest('.user-card-avatar') || el.parentElement;
+        if (parent) {
+            parent.style.setProperty('--av-color-1', pair[0]);
+            parent.style.setProperty('--av-color-2', pair[1]);
+        }
+        // For table avatars, they have class avatar-mini, we can set background directly.
+        if (el.classList.contains('avatar-mini')) {
+            el.style.background = `linear-gradient(135deg, ${pair[0]}, ${pair[1]})`;
+        }
+    });
+
+    /* ── Clearable search input ─────────────────────────── */
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('searchClearBtn');
+    if (searchInput && clearBtn) {
+        searchInput.addEventListener('input', function() {
+            clearBtn.classList.toggle('show', searchInput.value.length > 0);
+        });
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearBtn.classList.remove('show');
+            searchInput.focus();
+        });
+    }
+
+    /* ── Mobile collapsible advanced filters ────────────── */
+    const filtersToggle = document.getElementById('filtersToggleBtn');
+    const advancedFilters = document.getElementById('advancedFilters');
+    if (filtersToggle && advancedFilters) {
+        const hasActiveFilter = Array.from(advancedFilters.querySelectorAll('select'))
+            .some(sel => sel.value !== '');
+        if (hasActiveFilter) {
+            advancedFilters.classList.add('open');
+            filtersToggle.classList.add('open');
+        }
+        filtersToggle.addEventListener('click', function() {
+            advancedFilters.classList.toggle('open');
+            filtersToggle.classList.toggle('open');
+        });
+    }
+
+    /* ── Copy email to clipboard ─────────────────────────── */
+    document.querySelectorAll('[data-copy-email]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const email = btn.getAttribute('data-copy-email');
+            navigator.clipboard.writeText(email).then(function() {
+                btn.classList.add('show-tip');
+                setTimeout(function() { btn.classList.remove('show-tip'); }, 1400);
+            }).catch(function() {});
+        });
+    });
+
+    /* ── Whole table row navigates to user detail ────────── */
+    document.querySelectorAll('tr[data-row-href]').forEach(function(row) {
+        row.addEventListener('click', function(e) {
+            if (e.target.closest('a, button')) return;
+            window.location.href = row.getAttribute('data-row-href');
+        });
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Equipment · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.eq-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.eq-header-content {
+    position: relative; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.eq-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    color: #C8A951; background: rgba(200,169,81,0.15); padding: 0.15rem 0.8rem; border-radius: 20px; margin-bottom: 0.3rem;
+}
+.eq-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.eq-header p { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+.eq-header-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.eq-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1.2rem;
+    border-radius: 50px; font-weight: 600; font-size: 0.8rem; text-decoration: none;
+    background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.25s;
+}
+.eq-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); color:#fff; }
+.eq-btn-gold { background: var(--gold); color: var(--text-primary); border-color: var(--gold); }
+.eq-btn-gold:hover { background: var(--gold-light); color: var(--text-primary); }
+
+.eq-filters {
+    background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--card-border);
+    border-radius: var(--radius-md); padding: 0.8rem 1.2rem; margin-bottom: 1rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form input, .filter-form select {
+    padding: 0.4rem 0.8rem; border: 1px solid #d0d9d6; border-radius: 8px; background: var(--card-bg);
+    flex: 1; min-width: 120px; font-size: 0.85rem;
+}
+.filter-form .btn { background: var(--primary); color: #fff; border: none; padding: 0.4rem 1rem; border-radius: 8px; cursor: pointer; }
+.filter-form .clear { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.eq-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;
+}
+.eq-card {
+    background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--card-border);
+    border-radius: var(--radius-md); padding: 1.25rem; transition: var(--transition); box-shadow: var(--shadow-sm);
+}
+.eq-card:hover { transform: translateY(-4px); border-color: var(--gold); box-shadow: var(--shadow-md); }
+.eq-card .name { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+.eq-card .cond {
+    display: inline-block; font-size: 0.6rem; padding: 0.05rem 0.5rem; border-radius: 10px; font-weight: 600;
+}
+.eq-card .stock { font-size: 0.8rem; color: var(--text-muted); margin: 0.2rem 0; }
+.eq-card .stock .avail { font-weight: 600; color: var(--primary); }
+.eq-card .actions { display: flex; gap: 0.3rem; margin-top: 0.5rem; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 0.5rem; }
+.eq-card .actions .btn-sm {
+    padding: 0.15rem 0.6rem; border-radius: 12px; font-size: 0.65rem; font-weight: 600; text-decoration: none; transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.btn-sm-primary { background: var(--primary); color: #fff; }
+.btn-sm-primary:hover { background: var(--primary-dark); }
+.empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem; }
+.pagination { margin-top: 1rem; text-align: center; }
+.pagination .step-links a { color: var(--gold); text-decoration: none; margin: 0 0.2rem; padding: 0.2rem 0.5rem; border-radius: 4px; }
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.3rem; }
+.cond-excellent { background: #e8f2ec; color: #1a3c2e; }
+.cond-good { background: #e0f7f4; color: #0d7a6b; }
+.cond-fair { background: #fef3e8; color: #a8671a; }
+.cond-poor { background: #fdecea; color: #9b2c2c; }
+.cond-broken { background: #f0eafb; color: #6b21a8; }
+.cond-lost { background: #f0f0f0; color: #777; }
+
+@media (max-width: 768px) {
+    .eq-header { padding: 1rem 1.25rem; }
+    .eq-header-content { flex-direction: column; align-items: stretch; }
+    .eq-btn { width: 100%; justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .eq-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="eq-header">
+    <div class="eq-header-content">
+        <div>
+            <span class="eq-eyebrow">Equipment Officer</span>
+            <h1>📦 Equipment</h1>
+            <p>Manage NAMETS equipment inventory.</p>
+        </div>
+        <div class="eq-header-actions">
+            {% if perms.business.add_equipmentitem %}
+            <a href="{% url 'business:admin_equipment_create' %}" class="eq-btn eq-btn-gold">
+                <i class="fas fa-plus-circle"></i> Add Equipment
+            </a>
+            {% endif %}
+            {% if perms.business.view_equipmentitem %}
+            <a href="{% url 'business:admin_equipment_export' %}" class="eq-btn">
+                <i class="fas fa-file-excel"></i> Export
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="eq-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search name, serial..." value="{{ query }}">
+        <select name="condition">
+            <option value="">All Conditions</option>
+            {% for value, label in condition_choices %}
+            <option value="{{ value }}" {% if condition_filter == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="status">
+            <option value="">All Status</option>
+            <option value="available" {% if status_filter == 'available' %}selected{% endif %}>Available</option>
+            <option value="unavailable" {% if status_filter == 'unavailable' %}selected{% endif %}>Unavailable</option>
+        </select>
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query or condition_filter or status_filter %}
+        <a href="{% url 'business:admin_equipment_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="eq-grid">
+    {% for item in items %}
+    <div class="eq-card">
+        <div class="name">{{ item.name }}</div>
+        <div>
+            <span class="cond cond-{{ item.condition }}">{{ item.get_condition_display }}</span>
+        </div>
+        <div class="stock">
+            <span class="avail">{{ item.available_quantity }}</span> / {{ item.quantity }} available
+        </div>
+        <div style="font-size:0.7rem; color:var(--text-muted);">{{ item.location|default:"No location" }}</div>
+        <div class="actions">
+            <a href="{% url 'business:admin_equipment_edit' item.pk %}" class="btn-sm btn-sm-gold"><i class="fas fa-edit"></i> Edit</a>
+            <a href="#" class="btn-sm btn-sm-danger" onclick="event.preventDefault(); if(confirm('Delete this item?')) document.getElementById('delete-form-{{ item.pk }}').submit();"><i class="fas fa-trash"></i></a>
+            <form id="delete-form-{{ item.pk }}" method="post" action="{% url 'business:admin_equipment_delete' item.pk %}" style="display:none;">{% csrf_token %}</form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+        <span style="font-size:2.5rem; display:block;">📭</span>
+        No equipment found.
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">‹ Prev</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next ›</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+{% endblock %}

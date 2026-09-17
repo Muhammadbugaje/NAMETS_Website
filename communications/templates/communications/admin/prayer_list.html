@@ -1,0 +1,302 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Prayer Times · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.prayer-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.prayer-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.prayer-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.prayer-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.prayer-header-text h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 0.3rem;
+}
+.prayer-header-text p {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.88rem;
+    margin: 0;
+}
+.prayer-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.prayer-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+}
+.prayer-btn-primary {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.prayer-btn-primary:hover { background: rgba(255,255,255,0.2); color: #fff; transform: translateY(-2px); }
+
+.prayer-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+.filter-form input {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 200px;
+}
+.filter-form .btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.filter-form .clear {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.prayer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+}
+.prayer-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+.prayer-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--gold);
+}
+.prayer-card .date {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+.prayer-card .times {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.3rem 0.8rem;
+    font-size: 0.85rem;
+}
+.prayer-card .times .label {
+    color: var(--text-muted);
+}
+.prayer-card .times .value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.prayer-card .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.prayer-card .footer .btn-sm {
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.badge-sm {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+.badge-success { background: #e8f2ec; color: #1a3c2e; }
+.badge-danger { background: #fdecea; color: #9b2c2c; }
+
+.empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 3rem 2rem; }
+.empty .empty-icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
+
+.pagination { margin-top: 1.5rem; text-align: center; }
+.pagination .step-links a {
+    color: var(--gold);
+    text-decoration: none;
+    margin: 0 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+}
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.5rem; }
+
+@media (max-width: 768px) {
+    .prayer-header { padding: 1.4rem 1.25rem; border-radius: 18px; }
+    .prayer-header-content { flex-direction: column; align-items: stretch; }
+    .prayer-header-text h1 { font-size: 1.35rem; }
+    .prayer-header-actions { flex-direction: column; }
+    .prayer-btn { width: 100%; justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .prayer-grid { grid-template-columns: 1fr; }
+    .prayer-card .times { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="prayer-header">
+    <div class="prayer-header-glow" aria-hidden="true"></div>
+    <div class="prayer-header-content">
+        <div class="prayer-header-text">
+            <span class="prayer-eyebrow">Masjid Committee</span>
+            <h1>🕌 Prayer Times</h1>
+            <p>Manage daily prayer schedules for the Engineering Mosque.</p>
+        </div>
+        <div class="prayer-header-actions">
+            {% if perms.communications.add_prayerschedule %}
+            <a href="{% url 'communications:admin_prayer_create' %}" class="prayer-btn prayer-btn-primary">
+                <i class="fas fa-plus-circle"></i> Add Schedule
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="prayer-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search by date (YYYY-MM-DD)..." value="{{ query }}">
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query %}
+        <a href="{% url 'communications:admin_prayer_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="prayer-grid">
+    {% for schedule in schedules %}
+    <div class="prayer-card" onclick="window.location.href='{% url 'communications:admin_prayer_edit' schedule.pk %}'">
+        <div class="date">{{ schedule.date|date:"l, F j, Y" }}</div>
+        <div class="times">
+            <span class="label">Fajr</span>
+            <span class="value">{{ schedule.fajr_adhan|time:"g:i A" }} / {{ schedule.fajr_iqama|time:"g:i A" }}</span>
+            <span class="label">Dhuhr</span>
+            <span class="value">{{ schedule.dhuhr_adhan|time:"g:i A" }} / {{ schedule.dhuhr_iqama|time:"g:i A" }}</span>
+            <span class="label">Asr</span>
+            <span class="value">{{ schedule.asr_adhan|time:"g:i A" }} / {{ schedule.asr_iqama|time:"g:i A" }}</span>
+            <span class="label">Maghrib</span>
+            <span class="value">{{ schedule.maghrib_adhan|time:"g:i A" }} / {{ schedule.maghrib_iqama|time:"g:i A" }}</span>
+            <span class="label">Isha</span>
+            <span class="value">{{ schedule.isha_adhan|time:"g:i A" }} / {{ schedule.isha_iqama|time:"g:i A" }}</span>
+        </div>
+        <div class="footer">
+            {% if schedule.is_active %}
+            <span class="badge-sm badge-success">Active</span>
+            {% else %}
+            <span class="badge-sm badge-danger">Inactive</span>
+            {% endif %}
+            <div style="display:flex; gap:0.3rem;">
+                <a href="{% url 'communications:admin_prayer_edit' schedule.pk %}" class="btn-sm btn-sm-gold" onclick="event.stopPropagation();">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'communications:admin_prayer_delete' schedule.pk %}" class="btn-sm btn-sm-danger" onclick="event.stopPropagation();">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+        <span class="empty-icon">📭</span>
+        <h3>No prayer schedules found</h3>
+        <p>Add a schedule for today or upcoming days.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% if query %}&q={{ query }}{% endif %}">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">previous</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+{% endblock %}

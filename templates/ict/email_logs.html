@@ -1,0 +1,254 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Email Logs · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.email-logs-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+.email-logs-header h1 {
+    margin: 0 0 0.3rem;
+    font-size: 1.6rem;
+}
+.email-logs-header p {
+    margin: 0;
+    opacity: 0.8;
+}
+
+.email-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.email-stat {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    text-align: center;
+}
+.email-stat .num {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.email-stat .lbl {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-section {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+.filter-form input, .filter-form select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 140px;
+}
+.filter-form .btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.filter-form .clear {
+    color: var(--text-muted);
+    text-decoration: none;
+}
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.logs-table-wrapper {
+    overflow-x: auto;
+}
+.logs-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.logs-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+.logs-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-size: 0.85rem;
+    vertical-align: middle;
+}
+.logs-table tr:hover { background: rgba(200,169,81,0.05); }
+.status-badge {
+    display: inline-block;
+    padding: 0.1rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+.status-badge.sent { background: #e8f2ec; color: #1a3c2e; }
+.status-badge.failed { background: #fdecea; color: #9b2c2c; }
+.status-badge.pending { background: #f5e9c8; color: #8a6a1a; }
+.provider-badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    background: #f0f4f2;
+    color: #5a6b65;
+}
+.resend-btn {
+    background: none;
+    border: none;
+    color: var(--gold);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+.resend-btn:hover { text-decoration: underline; }
+.empty { text-align: center; color: var(--text-muted); padding: 2rem !important; }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="email-logs">
+    <div class="email-logs-header">
+        <h1>📧 Email Logs</h1>
+        <p>Track all emails sent from the platform.</p>
+    </div>
+
+    <div class="email-stats">
+        <div class="email-stat">
+            <div class="num">{{ total_sent }}</div>
+            <div class="lbl">Sent</div>
+        </div>
+        <div class="email-stat">
+            <div class="num">{{ total_failed }}</div>
+            <div class="lbl">Failed</div>
+        </div>
+        <div class="email-stat">
+            <div class="num">{{ today_count }}</div>
+            <div class="lbl">Today</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-section">
+        <form method="get" class="filter-form">
+            <input type="text" name="q" placeholder="Search email or subject..." value="{{ query }}">
+            <select name="status">
+                <option value="">All Status</option>
+                <option value="sent" {% if status_filter == 'sent' %}selected{% endif %}>Sent</option>
+                <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+            </select>
+            <select name="provider">
+                <option value="">All Providers</option>
+                <option value="Brevo" {% if provider_filter == 'Brevo' %}selected{% endif %}>Brevo</option>
+                <option value="Gmail" {% if provider_filter == 'Gmail' %}selected{% endif %}>Gmail</option>
+            </select>
+            <select name="category">
+                <option value="">All Categories</option>
+                <option value="credentials" {% if category_filter == 'credentials' %}selected{% endif %}>Credentials</option>
+                <option value="reset" {% if category_filter == 'reset' %}selected{% endif %}>Password Reset</option>
+                <option value="task" {% if category_filter == 'task' %}selected{% endif %}>Task</option>
+                <option value="voting" {% if category_filter == 'voting' %}selected{% endif %}>Voting</option>
+                <option value="general" {% if category_filter == 'general' %}selected{% endif %}>General</option>
+            </select>
+            <button type="submit" class="btn">Filter</button>
+            {% if query or status_filter or provider_filter or category_filter %}
+            <a href="{% url 'ict:email_logs' %}" class="clear">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="logs-table-wrapper">
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th>Recipient</th>
+                    <th>Subject</th>
+                    <th>Category</th>
+                    <th>Provider</th>
+                    <th>Status</th>
+                    <th>Sent</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.recipient_email }}</td>
+                    <td>{{ log.subject|truncatechars:40 }}</td>
+                    <td><span class="provider-badge">{{ log.category|title }}</span></td>
+                    <td><span class="provider-badge">{{ log.provider }}</span></td>
+                    <td><span class="status-badge {% if log.status == 'sent' %}sent{% elif log.status == 'failed' %}failed{% else %}pending{% endif %}">{{ log.status|title }}</span></td>
+                    <td>{{ log.sent_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        {% if log.status == 'failed' %}
+                        <form method="post" action="{% url 'ict:resend_failed_email' log.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="resend-btn">↻ Resend</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="empty">No email logs found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if logs.has_other_pages %}
+    <div class="pagination">
+        <span class="step-links">
+            {% if logs.has_previous %}
+            <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; first</a>
+            <a href="?page={{ logs.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">previous</a>
+            {% endif %}
+            <span class="current">Page {{ logs.number }} of {{ logs.paginator.num_pages }}</span>
+            {% if logs.has_next %}
+            <a href="?page={{ logs.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">next</a>
+            <a href="?page={{ logs.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

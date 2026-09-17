@@ -15,6 +15,18 @@ from community.selectors import get_active_developers, get_featured_patron
 from gallery.selectors import get_recent_gallery_images
 
 
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect
+
+from .models import SiteSettings
+from .forms import SiteSettingsForm
+
+from core.models import HeroSlide
+
+
+
+
 def get_cached(key, func, timeout=60):
     data = cache.get(key)
     if data is None:
@@ -53,6 +65,43 @@ def homepage(request):
         'active_developers':  get_cached('hp_developers', lambda: get_active_developers()[:3], 60*10),
         'active_campaigns':   get_cached('hp_campaigns',  lambda: get_active_donation_campaigns()[:1], 60*5),
         'recent_gallery_images': get_cached(
-            'hp_gallery', lambda: get_recent_gallery_images(6), 60*10),
+        'hp_gallery', lambda: get_recent_gallery_images(6), 60*10),
+        'hero_slides': HeroSlide.active(),
     }
     return render(request, 'core/homepage.html', context)
+
+
+
+# ============================================================
+#  SITE SETTINGS — EXCO edit page
+# ============================================================
+
+@login_required
+def site_settings_view(request):
+    """A proper EXCO page for editing SiteSettings (replaces Django admin)."""
+    if not (request.user.is_superuser or request.user.has_perm('core.change_sitesettings')):
+        messages.error(request, "Permission denied.")
+        return redirect('dashboards:dashboard')
+
+    # Singleton pattern — create once if missing
+    settings_obj = SiteSettings.objects.first()
+    if not settings_obj:
+        settings_obj = SiteSettings.objects.create()
+
+    if request.method == 'POST':
+        form = SiteSettingsForm(request.POST, instance=settings_obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "✅ Site settings saved successfully.")
+            return redirect('core:site_settings')
+        else:
+            messages.error(request, "Please fix the errors below before saving.")
+    else:
+        form = SiteSettingsForm(instance=settings_obj)
+
+    return render(request, 'core/site_settings.html', {
+        'form': form,
+        'settings_obj': settings_obj,
+    })
+
+

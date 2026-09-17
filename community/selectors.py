@@ -6,11 +6,11 @@ def get_active_patrons():
 def get_executive_years():
     return ExecutiveYear.objects.filter(is_active=True)
 
-def get_executives_by_year(year_id=None):
-    qs = Executive.objects.filter(is_active=True).select_related('year')
+def get_executives_by_year(year_id):
+    qs = Executive.objects.filter(is_active=True)
     if year_id:
         qs = qs.filter(year_id=year_id)
-    return qs
+    return qs.order_by('display_order', 'name')
 
 def get_active_developers():
     return Developer.objects.filter(is_active=True)

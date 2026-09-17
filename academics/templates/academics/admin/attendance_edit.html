@@ -1,0 +1,337 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Mark Attendance · {{ session.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.att-wrap { max-width: 1000px; margin: 0 auto; }
+.att-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none; font-weight: 600;
+    margin-bottom: 0.75rem; font-size: 0.85rem;
+}
+.att-back:hover { text-decoration: underline; }
+
+.att-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.5rem 2rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 36px rgba(15,61,46,0.22);
+    color: #fff; margin-bottom: 1.25rem;
+}
+.att-header::before {
+    content: "✅"; font-size: 6rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.att-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.15); padding: 0.15rem 0.75rem;
+    border-radius: 20px; margin-bottom: 0.4rem;
+}
+.att-header h1 { font-size: 1.35rem; font-weight: 700; margin: 0 0 0.35rem; }
+.att-meta {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    font-size: 0.82rem; color: rgba(255,255,255,0.85);
+}
+.att-meta span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.att-meta i { color: #C8A951; }
+
+.att-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 0.75rem; margin-top: 1rem;
+}
+.att-stat {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+    border-radius: 12px; padding: 0.7rem 1rem;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.att-stat .lbl {
+    font-size: 0.6rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #C8A951;
+    font-weight: 700; margin-bottom: 0.25rem;
+}
+.att-stat .val { font-size: 1.1rem; font-weight: 700; color: #fff; }
+
+.att-toolbar {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 0.85rem 1.2rem; margin-bottom: 1rem;
+    display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;
+}
+.att-toolbar .search-input {
+    flex: 1; min-width: 200px;
+    padding: 0.5rem 1rem; border: 1px solid #d0d9d6;
+    border-radius: 50px; font-size: 0.85rem;
+    font-family: inherit;
+}
+.att-toolbar .search-input:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.att-toolbar .tb-btn {
+    padding: 0.5rem 1rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem; cursor: pointer;
+    border: none; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.att-toolbar .tb-btn.all-present { background: #e8f2ec; color: #1a6b3c; }
+.att-toolbar .tb-btn.all-present:hover { background: #c8e0d4; }
+.att-toolbar .tb-btn.all-absent { background: #fdecea; color: #9b2c2c; }
+.att-toolbar .tb-btn.all-absent:hover { background: #f5c2bc; }
+
+.att-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    overflow: hidden; box-shadow: var(--shadow-sm);
+    margin-bottom: 1.25rem;
+}
+.att-card-title {
+    background: #f8faf9; padding: 0.75rem 1.2rem;
+    font-size: 0.78rem; font-weight: 800;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: #0F3D2E; border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex; justify-content: space-between; align-items: center;
+}
+.att-card-title .count {
+    background: var(--gold); color: #fff;
+    padding: 0.1rem 0.6rem; border-radius: 20px;
+    font-size: 0.68rem;
+}
+.att-list { list-style: none; padding: 0; margin: 0; }
+.att-item {
+    display: flex; align-items: center; gap: 0.85rem;
+    padding: 0.75rem 1.2rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: background 0.15s;
+}
+.att-item:last-child { border-bottom: none; }
+.att-item:hover { background: rgba(200,169,81,0.04); }
+.att-item.present { background: rgba(56,161,105,0.06); }
+
+.att-checkbox {
+    width: 22px; height: 22px; accent-color: #38a169;
+    cursor: pointer; flex-shrink: 0;
+}
+.att-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem; font-weight: 700; flex-shrink: 0;
+    border: 2px solid var(--gold);
+}
+.att-info { flex: 1; min-width: 0; }
+.att-name { font-weight: 700; color: #0F3D2E; font-size: 0.9rem; margin-bottom: 0.1rem; }
+.att-meta-line { font-size: 0.72rem; color: #8a9b95; }
+
+.empty-att { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); }
+.empty-att .icon { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
+.empty-att p { font-size: 0.85rem; margin: 0.25rem 0; }
+
+.manual-section {
+    background: #fbfaf5; border: 1px dashed rgba(200,169,81,0.4);
+    border-radius: var(--radius-md); padding: 1.25rem 1.35rem;
+    margin-bottom: 1.25rem;
+}
+.manual-section h4 {
+    font-size: 0.78rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a6a1a; margin: 0 0 0.35rem;
+    display: flex; align-items: center; gap: 0.4rem;
+}
+.manual-section .hint {
+    font-size: 0.75rem; color: #8a6a1a;
+    margin-bottom: 0.75rem; line-height: 1.5;
+}
+.manual-section textarea {
+    width: 100%; padding: 0.75rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 10px;
+    font-size: 0.88rem; font-family: inherit;
+    min-height: 100px; resize: vertical;
+}
+.manual-section textarea:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+
+.att-actions {
+    display: flex; gap: 0.85rem; flex-wrap: wrap;
+    margin-top: 1.5rem; padding-top: 1.5rem;
+    border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-primary {
+    background: var(--primary); color: #fff;
+    padding: 0.75rem 2rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    transition: var(--transition); display: inline-flex;
+    align-items: center; gap: 0.4rem; text-decoration: none;
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.75rem 2rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    transition: var(--transition); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+    .att-header { padding: 1.25rem 1.25rem; }
+    .att-header h1 { font-size: 1.1rem; }
+    .att-toolbar { flex-direction: column; align-items: stretch; }
+    .att-toolbar .search-input { min-width: auto; }
+    .att-actions { flex-direction: column; }
+    .att-actions .btn { justify-content: center; width: 100%; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="att-wrap">
+
+    <a href="{% url 'academics:admin_attendance_list' %}" class="att-back">
+        <i class="fas fa-arrow-left"></i> Back to Attendance
+    </a>
+
+    <div class="att-header">
+        <div>
+            <span class="att-eyebrow">Mark Attendance</span>
+            <h1>{{ session.title }}</h1>
+            <div class="att-meta">
+                <span><i class="fas fa-tag"></i> {{ session.get_session_type_display }}</span>
+                <span><i class="fas fa-calendar"></i> {{ session.date|date:"M d, Y" }}</span>
+                {% if session.taken_by %}
+                <span><i class="fas fa-user"></i> {{ session.taken_by.get_full_name|default:session.taken_by.username }}</span>
+                {% endif %}
+            </div>
+            <div class="att-stats">
+                <div class="att-stat">
+                    <div class="lbl">Candidates</div>
+                    <div class="val" id="statTotal">{{ candidates|length }}</div>
+                </div>
+                <div class="att-stat">
+                    <div class="lbl">Present</div>
+                    <div class="val" id="statPresent">0</div>
+                </div>
+                <div class="att-stat">
+                    <div class="lbl">Absent</div>
+                    <div class="val" id="statAbsent">{{ candidates|length }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" id="attForm">
+        {% csrf_token %}
+
+        {% if candidates %}
+        <div class="att-toolbar">
+            <input type="text" class="search-input" id="searchBox" placeholder="🔍 Search by name or role…" oninput="filterList()">
+            <button type="button" class="tb-btn all-present" onclick="setAll(true)">
+                <i class="fas fa-check-double"></i> All Present
+            </button>
+            <button type="button" class="tb-btn all-absent" onclick="setAll(false)">
+                <i class="fas fa-times"></i> All Absent
+            </button>
+        </div>
+
+        <div class="att-card">
+            <div class="att-card-title">
+                <span>Candidate List</span>
+                <span class="count">{{ candidates|length }}</span>
+            </div>
+            <ul class="att-list" id="attList">
+                {% for c in candidates %}
+                {% with key=c.kind|add:":"|add:c.obj_id|stringformat:"s" %}
+                <li class="att-item" data-name="{{ c.name|lower }}" data-meta="{{ c.meta|lower }}">
+                    <input type="checkbox"
+                           class="att-checkbox"
+                           name="present_ids"
+                           value="{{ c.kind }}:{{ c.obj_id }}"
+                           {% if key in existing_present %}checked{% endif %}
+                           onchange="updateStats()">
+                    <div class="att-avatar">{{ c.name|first|upper }}</div>
+                    <div class="att-info">
+                        <div class="att-name">{{ c.name }}</div>
+                        <div class="att-meta-line">{{ c.meta }}</div>
+                    </div>
+                </li>
+                {% endwith %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% else %}
+        <div class="att-card">
+            <div class="empty-att">
+                <span class="icon">👥</span>
+                <h3 style="color: #0F3D2E; margin: 0.5rem 0;">No auto-populated candidates</h3>
+                <p>{% if mode == 'event' %}Events don't auto-populate candidates — add names manually below.{% else %}No candidates found for this session type. Add names manually below.{% endif %}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Manual names -->
+        <div class="manual-section">
+            <h4><i class="fas fa-user-plus"></i> Add Names Manually</h4>
+            <div class="hint">
+                One name per line. Use "Name — Role" to include a role.
+                <br>Example: <code>Ibrahim Musa — Guest</code>
+            </div>
+            <textarea name="manual_names" id="manualNames" placeholder="Name 1&#10;Name 2 — Guest&#10;Name 3 — External">{{ existing_manual }}</textarea>
+        </div>
+
+        <div class="att-actions" style="flex-wrap:wrap;">
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Attendance</button>
+            <a href="{% url 'academics:admin_attendance_session_import' session.pk %}" class="btn-secondary" style="background:#e6f0fb; color:#185fa5;">
+                <i class="fas fa-file-import"></i> Import
+            </a>
+            <a href="{% url 'academics:admin_attendance_session_export' session.pk %}" class="btn-secondary" style="background:#e8f2ec; color:#1a3c2e;">
+                <i class="fas fa-file-excel"></i> Export
+            </a>
+            <a href="{% url 'academics:admin_attendance_report' %}?session={{ session.pk }}" class="btn-secondary">
+                <i class="fas fa-chart-bar"></i> Report
+            </a>
+            <a href="{% url 'academics:admin_attendance_list' %}" class="btn-secondary" style="background:#f0f4f2; color:#0F3D2E;">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+function updateStats() {
+    const all = document.querySelectorAll('.att-checkbox');
+    const checked = document.querySelectorAll('.att-checkbox:checked');
+    document.getElementById('statPresent').textContent = checked.length;
+    document.getElementById('statAbsent').textContent = all.length - checked.length;
+    document.querySelectorAll('.att-item').forEach(item => {
+        const cb = item.querySelector('.att-checkbox');
+        if (cb && cb.checked) item.classList.add('present');
+        else item.classList.remove('present');
+    });
+}
+function setAll(present) {
+    document.querySelectorAll('.att-checkbox').forEach(cb => { cb.checked = present; });
+    updateStats();
+}
+function filterList() {
+    const q = document.getElementById('searchBox').value.toLowerCase().trim();
+    document.querySelectorAll('.att-item').forEach(item => {
+        const name = item.getAttribute('data-name') || '';
+        const meta = item.getAttribute('data-meta') || '';
+        item.style.display = (!q || name.includes(q) || meta.includes(q)) ? '' : 'none';
+    });
+}
+document.getElementById('attForm').addEventListener('submit', function() {
+    const btn = this.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+});
+document.addEventListener('DOMContentLoaded', updateStats);
+</script>
+
+{% endblock %}

@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ book.title }} · NAMETS Library{% endblock %}
+
+{% block extra_css %}
+<style>
+.bd-wrap { max-width: 1100px; margin: 0 auto; }
+
+.bd-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: #8a6a1a; text-decoration: none;
+    font-weight: 700; font-size: 0.85rem; margin-bottom: 1rem;
+}
+.bd-back:hover { text-decoration: underline; }
+
+.bd-hero {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 2.25rem;
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 50px rgba(15,61,46,0.25);
+    position: relative; overflow: hidden;
+    margin-bottom: 1.75rem;
+    color: #fff;
+}
+.bd-hero::after {
+    content: ''; position: absolute;
+    top: -40%; right: -15%;
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(200,169,81,0.2) 0%, transparent 70%);
+    pointer-events: none;
+}
+@media (max-width: 900px) {
+    .bd-hero { grid-template-columns: 1fr; padding: 1.75rem; gap: 1.5rem; }
+}
+
+.bd-cover-wrap {
+    position: relative; z-index: 1;
+    aspect-ratio: 3 / 4;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 44px rgba(0,0,0,0.35);
+    background: linear-gradient(135deg, #2D7D5A, #0F3D2E);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.4); font-size: 5rem;
+    border: 3px solid rgba(200,169,81,0.5);
+}
+.bd-cover-wrap img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 900px) {
+    .bd-cover-wrap { max-width: 240px; margin: 0 auto; }
+}
+
+.bd-info { position: relative; z-index: 1; }
+.bd-info .bd-cat {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.68rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951;
+    background: rgba(200,169,81,0.18);
+    padding: 0.3rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.85rem;
+}
+.bd-info h1 {
+    font-size: 2rem; font-weight: 800;
+    margin: 0 0 0.5rem; letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+.bd-info .bd-author {
+    font-size: 1rem; color: rgba(255,255,255,0.85);
+    margin: 0 0 1rem;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.bd-info .bd-desc {
+    font-size: 0.92rem; color: rgba(255,255,255,0.85);
+    line-height: 1.65; margin-bottom: 1.35rem;
+    max-width: 620px;
+}
+
+.bd-status-strip {
+    display: flex; align-items: center; gap: 0.75rem;
+    flex-wrap: wrap;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+    padding: 0.85rem 1.1rem;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    margin-bottom: 1.25rem;
+}
+.bd-pill {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.75rem; font-weight: 700;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+.bd-pill.gold { background: rgba(200,169,81,0.3); border-color: rgba(200,169,81,0.55); color: #E0C96E; }
+
+.bd-actions { display: flex; gap: 0.65rem; flex-wrap: wrap; }
+.bd-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.9rem 1.75rem;
+    border-radius: 50px;
+    font-weight: 800; font-size: 0.92rem;
+    text-decoration: none; cursor: pointer;
+    border: none; transition: all 0.25s ease;
+    font-family: inherit;
+}
+.bd-btn.gold {
+    background: #C8A951; color: #0F3D2E;
+    box-shadow: 0 8px 22px rgba(200,169,81,0.4);
+}
+.bd-btn.gold:hover {
+    background: #E0C96E; transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(200,169,81,0.55);
+}
+.bd-btn.outline {
+    background: rgba(255,255,255,0.12); color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.3);
+}
+.bd-btn.outline:hover {
+    background: rgba(255,255,255,0.22); transform: translateY(-3px);
+}
+
+.bd-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.25rem;
+}
+@media (max-width: 900px) { .bd-grid { grid-template-columns: 1fr; } }
+
+.bd-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    padding: 1.5rem 1.65rem;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+}
+.bd-card h2 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #8a6a1a;
+    margin: 0 0 1.15rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.bd-card h2::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.35), transparent);
+}
+
+.bd-details-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.9rem 1.5rem;
+}
+@media (max-width: 640px) { .bd-details-list { grid-template-columns: 1fr; } }
+.bd-detail-row {
+    display: flex; flex-direction: column; gap: 0.2rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.bd-detail-row .label {
+    font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a9b95;
+}
+.bd-detail-row .value {
+    font-size: 0.92rem; font-weight: 700;
+    color: #0F3D2E; word-break: break-word;
+}
+
+.bd-related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.85rem;
+}
+.bd-related-card {
+    background: #f8faf9;
+    border-radius: 12px; overflow: hidden;
+    text-decoration: none; color: inherit;
+    transition: all 0.25s;
+    border: 1px solid transparent;
+}
+.bd-related-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(200,169,81,0.4);
+    background: #fff;
+    box-shadow: 0 8px 20px rgba(15,61,46,0.08);
+}
+.bd-related-cover {
+    aspect-ratio: 3/4;
+    background: linear-gradient(135deg, #eef3f0, #e2eae6);
+    display: flex; align-items: center; justify-content: center;
+    color: #0F3D2E; font-size: 1.5rem; opacity: 0.6;
+}
+.bd-related-cover img { width: 100%; height: 100%; object-fit: cover; }
+.bd-related-body { padding: 0.6rem 0.75rem 0.85rem; }
+.bd-related-body .t {
+    font-size: 0.78rem; font-weight: 800;
+    color: #0F3D2E; margin-bottom: 0.15rem;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+}
+.bd-related-body .a {
+    font-size: 0.68rem; color: #8a9b95;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bd-wrap">
+
+    <a href="{% url 'academics:library_home' %}" class="bd-back">
+        <i class="fas fa-arrow-left"></i> Back to Library
+    </a>
+
+    <div class="bd-hero">
+        <div class="bd-cover-wrap">
+            {% if book.has_cover %}
+                <img src="{{ book.cover_url }}" alt="{{ book.title }}">
+            {% else %}
+                <i class="fas fa-book"></i>
+            {% endif %}
+        </div>
+
+        <div class="bd-info">
+            {% if book.category %}
+            <span class="bd-cat">
+                {% if book.category.icon %}<i class="fas {{ book.category.icon }}"></i>{% endif %}
+                {{ book.category.name }}
+            </span>
+            {% endif %}
+
+            <h1>{{ book.title }}</h1>
+
+            {% if book.author %}
+            <p class="bd-author"><i class="fas fa-pen-nib"></i> {{ book.author }}</p>
+            {% endif %}
+
+            {% if book.description %}
+            <p class="bd-desc">{{ book.description|truncatewords:60 }}</p>
+            {% endif %}
+
+            <div class="bd-status-strip">
+                {% if book.file_extension %}
+                <span class="bd-pill gold">
+                    <i class="fas {{ book.file_icon }}"></i>
+                    {{ book.file_extension|upper }}
+                </span>
+                {% endif %}
+
+                {% if book.publication_year %}
+                <span class="bd-pill">
+                    <i class="fas fa-calendar"></i> {{ book.publication_year }}
+                </span>
+                {% endif %}
+
+                {% if book.pages %}
+                <span class="bd-pill">
+                    <i class="fas fa-file-alt"></i> {{ book.pages }} pages
+                </span>
+                {% endif %}
+
+                {% if book.language %}
+                <span class="bd-pill">
+                    <i class="fas fa-language"></i> {{ book.language }}
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="bd-actions">
+                {% if book.has_file %}
+                <a href="{{ book.download_url }}" target="_blank" rel="noopener"
+                   class="bd-btn gold" download>
+                    <i class="fas {{ book.file_icon }}"></i>
+                    {{ book.download_label }}
+                </a>
+                {% else %}
+                <span class="bd-btn outline" style="cursor:not-allowed; opacity:0.6;">
+                    <i class="fas fa-exclamation-circle"></i> No file available
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="bd-grid">
+
+        <div class="bd-card">
+            <h2><i class="fas fa-info-circle"></i> Book details</h2>
+            <div class="bd-details-list">
+                {% if book.author %}
+                <div class="bd-detail-row">
+                    <span class="label">Author</span>
+                    <span class="value">{{ book.author }}</span>
+                </div>
+                {% endif %}
+
+                {% if book.publisher %}
+                <div class="bd-detail-row">
+                    <span class="label">Publisher</span>
+                    <span class="value">{{ book.publisher }}</span>
+                </div>
+                {% endif %}
+
+                {% if book.publication_year %}
+                <div class="bd-detail-row">
+                    <span class="label">Year</span>
+                    <span class="value">{{ book.publication_year }}</span>
+                </div>
+                {% endif %}
+
+                {% if book.edition %}
+                <div class="bd-detail-row">
+                    <span class="label">Edition</span>
+                    <span class="value">{{ book.edition }}</span>
+                </div>
+                {% endif %}
+
+                {% if book.pages %}
+                <div class="bd-detail-row">
+                    <span class="label">Pages</span>
+                    <span class="value">{{ book.pages }}</span>
+                </div>
+                {% endif %}
+
+                {% if book.language %}
+                <div class="bd-detail-row">
+                    <span class="label">Language</span>
+                    <span class="value">{{ book.language }}</span>
+                </div>
+                {% endif %}
+
+                {% if book.isbn %}
+                <div class="bd-detail-row">
+                    <span class="label">ISBN</span>
+                    <span class="value">{{ book.isbn }}</span>
+                </div>
+                {% endif %}
+
+                {% if book.category %}
+                <div class="bd-detail-row">
+                    <span class="label">Category</span>
+                    <span class="value">{{ book.category.name }}</span>
+                </div>
+                {% endif %}
+
+                {% if book.file_extension %}
+                <div class="bd-detail-row">
+                    <span class="label">Format</span>
+                    <span class="value">{{ book.file_extension|upper }}</span>
+                </div>
+                {% endif %}
+
+                {% if book.uploaded_by %}
+                <div class="bd-detail-row">
+                    <span class="label">Uploaded by</span>
+                    <span class="value">{{ book.uploaded_by.get_full_name|default:book.uploaded_by.email }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if book.description %}
+            <h2 style="margin-top:1.75rem;"><i class="fas fa-align-left"></i> Description</h2>
+            <p style="font-size:0.92rem; line-height:1.75; color:#4a5568; margin:0;">
+                {{ book.description }}
+            </p>
+            {% endif %}
+        </div>
+
+        <div>
+            {% if book.has_file %}
+            <div class="bd-card" style="margin-bottom:1.25rem;">
+                <h2><i class="fas fa-download"></i> Get this book</h2>
+                <p style="font-size:0.85rem; color:#4a5568; margin:0 0 1rem; line-height:1.55;">
+                    Free to download. Opens in a new tab.
+                </p>
+                <a href="{{ book.download_url }}" target="_blank" rel="noopener"
+                   class="bd-btn gold" style="width:100%; justify-content:center;" download>
+                    <i class="fas {{ book.file_icon }}"></i>
+                    {{ book.download_label }}
+                </a>
+            </div>
+            {% endif %}
+
+            {% if related %}
+            <div class="bd-card">
+                <h2><i class="fas fa-layer-group"></i> You may also like</h2>
+                <div class="bd-related-grid">
+                    {% for r in related %}
+                    <a href="{% url 'academics:library_detail' r.pk %}" class="bd-related-card">
+                        <div class="bd-related-cover">
+                            {% if r.has_cover %}
+                                <img src="{{ r.cover_url }}" alt="{{ r.title }}">
+                            {% else %}
+                                <i class="fas fa-book"></i>
+                            {% endif %}
+                        </div>
+                        <div class="bd-related-body">
+                            <div class="t">{{ r.title }}</div>
+                            <div class="a">{{ r.author|default:"—" }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

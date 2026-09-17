@@ -1,0 +1,19 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+    <h2>📢 {{ announcement.title }}</h2>
+    
+    <p>Assalamu Alaikum,</p>
+    
+    <div class="content-block">
+        {{ announcement.content|safe }}
+    </div>
+    
+    <p style="margin-top: 20px;">
+        <a href="{{ site_url }}{{ announcement_url }}" class="button">View Full Announcement</a>
+    </p>
+    
+    <p style="color: #718096; font-size: 14px; margin-top: 20px;">
+        You're receiving this because you subscribed to NAMETS announcements.
+    </p>
+{% endblock %}

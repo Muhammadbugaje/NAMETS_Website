@@ -1,0 +1,480 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ profile.display_name }} · NAMETS Alumni{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-wrap { max-width: 1000px; margin: 0 auto; }
+.profile-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.profile-back:hover { text-decoration: underline; }
+
+/* HERO */
+.profile-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 60%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 2.5rem 2rem 2.25rem;
+    margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 18px 48px rgba(15,61,46,0.26);
+    color: #fff;
+    text-align: center;
+}
+.profile-hero::before {
+    content: "🎓"; font-size: 12rem;
+    position: absolute; top: 50%; right: 1.5rem;
+    transform: translateY(-50%);
+    opacity: 0.06; pointer-events: none;
+}
+.profile-hero::after {
+    content: ''; position: absolute;
+    top: -40%; left: -10%;
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(200,169,81,0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+.profile-hero-inner { position: relative; z-index: 1; }
+
+.profile-avatar {
+    width: 120px; height: 120px; border-radius: 50%;
+    margin: 0 auto 1rem;
+    background: linear-gradient(135deg, #C8A951, #E0C96E);
+    color: #0F3D2E;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.75rem; font-weight: 800;
+    border: 4px solid rgba(255,255,255,0.3);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+    overflow: hidden;
+    animation: profileFloat 6s ease-in-out infinite;
+}
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+@keyframes profileFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.profile-hero h1 {
+    font-size: 1.85rem; font-weight: 800;
+    margin: 0 0 0.4rem; letter-spacing: -0.02em;
+}
+.profile-hero .occupation {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.9);
+    margin: 0 0 0.35rem;
+}
+.profile-hero .location {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.75);
+    margin: 0 0 1rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+}
+.profile-class-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: 50px;
+    font-size: 0.82rem; font-weight: 800;
+    background: rgba(200,169,81,0.25);
+    color: #E0C96E;
+    border: 1px solid rgba(200,169,81,0.4);
+    letter-spacing: 0.03em;
+}
+.profile-actions {
+    margin-top: 1.5rem;
+    display: flex; justify-content: center; gap: 0.6rem; flex-wrap: wrap;
+}
+.profile-actions a, .profile-actions button {
+    padding: 0.6rem 1.4rem; border-radius: 50px;
+    font-size: 0.82rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    border: none; transition: all 0.25s ease;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.btn-edit {
+    background: #C8A951; color: #0F3D2E;
+}
+.btn-edit:hover { background: #E0C96E; transform: translateY(-2px); }
+.btn-danger {
+    background: rgba(220,53,69,0.18); color: #ffb3bc;
+    border: 1px solid rgba(220,53,69,0.4);
+}
+.btn-danger:hover { background: rgba(220,53,69,0.3); }
+.btn-linkedin {
+    background: rgba(255,255,255,0.12);
+    color: #fff; border: 1px solid rgba(255,255,255,0.25);
+}
+.btn-linkedin:hover { background: rgba(255,255,255,0.2); }
+
+/* SECTIONS */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+@media (max-width: 900px) { .profile-grid { grid-template-columns: 1fr; } }
+
+.profile-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 1.5rem 1.6rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.25rem;
+}
+.profile-card h2 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--gold);
+    margin: 0 0 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.profile-card h2::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.35), transparent);
+}
+
+/* Final message */
+.final-message {
+    font-size: 0.95rem; line-height: 1.7;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    background: linear-gradient(135deg, rgba(200,169,81,0.06), rgba(15,61,46,0.03));
+    border-left: 4px solid var(--gold);
+    padding: 1rem 1.15rem;
+    border-radius: 10px;
+    font-style: italic;
+    position: relative;
+}
+.final-message::before {
+    content: '"'; font-size: 3rem;
+    position: absolute; top: -0.5rem; left: 0.6rem;
+    color: rgba(200,169,81,0.3);
+    font-family: Georgia, serif; line-height: 1;
+}
+.final-message.empty {
+    color: #8a9b95; font-style: normal;
+    border-left-color: rgba(138,155,149,0.4);
+}
+
+/* Stats grid */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+.stat-box {
+    text-align: center;
+    padding: 1rem 0.5rem;
+    background: linear-gradient(135deg, rgba(15,61,46,0.05), rgba(200,169,81,0.06));
+    border-radius: 14px;
+    border: 1px solid rgba(200,169,81,0.15);
+}
+.stat-box .num {
+    font-size: 1.6rem; font-weight: 800;
+    color: #0F3D2E; line-height: 1;
+    margin-bottom: 0.35rem;
+}
+.stat-box .lbl {
+    font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a9b95;
+}
+
+/* Offices list */
+.office-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.office-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    background: rgba(15,61,46,0.04);
+    border-radius: 12px;
+    border-left: 3px solid var(--gold);
+}
+.office-item .icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: rgba(200,169,81,0.18);
+    color: #8a6a1a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; flex-shrink: 0;
+}
+.office-item .info { flex: 1; min-width: 0; }
+.office-item .name {
+    font-size: 0.85rem; font-weight: 700;
+    color: #0F3D2E;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.office-item .label {
+    font-size: 0.7rem; color: #8a9b95;
+}
+.office-item .status {
+    font-size: 0.6rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 0.2rem 0.55rem; border-radius: 20px;
+    background: rgba(40,167,69,0.15); color: #1e7e34;
+}
+.office-item .status.inactive {
+    background: rgba(138,155,149,0.15); color: #6c7a75;
+}
+
+/* Contact / social */
+.contact-list { display: flex; flex-direction: column; gap: 0.55rem; }
+.contact-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    font-size: 0.85rem; color: var(--text-primary);
+    text-decoration: none;
+    padding: 0.55rem 0.7rem;
+    border-radius: 10px;
+    transition: background 0.2s ease;
+}
+.contact-item:hover { background: rgba(200,169,81,0.08); }
+.contact-item i {
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(15,61,46,0.08);
+    color: #0F3D2E;
+    border-radius: 8px; font-size: 0.78rem;
+    flex-shrink: 0;
+}
+.contact-item span { word-break: break-all; }
+
+.social-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.social-chip {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    background: rgba(15,61,46,0.06);
+    color: #0F3D2E;
+    border-radius: 50px;
+    font-size: 0.78rem; font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    border: 1px solid transparent;
+}
+.social-chip:hover {
+    background: #0F3D2E; color: #C8A951;
+    border-color: #C8A951;
+    transform: translateY(-2px);
+}
+
+/* Meta footer */
+.profile-meta {
+    text-align: center;
+    color: #8a9b95;
+    font-size: 0.72rem;
+    margin-top: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="profile-wrap">
+
+    <a href="{% url 'governance:graduation_list' %}" class="profile-back">
+        <i class="fas fa-arrow-left"></i> Back to Alumni Directory
+    </a>
+
+    <!-- HERO -->
+    <div class="profile-hero">
+        <div class="profile-hero-inner">
+            <div class="profile-avatar">
+                {% if profile.profile_photo %}
+                    <img src="{{ profile.profile_photo.url }}" alt="{{ profile.display_name }}">
+                {% else %}
+                    {{ profile.initials }}
+                {% endif %}
+            </div>
+
+            <h1>{{ profile.display_name }}</h1>
+
+            {% if profile.current_occupation %}
+            <p class="occupation">{{ profile.current_occupation }}</p>
+            {% endif %}
+
+            {% if profile.current_location %}
+            <p class="location">
+                <i class="fas fa-map-marker-alt"></i> {{ profile.current_location }}
+            </p>
+            {% endif %}
+
+            <span class="profile-class-badge">
+                <i class="fas fa-graduation-cap"></i> Class of {{ profile.graduation_year }}
+            </span>
+
+            <div class="profile-actions">
+                {% if can_edit %}
+                <a href="{% url 'governance:graduation_edit' profile.pk %}" class="btn-edit">
+                    <i class="fas fa-pen"></i> {% if is_self %}Edit My Profile{% else %}Edit Profile{% endif %}
+                </a>
+                {% endif %}
+
+                {% if can_delete %}
+                <form method="post" action="{% url 'governance:graduation_delete' profile.pk %}"
+                      onsubmit="return confirm('Delete this alumni profile permanently? This cannot be undone.');"
+                      style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-danger">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="profile-grid">
+
+        <!-- LEFT COLUMN -->
+        <div>
+            <!-- Final Message -->
+            <div class="profile-card">
+                <h2><i class="fas fa-comment-dots"></i> Final Message</h2>
+                {% if profile.final_message %}
+                    <div class="final-message">{{ profile.final_message }}</div>
+                {% else %}
+                    <div class="final-message empty">
+                        No final message yet.
+                        {% if is_self %}
+                        <a href="{% url 'governance:graduation_edit' profile.pk %}" style="color:var(--gold);">
+                            Add yours →
+                        </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Offices Held -->
+            <div class="profile-card">
+                <h2><i class="fas fa-briefcase"></i> Offices Held</h2>
+                {% if profile.offices_held %}
+                <div class="office-list">
+                    {% for o in profile.offices_held %}
+                    <div class="office-item">
+                        <div class="icon"><i class="fas fa-shield-alt"></i></div>
+                        <div class="info">
+                            <div class="name">{{ o.office|default:"—" }}</div>
+                            {% if o.display_label %}
+                            <div class="label">{{ o.display_label }}</div>
+                            {% endif %}
+                        </div>
+                        <span class="status {% if not o.is_active %}inactive{% endif %}">
+                            {% if o.is_active %}Active{% else %}Past{% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color:#8a9b95; font-size:0.85rem; margin:0;">
+                    No offices recorded.
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Contribution Stats -->
+            <div class="profile-card">
+                <h2><i class="fas fa-chart-bar"></i> Contributions</h2>
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="num">{{ profile.offices_held|length|default:0 }}</div>
+                        <div class="lbl">Offices</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="num">{{ profile.tasks_completed }}</div>
+                        <div class="lbl">Tasks</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="num">{{ profile.proposals_passed }}</div>
+                        <div class="lbl">Proposals</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div>
+            <!-- Contact Info -->
+            <div class="profile-card">
+                <h2><i class="fas fa-address-card"></i> Contact</h2>
+                <div class="contact-list">
+                    {% if profile.email %}
+                    <a href="mailto:{{ profile.email }}" class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>{{ profile.email }}</span>
+                    </a>
+                    {% endif %}
+
+                    {% if profile.phone_number %}
+                    <a href="tel:{{ profile.phone_number }}" class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <span>{{ profile.phone_number }}</span>
+                    </a>
+                    {% endif %}
+
+                    {% if profile.department_name %}
+                    <div class="contact-item">
+                        <i class="fas fa-university"></i>
+                        <span>{{ profile.department_name }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if not profile.email and not profile.phone_number and not profile.department_name %}
+                    <p style="color:#8a9b95; font-size:0.85rem; margin:0;">
+                        No contact information available.
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Social Links -->
+            {% if profile.has_social_links %}
+            <div class="profile-card">
+                <h2><i class="fas fa-share-alt"></i> Connect</h2>
+                <div class="social-links">
+                    {% with s=profile.social_links %}
+                        {% if s.linkedin %}
+                        <a href="{{ s.linkedin }}" target="_blank" rel="noopener" class="social-chip">
+                            <i class="fab fa-linkedin"></i> LinkedIn
+                        </a>
+                        {% endif %}
+                        {% if s.twitter %}
+                        <a href="https://twitter.com/{{ s.twitter|cut:'@' }}" target="_blank" rel="noopener" class="social-chip">
+                            <i class="fab fa-twitter"></i> Twitter
+                        </a>
+                        {% endif %}
+                        {% if s.instagram %}
+                        <a href="https://instagram.com/{{ s.instagram|cut:'@' }}" target="_blank" rel="noopener" class="social-chip">
+                            <i class="fab fa-instagram"></i> Instagram
+                        </a>
+                        {% endif %}
+                        {% if s.facebook %}
+                        <a href="{{ s.facebook }}" target="_blank" rel="noopener" class="social-chip">
+                            <i class="fab fa-facebook"></i> Facebook
+                        </a>
+                        {% endif %}
+                        {% if s.github %}
+                        <a href="{{ s.github }}" target="_blank" rel="noopener" class="social-chip">
+                            <i class="fab fa-github"></i> GitHub
+                        </a>
+                        {% endif %}
+                        {% if s.whatsapp %}
+                        <a href="https://wa.me/{{ s.whatsapp }}" target="_blank" rel="noopener" class="social-chip">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </a>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="profile-meta">
+        Profile created {{ profile.created_at|date:"M j, Y" }}
+        {% if profile.updated_at != profile.created_at %}
+        · Last updated {{ profile.updated_at|date:"M j, Y" }}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

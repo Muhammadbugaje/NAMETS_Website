@@ -1,0 +1,331 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Hero Slides · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.hs-wrap { max-width: 1100px; margin: 0 auto; }
+
+.hs-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 16px 44px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.hs-hero::before {
+    content: "🖼"; font-size: 10rem;
+    position: absolute; bottom: -2.5rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.hs-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.hs-hero h1 { font-size: 1.6rem; font-weight: 800; margin: 0 0 0.35rem; }
+.hs-hero p { color: rgba(255,255,255,0.82); font-size: 0.9rem; margin: 0; max-width: 520px; }
+.hs-hero-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.hs-hbtn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.65rem 1.35rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem;
+    text-decoration: none; border: 1px solid transparent;
+    transition: all 0.25s; cursor: pointer; font-family: inherit;
+}
+.hs-hbtn.gold { background: #C8A951; color: #0F3D2E; }
+.hs-hbtn.gold:hover { background: #E0C96E; transform: translateY(-3px); }
+.hs-hbtn.outline {
+    background: rgba(255,255,255,0.12); color: #fff;
+    border-color: rgba(255,255,255,0.25);
+}
+.hs-hbtn.outline:hover { background: rgba(255,255,255,0.22); transform: translateY(-3px); }
+
+/* Stats strip */
+.hs-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.85rem; margin-bottom: 1.5rem;
+}
+.hs-stat {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
+    padding: 1.1rem 1.25rem;
+    box-shadow: 0 4px 12px rgba(15,61,46,0.05);
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; gap: 0.85rem;
+}
+.hs-stat::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+}
+.hs-stat.green::before { background: linear-gradient(90deg,#0F3D2E,#38a169); }
+.hs-stat.gold::before  { background: linear-gradient(90deg,#8a6a1a,#E0C96E); }
+.hs-stat .ic {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; flex-shrink: 0;
+    background: #e8f2ec; color: #1a6b3c;
+}
+.hs-stat.gold .ic { background: #f5e9c8; color: #8a6a1a; }
+.hs-stat .num { font-size: 1.55rem; font-weight: 800; color: #0F3D2E; line-height: 1; }
+.hs-stat .lbl {
+    font-size: 0.66rem; color: #8a9b95;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    font-weight: 700; margin-top: 0.25rem;
+}
+
+/* Card container */
+.hs-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 6px 22px rgba(15,61,46,0.06);
+}
+
+/* Slide row */
+.hs-row {
+    display: grid;
+    grid-template-columns: 130px 70px 1fr auto;
+    gap: 1.25rem;
+    align-items: center;
+    padding: 1rem 1.35rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    transition: background 0.2s;
+}
+.hs-row:hover { background: rgba(200,169,81,0.04); }
+.hs-row:last-child { border-bottom: none; }
+
+.hs-desktop-thumb {
+    width: 130px; height: 73px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: linear-gradient(135deg,#eef3f0,#e2eae6);
+    flex-shrink: 0;
+    position: relative;
+}
+.hs-desktop-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.hs-desktop-thumb .overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(250,248,240,0.85) 0%, transparent 60%);
+    pointer-events: none;
+}
+.hs-desktop-thumb .tag {
+    position: absolute; left: 0.4rem; bottom: 0.4rem;
+    background: rgba(15,61,46,0.85);
+    color: #C8A951;
+    font-size: 0.55rem; font-weight: 800;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+}
+
+.hs-mobile-thumb {
+    width: 70px; height: 88px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: linear-gradient(135deg,#eef3f0,#e2eae6);
+    flex-shrink: 0;
+    position: relative;
+}
+.hs-mobile-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.hs-mobile-thumb .overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(250,248,240,0.85) 0%, transparent 55%);
+    pointer-events: none;
+}
+
+.hs-info { min-width: 0; }
+.hs-title {
+    font-size: 0.95rem; font-weight: 800;
+    color: #0F3D2E; margin-bottom: 0.25rem;
+    display: flex; align-items: center; gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.hs-title .fallback-tag {
+    font-size: 0.6rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    background: #f0f4f2; color: #8a9b95;
+    padding: 0.15rem 0.55rem; border-radius: 20px;
+}
+.hs-subtitle {
+    font-size: 0.78rem; color: #8a9b95;
+    margin-bottom: 0.35rem;
+    display: -webkit-box; -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical; overflow: hidden;
+}
+.hs-meta {
+    display: flex; gap: 0.55rem; flex-wrap: wrap;
+    font-size: 0.7rem; color: #8a9b95;
+}
+.hs-meta .pill {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    padding: 0.15rem 0.55rem; border-radius: 20px;
+}
+.hs-meta .pill.order { background: #f0f4f2; color: #4a5568; }
+.hs-meta .pill.active { background: #e8f2ec; color: #1a6b3c; }
+.hs-meta .pill.hidden { background: #fef3e8; color: #a8671a; }
+.hs-meta .pill.cta { background: #e6f0fb; color: #185fa5; }
+
+.hs-actions {
+    display: flex; gap: 0.4rem; flex-shrink: 0;
+}
+.hs-action-btn {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; cursor: pointer; font-size: 0.82rem;
+    text-decoration: none; transition: all 0.2s;
+    font-family: inherit;
+}
+.hs-action-btn.edit { background: #e6f0fb; color: #185fa5; }
+.hs-action-btn.edit:hover { background: #185fa5; color: #fff; }
+.hs-action-btn.toggle { background: #f5e9c8; color: #8a6a1a; }
+.hs-action-btn.toggle:hover { background: #C8A951; color: #0F3D2E; }
+.hs-action-btn.delete { background: #fdecea; color: #9b2c2c; }
+.hs-action-btn.delete:hover { background: #dc3545; color: #fff; }
+
+/* Empty */
+.hs-empty {
+    text-align: center; padding: 4rem 1.5rem;
+}
+.hs-empty .ic {
+    font-size: 3.5rem; display: block;
+    margin-bottom: 1rem; opacity: 0.4;
+}
+.hs-empty h3 { color: #0F3D2E; margin: 0 0 0.4rem; font-size: 1.1rem; }
+.hs-empty p { color: #8a9b95; font-size: 0.88rem; margin: 0 0 1.25rem; }
+
+@media (max-width: 780px) {
+    .hs-row {
+        grid-template-columns: 80px 55px 1fr;
+        gap: 0.75rem;
+        padding: 0.85rem 0.9rem;
+    }
+    .hs-desktop-thumb { width: 80px; height: 45px; }
+    .hs-mobile-thumb { width: 55px; height: 70px; }
+    .hs-actions { grid-column: 1 / -1; justify-content: flex-end; }
+    .hs-title { font-size: 0.88rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="hs-wrap">
+
+    <div class="hs-hero">
+        <div class="hs-hero-inner">
+            <div>
+                <h1>🖼 Hero Slides</h1>
+                <p>Manage the rotating images on the public homepage. Each slide carries a paired desktop + mobile image.</p>
+            </div>
+            <div class="hs-hero-actions">
+                <a href="{% url 'core:hero_slide_create' %}" class="hs-hbtn gold">
+                    <i class="fas fa-plus"></i> Add Slide
+                </a>
+                <a href="{% url 'core:homepage' %}" target="_blank" class="hs-hbtn outline">
+                    <i class="fas fa-external-link-alt"></i> View Homepage
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="hs-stats">
+        <div class="hs-stat green">
+            <div class="ic"><i class="fas fa-images"></i></div>
+            <div>
+                <div class="num">{{ total }}</div>
+                <div class="lbl">Total Slides</div>
+            </div>
+        </div>
+        <div class="hs-stat gold">
+            <div class="ic"><i class="fas fa-eye"></i></div>
+            <div>
+                <div class="num">{{ active_count }}</div>
+                <div class="lbl">Active</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hs-card">
+        {% if slides %}
+            {% for slide in slides %}
+            <div class="hs-row">
+
+                <div class="hs-desktop-thumb">
+                    {% if slide.desktop_url %}
+                        <img src="{{ slide.desktop_url }}" alt="{{ slide.title|default:'Desktop image' }}">
+                    {% endif %}
+                    <div class="overlay"></div>
+                    <span class="tag">16:9</span>
+                </div>
+
+                <div class="hs-mobile-thumb">
+                    {% if slide.mobile_url %}
+                        <img src="{{ slide.mobile_url }}" alt="{{ slide.title|default:'Mobile image' }}">
+                    {% endif %}
+                    <div class="overlay"></div>
+                </div>
+
+                <div class="hs-info">
+                    <div class="hs-title">
+                        {% if slide.title %}{{ slide.title }}{% else %}Welcome slide{% endif %}
+                        {% if not slide.has_custom_text %}
+                            <span class="fallback-tag">Default text</span>
+                        {% endif %}
+                    </div>
+                    {% if slide.subtitle %}
+                    <div class="hs-subtitle">{{ slide.subtitle }}</div>
+                    {% endif %}
+                    <div class="hs-meta">
+                        <span class="pill order"><i class="fas fa-sort"></i> Order {{ slide.order }}</span>
+                        {% if slide.is_active %}
+                        <span class="pill active"><i class="fas fa-check-circle"></i> Active</span>
+                        {% else %}
+                        <span class="pill hidden"><i class="fas fa-eye-slash"></i> Hidden</span>
+                        {% endif %}
+                        {% if slide.has_cta %}
+                        <span class="pill cta"><i class="fas fa-link"></i> Has CTA</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="hs-actions">
+                    <a href="{% url 'core:hero_slide_edit' slide.pk %}"
+                       class="hs-action-btn edit" title="Edit">
+                        <i class="fas fa-pen"></i>
+                    </a>
+                    <form method="post" action="{% url 'core:hero_slide_toggle' slide.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="hs-action-btn toggle"
+                                title="{% if slide.is_active %}Hide{% else %}Activate{% endif %}">
+                            <i class="fas {% if slide.is_active %}fa-eye-slash{% else %}fa-eye{% endif %}"></i>
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'core:hero_slide_delete' slide.pk %}" style="display:inline;"
+                          onsubmit="return confirm('Delete this hero slide? This cannot be undone.');">
+                        {% csrf_token %}
+                        <button type="submit" class="hs-action-btn delete" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="hs-empty">
+                <span class="ic">🖼</span>
+                <h3>No hero slides yet</h3>
+                <p>Add your first slide to start the homepage carousel.</p>
+                <a href="{% url 'core:hero_slide_create' %}" class="hs-hbtn gold" style="display:inline-flex;">
+                    <i class="fas fa-plus"></i> Add First Slide
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

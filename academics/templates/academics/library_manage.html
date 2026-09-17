@@ -1,0 +1,396 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Manage Library · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.mg-wrap { max-width: 1250px; margin: 0 auto; }
+
+.mg-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 16px 44px rgba(15,61,46,0.22);
+    color: #fff;
+}
+.mg-hero::before {
+    content: "📚"; font-size: 10rem;
+    position: absolute; bottom: -2.5rem; right: 1rem;
+    opacity: 0.07; pointer-events: none;
+}
+.mg-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.mg-hero h1 { font-size: 1.75rem; font-weight: 800; margin: 0 0 0.35rem; }
+.mg-hero p { color: rgba(255,255,255,0.82); font-size: 0.9rem; margin: 0; }
+.mg-hero-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.mg-hbtn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.65rem 1.35rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem;
+    text-decoration: none; border: 1px solid transparent;
+    transition: all 0.25s; cursor: pointer; font-family: inherit;
+}
+.mg-hbtn.gold { background: #C8A951; color: #0F3D2E; }
+.mg-hbtn.gold:hover { background: #E0C96E; transform: translateY(-3px); }
+.mg-hbtn.outline {
+    background: rgba(255,255,255,0.12); color: #fff;
+    border-color: rgba(255,255,255,0.25);
+}
+.mg-hbtn.outline:hover { background: rgba(255,255,255,0.22); transform: translateY(-3px); }
+
+.mg-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.85rem; margin-bottom: 1.5rem;
+}
+.mg-stat {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
+    padding: 1.15rem 1.25rem;
+    box-shadow: 0 4px 12px rgba(15,61,46,0.05);
+    position: relative; overflow: hidden;
+    transition: all 0.25s;
+    display: flex; align-items: center; gap: 0.85rem;
+}
+.mg-stat::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+}
+.mg-stat.green::before  { background: linear-gradient(90deg,#0F3D2E,#38a169); }
+.mg-stat.gold::before   { background: linear-gradient(90deg,#8a6a1a,#E0C96E); }
+.mg-stat.blue::before   { background: linear-gradient(90deg,#185fa5,#4299e1); }
+.mg-stat.purple::before { background: linear-gradient(90deg,#6b21a8,#a78bfa); }
+.mg-stat:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(15,61,46,0.1); }
+.mg-stat .ic {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; flex-shrink: 0;
+}
+.mg-stat.green .ic { background: #e8f2ec; color: #1a6b3c; }
+.mg-stat.gold  .ic { background: #f5e9c8; color: #8a6a1a; }
+.mg-stat.blue  .ic { background: #e6f0fb; color: #185fa5; }
+.mg-stat.purple .ic { background: #f0eafb; color: #6b21a8; }
+.mg-stat .num { font-size: 1.5rem; font-weight: 800; color: #0F3D2E; line-height: 1; }
+.mg-stat .lbl {
+    font-size: 0.66rem; color: #8a9b95;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    font-weight: 700; margin-top: 0.2rem;
+}
+
+.mg-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    padding: 1.5rem 1.65rem;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+}
+.mg-card-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.15rem; gap: 0.75rem; flex-wrap: wrap;
+}
+.mg-card-head h2 {
+    font-size: 1rem; font-weight: 800; color: #0F3D2E;
+    margin: 0; display: flex; align-items: center; gap: 0.5rem;
+}
+.mg-card-head h2 i { color: #C8A951; }
+
+.mg-filters {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 0.55rem; align-items: center;
+    margin-bottom: 1.15rem;
+}
+@media (max-width: 768px) { .mg-filters { grid-template-columns: 1fr; } }
+.mg-filters input, .mg-filters select {
+    padding: 0.6rem 0.85rem;
+    border: 1px solid #d5dcd9; border-radius: 10px;
+    background: #fff; font-size: 0.85rem; font-family: inherit;
+    width: 100%; color: #0F3D2E;
+}
+.mg-filters input:focus, .mg-filters select:focus {
+    border-color: #C8A951; outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.14);
+}
+.mg-filters .btn-sm {
+    background: #0F3D2E; color: #fff; border: none;
+    padding: 0.6rem 1.15rem; border-radius: 10px;
+    cursor: pointer; font-weight: 700; font-size: 0.82rem;
+    white-space: nowrap; font-family: inherit;
+    transition: all 0.2s;
+}
+.mg-filters .btn-sm:hover { background: #1a5a44; }
+
+.mg-table-wrap { overflow-x: auto; }
+.mg-table {
+    width: 100%; border-collapse: collapse; font-size: 0.85rem;
+}
+.mg-table th {
+    background: #f8faf9; color: #0F3D2E;
+    padding: 0.75rem 1rem; text-align: left;
+    font-size: 0.66rem; text-transform: uppercase;
+    letter-spacing: 0.06em; font-weight: 800;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.mg-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    vertical-align: middle;
+}
+.mg-table tbody tr:hover { background: rgba(200,169,81,0.04); }
+.mg-table tbody tr:last-child td { border-bottom: none; }
+
+.mg-book-cell { display: flex; align-items: center; gap: 0.75rem; }
+.mg-book-mini {
+    width: 40px; height: 54px; border-radius: 6px;
+    background: linear-gradient(135deg, #eef3f0, #e2eae6);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0;
+    color: #0F3D2E; font-size: 0.9rem; opacity: 0.7;
+}
+.mg-book-mini img { width: 100%; height: 100%; object-fit: cover; }
+.mg-book-info { min-width: 0; }
+.mg-book-name {
+    font-size: 0.85rem; font-weight: 700;
+    color: #0F3D2E;
+    overflow: hidden; text-overflow: ellipsis;
+    max-width: 260px; white-space: nowrap;
+}
+.mg-book-author { font-size: 0.72rem; color: #8a9b95; }
+
+.mg-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.22rem 0.65rem; border-radius: 20px;
+    font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+.mg-badge.published { background: #e8f2ec; color: #1a6b3c; }
+.mg-badge.draft     { background: #fef3e8; color: #a8671a; }
+.mg-badge.featured  { background: #f5e9c8; color: #8a6a1a; }
+
+.mg-action-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; cursor: pointer; font-size: 0.78rem;
+    text-decoration: none; transition: all 0.2s;
+    font-family: inherit;
+}
+.mg-action-btn.view { background: #f0f4f2; color: #0F3D2E; }
+.mg-action-btn.view:hover { background: #0F3D2E; color: #fff; }
+.mg-action-btn.edit { background: #e6f0fb; color: #185fa5; }
+.mg-action-btn.edit:hover { background: #185fa5; color: #fff; }
+.mg-action-btn.delete { background: #fdecea; color: #9b2c2c; }
+.mg-action-btn.delete:hover { background: #dc3545; color: #fff; }
+
+.mg-empty {
+    text-align: center; padding: 3rem 1.5rem;
+    color: #8a9b95;
+}
+.mg-empty .ic {
+    font-size: 3rem; display: block;
+    margin-bottom: 0.75rem; opacity: 0.4;
+}
+.mg-empty h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1rem; }
+
+.mg-pagination {
+    margin-top: 1.5rem;
+    display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap;
+}
+.mg-pagination a, .mg-pagination .current {
+    min-width: 38px; height: 38px; padding: 0 0.75rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.82rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fff; border: 1px solid rgba(0,0,0,0.08);
+    color: #0F3D2E; transition: all 0.15s;
+}
+.mg-pagination a:hover { background: #0F3D2E; color: #C8A951; }
+.mg-pagination .current { background: #0F3D2E; color: #C8A951; }
+
+@media (max-width: 768px) {
+    .mg-hero { padding: 1.5rem 1.35rem; }
+    .mg-hero h1 { font-size: 1.35rem; }
+    .mg-hero-inner { flex-direction: column; align-items: stretch; }
+    .mg-hero-actions { flex-direction: column; }
+    .mg-hbtn { justify-content: center; }
+    .mg-card { padding: 1.15rem 1.15rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="mg-wrap">
+
+    <div class="mg-hero">
+        <div class="mg-hero-inner">
+            <div>
+                <h1>📚 Manage Library</h1>
+                <p>Add, edit, and organize the books in the NAMETS e-library.</p>
+            </div>
+            <div class="mg-hero-actions">
+                <a href="{% url 'academics:library_home' %}" class="mg-hbtn outline">
+                    <i class="fas fa-eye"></i> View Public Library
+                </a>
+                <a href="{% url 'academics:library_category_manage' %}" class="mg-hbtn outline">
+                    <i class="fas fa-tags"></i> Categories
+                </a>
+                <a href="{% url 'academics:library_book_create' %}" class="mg-hbtn gold">
+                    <i class="fas fa-plus"></i> Add Book
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="mg-stats">
+        <div class="mg-stat green">
+            <div class="ic"><i class="fas fa-book"></i></div>
+            <div>
+                <div class="num">{{ total_books }}</div>
+                <div class="lbl">Total Books</div>
+            </div>
+        </div>
+        <div class="mg-stat gold">
+            <div class="ic"><i class="fas fa-check-circle"></i></div>
+            <div>
+                <div class="num">{{ total_published }}</div>
+                <div class="lbl">Published</div>
+            </div>
+        </div>
+        <div class="mg-stat blue">
+            <div class="ic"><i class="fas fa-star"></i></div>
+            <div>
+                <div class="num">{{ total_featured }}</div>
+                <div class="lbl">Featured</div>
+            </div>
+        </div>
+        <div class="mg-stat purple">
+            <div class="ic"><i class="fas fa-pencil-alt"></i></div>
+            <div>
+                <div class="num">{{ total_drafts }}</div>
+                <div class="lbl">Drafts</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mg-card">
+        <form method="get" class="mg-filters">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search by title or author…">
+            <select name="category">
+                <option value="">All categories</option>
+                {% for c in categories %}
+                <option value="{{ c.slug }}" {% if cat_filter == c.slug %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="published">
+                <option value="">Any status</option>
+                <option value="published" {% if publish_filter == 'published' %}selected{% endif %}>Published</option>
+                <option value="draft" {% if publish_filter == 'draft' %}selected{% endif %}>Drafts</option>
+            </select>
+            <button type="submit" class="btn-sm">
+                <i class="fas fa-search"></i> Filter
+            </button>
+        </form>
+
+        {% if books %}
+        <div class="mg-table-wrap">
+            <table class="mg-table">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Category</th>
+                        <th>Format</th>
+                        <th>Status</th>
+                        <th style="width:140px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in books %}
+                    <tr>
+                        <td>
+                            <div class="mg-book-cell">
+                                <div class="mg-book-mini">
+                                    {% if b.has_cover %}
+                                        <img src="{{ b.cover_url }}" alt="">
+                                    {% else %}
+                                        <i class="fas fa-book"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="mg-book-info">
+                                    <div class="mg-book-name">{{ b.title }}</div>
+                                    <div class="mg-book-author">{{ b.author|default:"—" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if b.category %}
+                            <span style="font-size:0.78rem; color:#4a5568;">{{ b.category.name }}</span>
+                            {% else %}<span style="color:#c0c8c5;">—</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if b.file_extension %}
+                            <span style="font-size:0.78rem; font-weight:700; color:#185fa5;">
+                                <i class="fas {{ b.file_icon }}"></i> {{ b.file_extension|upper }}
+                            </span>
+                            {% else %}
+                            <span style="color:#c0c8c5;">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if b.is_published %}
+                                <span class="mg-badge published">Published</span>
+                            {% else %}
+                                <span class="mg-badge draft">Draft</span>
+                            {% endif %}
+                            {% if b.is_featured %}
+                                <span class="mg-badge featured" style="margin-left:0.25rem;">⭐</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'academics:library_detail' b.pk %}"
+                               class="mg-action-btn view" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'academics:library_book_edit' b.pk %}"
+                               class="mg-action-btn edit" title="Edit">
+                                <i class="fas fa-pen"></i>
+                            </a>
+                            <a href="{% url 'academics:library_book_delete' b.pk %}"
+                               class="mg-action-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+        <div class="mg-pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹</a>
+            {% endif %}
+            <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">›</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="mg-empty">
+            <i class="fas fa-book-open ic"></i>
+            <h3>No books yet</h3>
+            <p>Click <strong>Add Book</strong> to start building the library.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

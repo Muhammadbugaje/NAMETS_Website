@@ -53,7 +53,6 @@ class Executive(models.Model):
     year = models.ForeignKey(ExecutiveYear, on_delete=models.CASCADE, related_name='executives')
     display_order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
-
     class Meta:
         ordering = ['display_order']
 

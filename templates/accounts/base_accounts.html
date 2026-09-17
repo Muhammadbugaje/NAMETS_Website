@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        max-width: 440px;
+        margin: 3rem auto;
+        padding: 2.5rem;
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+        text-align: center;
+    }
+    .auth-container .logo-wrapper {
+        margin-bottom: 1.5rem;
+    }
+    .auth-container .logo-wrapper img {
+        height: 60px;
+        width: auto;
+        border-radius: 50%;
+        border: 3px solid #C8A951;
+        padding: 4px;
+        background: #ffffff;
+    }
+    .auth-container h2 {
+        color: #0F3D2E;
+        margin-bottom: 0.25rem;
+        font-size: 1.6rem;
+    }
+    .auth-container .sub {
+        color: #8a9b95;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+    .auth-container .form-group {
+        margin-bottom: 1.25rem;
+        text-align: left;
+    }
+    .auth-container label {
+        display: block;
+        font-weight: 600;
+        color: #0F3D2E;
+        margin-bottom: 0.3rem;
+        font-size: 0.9rem;
+    }
+    .auth-container input {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border: 2px solid #e0e8e5;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+        background: #ffffff;
+    }
+    .auth-container input:focus {
+        border-color: #C8A951;
+        outline: none;
+    }
+    .auth-container .btn-submit {
+        width: 100%;
+        padding: 0.9rem;
+        background: linear-gradient(135deg, #0F3D2E 0%, #1A5A44 100%);
+        color: #ffffff;
+        border: none;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .auth-container .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(15, 61, 46, 0.25);
+    }
+    .auth-container .btn-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .auth-container .auth-links {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: #8a9b95;
+    }
+    .auth-container .auth-links a {
+        color: #0F3D2E;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .auth-container .auth-links a:hover {
+        text-decoration: underline;
+    }
+    .auth-container .back-link {
+        display: block;
+        margin-top: 1rem;
+        color: #8a9b95;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+    .auth-container .back-link:hover {
+        color: #0F3D2E;
+    }
+    .auth-container .strength-bar {
+        height: 4px;
+        border-radius: 4px;
+        margin-top: 0.3rem;
+        background: #e8edec;
+        transition: width 0.3s, background 0.3s;
+    }
+    .auth-container .strength-label {
+        font-size: 0.8rem;
+        color: #8a9b95;
+        margin-top: 0.2rem;
+    }
+    .auth-container .messages {
+        margin-bottom: 1rem;
+    }
+    .auth-container .messages .error {
+        color: #b85c4a;
+        background: #fdf6f3;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        border-left: 3px solid #d48b7a;
+        text-align: left;
+        font-size: 0.9rem;
+    }
+    .auth-container .messages .success {
+        color: #2d7d4e;
+        background: #f0f7f4;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        border-left: 3px solid #38a169;
+        text-align: left;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="logo-wrapper">
+        <img src="{% static 'images/Namets.jpg' %}" alt="NAMETS Logo">
+    </div>
+    {% block auth_content %}{% endblock %}
+</div>
+{% endblock %}s

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Bookings | NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.bookings-page { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+.bookings-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.bookings-hero::before {
+    content: "🎟️";
+    font-size: 4rem;
+    position: absolute; bottom: -0.5rem; right: 2rem;
+    opacity: 0.08;
+}
+.bookings-hero .hero-badge {
+    display: inline-block; background: rgba(200,169,81,0.2);
+    color: #C8A951; font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.2rem 0.8rem; border-radius: 20px; margin-bottom: 0.5rem;
+}
+.bookings-hero h1 { font-size: 2rem; font-weight: 700; color: #fff; margin: 0 0 0.3rem; }
+.bookings-hero p { color: rgba(255,255,255,0.8); font-size: 0.95rem; margin: 0; }
+
+.bookings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+}
+.booking-card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    display: flex; flex-direction: column;
+}
+.booking-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); border-color: rgba(200,169,81,0.3); }
+.booking-card .image { height: 180px; overflow: hidden; background: #f0f4f2; position: relative; }
+.booking-card .image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+.booking-card:hover .image img { transform: scale(1.05); }
+.booking-card .image .no-image { display: flex; align-items: center; justify-content: center; height: 100%; font-size: 3rem; color: #c0c8c5; }
+.booking-card .image .category-badge {
+    position: absolute; top: 10px; left: 10px;
+    background: rgba(15,61,46,0.85); color: #fff;
+    font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 20px;
+    backdrop-filter: blur(4px);
+}
+.booking-card .body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+.booking-card .body .title { font-size: 1.05rem; font-weight: 700; color: #1A1A1A; margin: 0 0 0.3rem; }
+.booking-card .body .meta {
+    display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem;
+    font-size: 0.8rem; color: #8a9b95; margin-bottom: 0.5rem;
+}
+.booking-card .body .meta i { width: 1rem; }
+.booking-card .body .desc { font-size: 0.85rem; color: #5A5A5A; margin: 0.3rem 0 0.75rem; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.booking-card .body .footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 0.6rem; border-top: 1px solid rgba(0,0,0,0.05); }
+.booking-card .body .price { font-size: 1.1rem; font-weight: 700; color: #0F3D2E; }
+.booking-card .body .btn-book {
+    padding: 0.4rem 1.2rem; background: #0F3D2E; color: #fff;
+    border-radius: 50px; font-size: 0.8rem; font-weight: 600; text-decoration: none;
+    transition: all 0.2s ease;
+}
+.booking-card .body .btn-book:hover { background: #1a5a44; transform: translateY(-2px); }
+
+.empty-state {
+    grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;
+    background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); border-radius: 16px;
+}
+.empty-state .icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
+
+@media (max-width: 768px) {
+    .bookings-hero { padding: 1.75rem 1.25rem; }
+    .bookings-hero h1 { font-size: 1.6rem; }
+    .bookings-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bookings-page">
+    <div class="bookings-hero">
+        <span class="hero-badge">Bookings & Tickets</span>
+        <h1>🎟️ Bookings & Tickets</h1>
+        <p>Browse available events, workshops, and travel bookings.</p>
+    </div>
+
+    <div class="bookings-grid">
+        {% for listing in listings %}
+        <div class="booking-card">
+            <div class="image">
+                {% if listing.image %}
+                <img src="{{ listing.image.url }}" alt="{{ listing.title }}" loading="lazy">
+                {% else %}
+                <div class="no-image">🎟️</div>
+                {% endif %}
+                <span class="category-badge">{{ listing.get_category_display }}</span>
+            </div>
+            <div class="body">
+                <div class="title">{{ listing.title }}</div>
+                <div class="meta">
+                    {% if listing.date_time %}
+                    <span><i class="far fa-calendar-alt"></i> {{ listing.date_time|date:"M d, Y" }}</span>
+                    <span><i class="far fa-clock"></i> {{ listing.date_time|date:"g:i A" }}</span>
+                    {% endif %}
+                    {% if listing.venue %}
+                    <span><i class="fas fa-map-marker-alt"></i> {{ listing.venue|truncatechars:20 }}</span>
+                    {% endif %}
+                </div>
+                <div class="desc">{{ listing.description|default:"No description provided."|truncatechars:100 }}</div>
+                <div class="footer">
+                    <span class="price">₦{{ listing.price|floatformat:2 }}</span>
+                    <a href="{% url 'business:booking_detail' listing.id %}" class="btn-book">Book →</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <span class="icon">🎟️</span>
+            <h3>No bookings available</h3>
+            <p>Check back later for upcoming events and travel slots.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% include "business/public/includes/back_to_business.html" %}
+{% endblock %}

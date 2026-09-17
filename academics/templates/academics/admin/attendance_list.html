@@ -1,0 +1,439 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Attendance · Academics{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px; padding: 1.5rem 2rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.page-header::before {
+    content: "✅"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.page-header-inner {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.page-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem; border-radius: 20px; margin-bottom: 0.3rem;
+}
+.page-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.page-header p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+
+.header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.header-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.2rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem; text-decoration: none;
+    background: var(--gold); color: var(--text-primary);
+    border: 1px solid var(--gold); transition: all 0.25s;
+}
+.header-btn:hover { background: #E0C96E; transform: translateY(-2px); color: var(--text-primary); }
+.header-btn-outline {
+    background: rgba(255,255,255,0.12); color: #fff;
+    border-color: rgba(255,255,255,0.2);
+}
+.header-btn-outline:hover { background: rgba(255,255,255,0.22); color: #fff; }
+.header-btn-danger {
+    background: rgba(220,53,69,0.18); color: #fff;
+    border-color: rgba(220,53,69,0.35);
+}
+.header-btn-danger:hover { background: rgba(220,53,69,0.3); color: #fff; }
+
+/* Summary stats row */
+.summary-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem; margin-bottom: 1.25rem;
+}
+.summary-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md); padding: 1rem 1.15rem;
+    box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+}
+.summary-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; background: var(--gold);
+}
+.summary-card.green::before { background: linear-gradient(90deg, #38a169, #48bb78); }
+.summary-card.blue::before { background: linear-gradient(90deg, #3182ce, #4299e1); }
+.summary-card.purple::before { background: linear-gradient(90deg, #805ad5, #9f7aea); }
+.summary-card.orange::before { background: linear-gradient(90deg, #dd6b20, #ed8936); }
+.summary-card .lbl {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #8a9b95; margin-bottom: 0.3rem;
+    display: flex; align-items: center; gap: 0.35rem;
+}
+.summary-card .lbl i { color: var(--gold); }
+.summary-card .num {
+    font-size: 1.5rem; font-weight: 800; color: #0F3D2E; line-height: 1.1;
+}
+.summary-card .sub { font-size: 0.7rem; color: #8a9b95; margin-top: 0.15rem; }
+
+.tab-row {
+    display: flex; gap: 0.35rem; margin-bottom: 1rem;
+    flex-wrap: wrap; background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 50px; padding: 0.35rem;
+}
+.tab {
+    padding: 0.5rem 1.15rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem;
+    text-decoration: none; color: var(--text-secondary);
+    transition: all 0.2s; display: inline-flex;
+    align-items: center; gap: 0.4rem; white-space: nowrap;
+}
+.tab:hover { background: rgba(200,169,81,0.1); color: var(--text-primary); }
+.tab.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(15,61,46,0.2); }
+.tab .count-badge {
+    background: rgba(200,169,81,0.25); color: inherit;
+    padding: 0.05rem 0.5rem; border-radius: 20px;
+    font-size: 0.68rem; margin-left: 0.25rem;
+}
+.tab.active .count-badge { background: rgba(255,255,255,0.25); color: #fff; }
+
+.table-wrapper { overflow-x: auto; border-radius: var(--radius-md); }
+.data-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md); overflow: hidden;
+}
+.data-table th {
+    background: var(--primary); color: #fff;
+    padding: 0.65rem 0.9rem; text-align: left;
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.data-table td {
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    font-size: 0.85rem; vertical-align: middle;
+}
+.data-table tbody tr:hover { background: rgba(200,169,81,0.04); }
+.data-table tbody tr:last-child td { border-bottom: none; }
+
+.type-chip {
+    display: inline-block; font-size: 0.62rem; font-weight: 700;
+    padding: 0.15rem 0.55rem; border-radius: 12px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.type-chip.tutorial { background: #e6f0fb; color: #185fa5; }
+.type-chip.exco_meeting { background: #f0eafb; color: #6b21a8; }
+.type-chip.islamiyyah { background: #e0f7f4; color: #0d7a6b; }
+.type-chip.event { background: #fef3e8; color: #a8671a; }
+
+.session-title {
+    font-weight: 700; color: #0F3D2E; font-size: 0.88rem;
+    margin-bottom: 0.1rem;
+    display: block; max-width: 220px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.session-meta {
+    font-size: 0.7rem; color: #8a9b95;
+    display: flex; align-items: center; gap: 0.4rem;
+    flex-wrap: wrap;
+}
+.session-meta i { color: #C8A951; }
+
+.present-bar {
+    display: flex; align-items: center; gap: 0.6rem;
+    min-width: 110px;
+}
+.present-bar .bar-wrap {
+    flex: 1; height: 6px; background: #f0f4f2;
+    border-radius: 4px; overflow: hidden;
+    min-width: 50px;
+}
+.present-bar .bar {
+    height: 100%; border-radius: 4px; transition: width 0.6s ease-out;
+}
+.present-bar .bar.high { background: linear-gradient(90deg, #38a169, #48bb78); }
+.present-bar .bar.mid  { background: linear-gradient(90deg, #d69e2e, #ecc94b); }
+.present-bar .bar.low  { background: linear-gradient(90deg, #c0392b, #e53e3e); }
+.present-bar .count {
+    font-size: 0.78rem; font-weight: 700; color: #1a3c2e;
+    white-space: nowrap;
+}
+
+.row-actions { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+.btn-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; cursor: pointer; font-size: 0.72rem;
+    text-decoration: none; transition: var(--transition); font-family: inherit;
+}
+.btn-icon.edit { background: #f5e9c8; color: #8a6a1a; }
+.btn-icon.edit:hover { background: var(--gold); color: #fff; }
+.btn-icon.view { background: #e6f0fb; color: #185fa5; }
+.btn-icon.view:hover { background: #3182ce; color: #fff; }
+.btn-icon.import { background: #f0eafb; color: #6b21a8; }
+.btn-icon.import:hover { background: #805ad5; color: #fff; }
+.btn-icon.export { background: #e8f2ec; color: #1a6b3c; }
+.btn-icon.export:hover { background: #38a169; color: #fff; }
+.btn-icon.del { background: #fdecea; color: #9b2c2c; }
+.btn-icon.del:hover { background: #f5c2bc; }
+
+.empty-state { text-align: center; color: var(--text-muted); padding: 3rem 1rem; }
+.empty-state .icon { font-size: 3rem; display: block; margin-bottom: 0.6rem; }
+.empty-state h3 { color: var(--text-primary); margin: 0.3rem 0 0.4rem; font-size: 1rem; }
+
+.pagination { margin-top: 1rem; text-align: center; display: flex; justify-content: center; gap: 0.3rem; flex-wrap: wrap; }
+.pagination a, .pagination .current {
+    padding: 0.35rem 0.75rem; border-radius: 6px;
+    text-decoration: none; font-size: 0.82rem;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-primary);
+}
+.pagination a:hover { background: var(--gold); border-color: var(--gold); color: #fff; }
+.pagination .current { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 700; }
+
+@media (max-width: 768px) {
+    .page-header { padding: 1.15rem 1.25rem; }
+    .page-header-inner { flex-direction: column; align-items: stretch; }
+    .header-actions { flex-direction: column; }
+    .header-btn { justify-content: center; }
+    .summary-row { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+    .summary-card { padding: 0.8rem 0.9rem; }
+    .summary-card .num { font-size: 1.2rem; }
+    .tab-row { overflow-x: auto; }
+    .data-table th, .data-table td { font-size: 0.72rem; padding: 0.5rem 0.5rem; }
+    .data-table .hide-sm { display: none; }
+    .session-title { max-width: 140px; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="page-header">
+    <div class="page-header-inner">
+        <div>
+            <span class="page-eyebrow">Academics</span>
+            <h1>✅ Attendance</h1>
+            <p>Mark and track attendance for tutorials, Islamiyya classes, and EXCO meetings.</p>
+        </div>
+        <div class="header-actions">
+            {% if perms.academics.view_attendancesession %}
+            <a href="{% url 'academics:admin_attendance_report' %}{% if type_filter %}?type={{ type_filter }}{% endif %}" class="header-btn header-btn-outline">
+                <i class="fas fa-chart-bar"></i> Reports & Analytics
+            </a>
+            <a href="{% url 'academics:admin_attendance_export' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}" class="header-btn header-btn-outline">
+                <i class="fas fa-file-excel"></i> Export All
+            </a>
+            {% endif %}
+            {% if perms.academics.add_attendancesession %}
+            <a href="{% url 'academics:admin_attendance_create' %}" class="header-btn">
+                <i class="fas fa-plus"></i> New Session
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="summary-row">
+    <div class="summary-card">
+        <div class="lbl"><i class="fas fa-calendar-check"></i> Total Sessions</div>
+        <div class="num">{{ summary.total_sessions|default:0 }}</div>
+        <div class="sub">all-time</div>
+    </div>
+    <div class="summary-card blue">
+        <div class="lbl"><i class="fas fa-book"></i> Tutorials</div>
+        <div class="num">{{ summary.tutorials|default:0 }}</div>
+        <div class="sub">sessions</div>
+    </div>
+    <div class="summary-card green">
+        <div class="lbl"><i class="fas fa-mosque"></i> Islamiyya</div>
+        <div class="num">{{ summary.islamiyya|default:0 }}</div>
+        <div class="sub">sessions</div>
+    </div>
+    <div class="summary-card purple">
+        <div class="lbl"><i class="fas fa-users"></i> EXCO Meetings</div>
+        <div class="num">{{ summary.exco|default:0 }}</div>
+        <div class="sub">sessions</div>
+    </div>
+    <div class="summary-card orange">
+        <div class="lbl"><i class="fas fa-star"></i> Events</div>
+        <div class="num">{{ summary.events|default:0 }}</div>
+        <div class="sub">sessions</div>
+    </div>
+</div>
+
+<div class="tab-row">
+    <a href="{% url 'academics:admin_attendance_list' %}" class="tab {% if not type_filter %}active{% endif %}">
+        <i class="fas fa-list"></i> All
+        {% if summary.total_sessions %}<span class="count-badge">{{ summary.total_sessions }}</span>{% endif %}
+    </a>
+    <a href="?type=tutorial" class="tab {% if type_filter == 'tutorial' %}active{% endif %}">
+        <i class="fas fa-book"></i> Tutorials
+        {% if summary.tutorials %}<span class="count-badge">{{ summary.tutorials }}</span>{% endif %}
+    </a>
+    <a href="?type=islamiyyah" class="tab {% if type_filter == 'islamiyyah' %}active{% endif %}">
+        <i class="fas fa-mosque"></i> Islamiyya
+        {% if summary.islamiyya %}<span class="count-badge">{{ summary.islamiyya }}</span>{% endif %}
+    </a>
+    <a href="?type=exco_meeting" class="tab {% if type_filter == 'exco_meeting' %}active{% endif %}">
+        <i class="fas fa-users"></i> EXCO Meetings
+        {% if summary.exco %}<span class="count-badge">{{ summary.exco }}</span>{% endif %}
+    </a>
+    <a href="?type=event" class="tab {% if type_filter == 'event' %}active{% endif %}">
+        <i class="fas fa-star"></i> Events
+        {% if summary.events %}<span class="count-badge">{{ summary.events }}</span>{% endif %}
+    </a>
+</div>
+
+<div class="table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Session</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th class="hide-sm">Taken By</th>
+                <th>Attendance</th>
+                <th style="width:160px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in sessions %}
+            <tr>
+                <td>
+                    <span class="session-title" title="{{ s.title }}">{{ s.title }}</span>
+                    <div class="session-meta">
+                        {% if s.course %}
+                        <span><i class="fas fa-book"></i> {{ s.course.name|truncatechars:24 }}</span>
+                        {% endif %}
+                        {% if s.islamiyya_settings %}
+                        <span><i class="fas fa-mosque"></i> {{ s.islamiyya_settings.academic_session }}</span>
+                        {% endif %}
+                        {% if s.notes %}
+                        <span title="{{ s.notes }}"><i class="fas fa-sticky-note"></i> notes</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td><span class="type-chip {{ s.session_type }}">{{ s.get_session_type_display }}</span></td>
+                <td>
+                    {{ s.date|date:"M d, Y" }}
+                    <div style="font-size:0.68rem; color:#8a9b95;">{{ s.date|date:"l" }}</div>
+                </td>
+                <td class="hide-sm">
+                    {% if s.taken_by %}
+                    {{ s.taken_by.get_full_name|default:s.taken_by.username }}
+                    {% else %}
+                    <span style="color:#8a9b95;">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if s.total_count %}
+                    <div class="present-bar">
+                        <div class="bar-wrap">
+                            {% widthratio s.present_count s.total_count 100 as pct %}
+                            <div class="bar {% if pct >= 75 %}high{% elif pct >= 50 %}mid{% else %}low{% endif %}"
+                                 style="width: {{ pct }}%;"></div>
+                        </div>
+                        <div class="count">{{ s.present_count }}/{{ s.total_count }}</div>
+                    </div>
+                    {% else %}
+                    <span style="font-size:0.78rem; color:#8a9b95;">No records</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="row-actions">
+                        <a href="{% url 'academics:admin_attendance_edit' s.pk %}" class="btn-icon edit" title="Mark Attendance">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'academics:admin_attendance_session_export' s.pk %}" class="btn-icon export" title="Export this session">
+                            <i class="fas fa-file-excel"></i>
+                        </a>
+                        <a href="{% url 'academics:admin_attendance_session_import' s.pk %}" class="btn-icon import" title="Import attendees">
+                            <i class="fas fa-file-import"></i>
+                        </a>
+                        <a href="{% url 'academics:admin_attendance_report' %}?session={{ s.pk }}" class="btn-icon view" title="View report">
+                            <i class="fas fa-chart-bar"></i>
+                        </a>
+                        <button type="button" class="btn-icon del" title="Delete"
+                                onclick="openDeleteModal('{{ s.pk }}', '{{ s.title|escapejs }}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">
+                <div class="empty-state">
+                    <span class="icon">✅</span>
+                    <h3>No attendance sessions yet</h3>
+                    <p>{% if type_filter %}Try a different filter.{% else %}Click "New Session" to start taking attendance.{% endif %}</p>
+                </div>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹ Prev</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">Next ›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Delete modal uses global NAMETS.confirm via data attributes -->
+<div class="namets-modal-overlay" id="delModal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="namets-modal">
+        <div class="namets-modal-icon error"><i class="fas fa-trash"></i></div>
+        <h3>Delete Session?</h3>
+        <p>This will permanently remove the session and all its attendance records. Cannot be undone.</p>
+        <div class="namets-modal-actions">
+            <button type="button" class="namets-btn namets-btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+            <button type="button" class="namets-btn namets-btn-danger" id="delConfirmBtn">
+                <i class="fas fa-trash"></i> Yes, Delete
+            </button>
+        </div>
+        <form method="post" id="delForm" style="display:none;">
+            {% csrf_token %}
+        </form>
+    </div>
+</div>
+
+<script>
+const DELETE_URL = '{% url "academics:admin_attendance_delete" 0 %}';
+let pendingDeletePk = null;
+
+function openDeleteModal(pk, name) {
+    pendingDeletePk = pk;
+    document.getElementById('delModal').classList.add('active');
+    document.getElementById('delModal').setAttribute('aria-hidden', 'false');
+}
+function closeDeleteModal() {
+    document.getElementById('delModal').classList.remove('active');
+    document.getElementById('delModal').setAttribute('aria-hidden', 'true');
+    pendingDeletePk = null;
+}
+document.getElementById('delConfirmBtn').addEventListener('click', function() {
+    if (!pendingDeletePk) return;
+    const form = document.getElementById('delForm');
+    form.action = DELETE_URL.replace('/0/', '/' + pendingDeletePk + '/');
+    form.submit();
+});
+document.getElementById('delModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDeleteModal();
+});
+</script>
+
+{% endblock %}

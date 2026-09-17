@@ -1,0 +1,182 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Sellable Forms · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.sf-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.sf-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #fff;
+}
+.sf-eyebrow {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.3rem;
+}
+.sf-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.sf-header p { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+.sf-header-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.sf-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-decoration: none;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.25s;
+}
+.sf-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); color:#fff; }
+.sf-btn-gold { background: var(--gold); color: var(--text-primary); border-color: var(--gold); }
+.sf-btn-gold:hover { background: var(--gold-light); color: var(--text-primary); }
+
+.sf-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1.2rem;
+    margin-bottom: 1rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form input { padding: 0.4rem 0.8rem; border: 1px solid #d0d9d6; border-radius: 8px; background: var(--card-bg); flex: 1; min-width: 120px; font-size: 0.85rem; }
+.filter-form .btn { background: var(--primary); color: #fff; border: none; padding: 0.4rem 1rem; border-radius: 8px; cursor: pointer; }
+.filter-form .clear { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.sf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+}
+.sf-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+.sf-card:hover { transform: translateY(-4px); border-color: var(--gold); box-shadow: var(--shadow-md); }
+.sf-card .title { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+.sf-card .price { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin: 0.2rem 0; }
+.sf-card .methods { font-size: 0.75rem; color: var(--text-muted); }
+.sf-card .actions { display: flex; gap: 0.3rem; margin-top: 0.5rem; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 0.5rem; }
+.sf-card .actions .btn-sm {
+    padding: 0.15rem 0.6rem; border-radius: 12px; font-size: 0.65rem; font-weight: 600; text-decoration: none; transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem; }
+.pagination { margin-top: 1rem; text-align: center; }
+.pagination .step-links a { color: var(--gold); text-decoration: none; margin: 0 0.2rem; padding: 0.2rem 0.5rem; border-radius: 4px; }
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.3rem; }
+
+@media (max-width: 768px) {
+    .sf-header { padding: 1rem 1.25rem; }
+    .sf-header-content { flex-direction: column; align-items: stretch; }
+    .sf-btn { width: 100%; justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .sf-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="sf-header">
+    <div class="sf-header-content">
+        <div>
+            <span class="sf-eyebrow">Business Office</span>
+            <h1>📄 Sellable Forms</h1>
+            <p>Manage paid forms (Islamiyyah, workshops, etc.).</p>
+        </div>
+        <div class="sf-header-actions">
+            {% if perms.business.add_sellableform %}
+            <a href="{% url 'business:admin_sellable_form_create' %}" class="sf-btn sf-btn-gold">
+                <i class="fas fa-plus-circle"></i> Add Form
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="sf-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search title..." value="{{ query }}">
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query %}
+        <a href="{% url 'business:admin_sellable_form_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="sf-grid">
+    {% for form in forms %}
+    <div class="sf-card">
+        <div class="title">{{ form.title }}</div>
+        <div class="price">₦{{ form.price|floatformat:2 }}</div>
+        <div class="methods">{{ form.get_payment_methods_display }}</div>
+        <div style="font-size:0.7rem; color:var(--text-muted);">
+            {% if form.is_active %}Active{% else %}Inactive{% endif %}
+            {% if form.is_public %}Public{% endif %}
+        </div>
+        <div class="actions">
+            <a href="{% url 'business:admin_sellable_form_edit' form.pk %}" class="btn-sm btn-sm-gold"><i class="fas fa-edit"></i> Edit</a>
+            <a href="#" class="btn-sm btn-sm-danger" onclick="event.preventDefault(); if(confirm('Delete this form?')) document.getElementById('delete-form-{{ form.pk }}').submit();"><i class="fas fa-trash"></i></a>
+            <form id="delete-form-{{ form.pk }}" method="post" action="{% url 'business:admin_sellable_form_delete' form.pk %}" style="display:none;">{% csrf_token %}</form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+        <span style="font-size:2.5rem; display:block;">📭</span>
+        No sellable forms found.
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">‹ Prev</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next ›</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+{% endblock %}

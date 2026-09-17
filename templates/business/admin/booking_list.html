@@ -1,0 +1,463 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Bookings · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.bk-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.bk-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #fff;
+}
+.bk-eyebrow {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.3rem;
+}
+.bk-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.bk-header p { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+.bk-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1.2rem;
+    margin-bottom: 1rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form input, .filter-form select {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 120px;
+    font-size: 0.85rem;
+}
+.filter-form .btn { background: var(--primary); color: #fff; border: none; padding: 0.4rem 1rem; border-radius: 8px; cursor: pointer; }
+.filter-form .clear { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.bulk-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0.5rem 0;
+    padding: 0.5rem 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.bulk-actions select { padding: 0.3rem 0.8rem; border: 1px solid #d0d9d6; border-radius: 6px; background: var(--card-bg); }
+.bulk-actions .btn-sm {
+    padding: 0.3rem 1rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--primary);
+    color: #fff;
+}
+.bulk-actions .btn-sm:hover { background: var(--primary-dark); }
+
+.bk-table-wrapper { overflow-x: auto; }
+.bk-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.bk-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+}
+.bk-table td { padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 0.85rem; vertical-align: middle; }
+.bk-table tr:hover { background: rgba(200,169,81,0.04); }
+.badge-sm {
+    font-size: 0.6rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 10px;
+    font-weight: 600;
+}
+.badge-sm.pending { background: #fef3e8; color: #a8671a; }
+.badge-sm.paid { background: #e0f7f4; color: #0d7a6b; }
+.badge-sm.checked_in { background: #e8f2ec; color: #1a3c2e; }
+.badge-sm.cancelled { background: #fdecea; color: #9b2c2c; }
+.btn-sm {
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.btn-sm-success { background: #e8f2ec; color: #1a3c2e; }
+.btn-sm-success:hover { background: #c8e0d4; }
+.empty { text-align: center; color: var(--text-muted); padding: 2rem; }
+.pagination { margin-top: 1rem; text-align: center; }
+.pagination .step-links a { color: var(--gold); text-decoration: none; margin: 0 0.2rem; padding: 0.2rem 0.5rem; border-radius: 4px; }
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.3rem; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,42,31,0.55);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+    background: #fff;
+    border: 1px solid rgba(200,169,81,0.2);
+    border-radius: var(--radius-md);
+    max-width: 460px;
+    width: 100%;
+    padding: 2rem 1.75rem 1.75rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+    text-align: center;
+    animation: modalIn 0.25s ease-out;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+.modal .modal-icon {
+    width: 64px; height: 64px; margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+}
+.modal .modal-icon.success { background: #e8f2ec; color: #1a3c2e; }
+.modal .modal-icon.danger  { background: #fdecea; color: #9b2c2c; }
+.modal h3 { color: var(--text-primary); margin: 0 0 0.35rem; font-size: 1.2rem; font-weight: 700; }
+.modal p  { color: var(--text-muted); font-size: 0.88rem; margin: 0 0 1.25rem; line-height: 1.5; }
+.modal .info-box {
+    background: #f8faf9;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    margin: 0 0 1.25rem;
+    text-align: left;
+    border-left: 3px solid var(--gold);
+}
+.modal .info-box .field {
+    display: flex; justify-content: space-between;
+    padding: 0.25rem 0; font-size: 0.83rem; gap: 0.5rem;
+}
+.modal .info-box .field .label { color: var(--text-muted); font-weight: 500; }
+.modal .info-box .field .value { color: var(--text-primary); font-weight: 600; text-align: right; }
+.modal-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+.modal-actions .btn {
+    padding: 0.65rem 1.6rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.modal-actions .btn-secondary {
+    background: #f0f4f2; color: var(--text-primary);
+}
+.modal-actions .btn-secondary:hover { background: #e0e8e5; }
+.modal-actions .btn-success {
+    background: var(--primary); color: #fff;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.25);
+}
+.modal-actions .btn-success:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.modal-actions .btn-danger {
+    background: #c0392b; color: #fff;
+    box-shadow: 0 4px 14px rgba(192,57,43,0.25);
+}
+.modal-actions .btn-danger:hover { background: #9b2c2c; transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+    .bk-header { padding: 1rem 1.25rem; }
+    .bk-header-content { flex-direction: column; align-items: stretch; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .bulk-actions { flex-direction: column; align-items: stretch; }
+    .bk-table th, .bk-table td { font-size: 0.7rem; padding: 0.3rem 0.4rem; }
+    .modal { padding: 1.5rem 1.25rem; }
+    .modal-actions .btn { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="bk-header">
+    <div class="bk-header-content">
+        <div>
+            <span class="bk-eyebrow">Business Office</span>
+            <h1>🎟️ Bookings</h1>
+            <p>Manage event/travel bookings and check-ins.</p>
+        </div>
+    </div>
+</div>
+
+<div class="bk-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search booker, token..." value="{{ query }}">
+        <select name="status">
+            <option value="">All Status</option>
+            <option value="pending"    {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="paid"       {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
+            <option value="checked_in" {% if status_filter == 'checked_in' %}selected{% endif %}>Checked In</option>
+            <option value="cancelled"  {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+        <select name="listing">
+            <option value="">All Listings</option>
+            {% for listing in listings %}
+            <option value="{{ listing.id }}" {% if listing_filter == listing.id|stringformat:"s" %}selected{% endif %}>{{ listing.title }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query or status_filter or listing_filter %}
+        <a href="{% url 'business:admin_booking_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<form method="post" id="bulkForm">
+    {% csrf_token %}
+    <div class="bulk-actions">
+        <span style="font-weight:600; font-size:0.75rem;">Bulk Actions:</span>
+        <select name="bulk_action">
+            <option value="">— Select —</option>
+            <option value="mark_paid">✅ Mark Paid</option>
+            <option value="check_in">📌 Check In</option>
+            <option value="delete">🗑️ Delete Selected</option>
+        </select>
+        <button type="button" class="btn-sm" id="bulkApplyBtn">Apply</button>
+        <span style="font-size:0.7rem; color:var(--text-muted); margin-left:auto;">
+            <a href="#" onclick="toggleSelectAll(); return false;">Select All</a> / <a href="#" onclick="deselectAll(); return false;">Deselect All</a>
+        </span>
+    </div>
+
+    <div class="bk-table-wrapper">
+        <table class="bk-table">
+            <thead>
+                <tr>
+                    <th style="width:36px;"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"></th>
+                    <th>Token</th>
+                    <th>Listing</th>
+                    <th>Booker</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th style="width:90px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td><input type="checkbox" name="selected_ids" value="{{ booking.id }}" class="row-checkbox"></td>
+                    <td><span style="font-size:0.7rem; font-weight:600; color:var(--text-muted);">{{ booking.qr_token|slice:":8" }}</span></td>
+                    <td>{{ booking.listing.title|truncatechars:20 }}</td>
+                    <td>{{ booking.booker_name }}</td>
+                    <td>{{ booking.quantity }}</td>
+                    <td>₦{{ booking.total_amount|floatformat:2 }}</td>
+                    <td><span class="badge-sm {{ booking.status }}">{{ booking.get_status_display }}</span></td>
+                    <td>{{ booking.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <div style="display:flex; gap:0.2rem; flex-wrap:wrap;">
+                            {% if booking.status == 'paid' %}
+                            <button type="button"
+                                    class="btn-sm btn-sm-success"
+                                    title="Check In"
+                                    onclick="openCheckInModal(
+                                        '{{ booking.pk }}',
+                                        '{{ booking.booker_name|escapejs }}',
+                                        '{{ booking.listing.title|escapejs }}',
+                                        '{{ booking.quantity }}',
+                                        '₦{{ booking.total_amount|floatformat:2 }}'
+                                    )">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            {% endif %}
+                            <a href="{% url 'business:admin_booking_edit' booking.pk %}" class="btn-sm btn-sm-gold" title="Edit"><i class="fas fa-edit"></i></a>
+                            <button type="button"
+                                    class="btn-sm btn-sm-danger"
+                                    title="Delete"
+                                    onclick="openDeleteModal(
+                                        '{{ booking.pk }}',
+                                        '{{ booking.booker_name|escapejs }}',
+                                        '{{ booking.listing.title|escapejs }}'
+                                    )">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" class="empty">
+                    <span style="font-size:2.5rem; display:block; margin-bottom:0.3rem;">📭</span>
+                    No bookings found.
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">‹ Prev</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next ›</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+<!-- ===== CHECK-IN MODAL ===== -->
+<div class="modal-overlay" id="checkInModal">
+    <div class="modal">
+        <div class="modal-icon success"><i class="fas fa-check"></i></div>
+        <h3>Check In Booking</h3>
+        <p>Confirm this guest's attendance. This marks the booking as <strong>Checked In</strong>.</p>
+        <div class="info-box">
+            <div class="field"><span class="label">Booker</span><span class="value" id="ciBooker">—</span></div>
+            <div class="field"><span class="label">Listing</span><span class="value" id="ciListing">—</span></div>
+            <div class="field"><span class="label">Quantity</span><span class="value" id="ciQty">—</span></div>
+            <div class="field"><span class="label">Total</span><span class="value" id="ciTotal">—</span></div>
+        </div>
+        <form method="post" id="checkInForm">
+            {% csrf_token %}
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeCheckInModal()">Cancel</button>
+                <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Yes, Check In</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== DELETE MODAL ===== -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+        <div class="modal-icon danger"><i class="fas fa-trash"></i></div>
+        <h3>Delete Booking</h3>
+        <p>This will permanently remove the booking. This action cannot be undone.</p>
+        <div class="info-box">
+            <div class="field"><span class="label">Booker</span><span class="value" id="delBooker">—</span></div>
+            <div class="field"><span class="label">Listing</span><span class="value" id="delListing">—</span></div>
+        </div>
+        <form method="post" id="deleteForm">
+            {% csrf_token %}
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Yes, Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+/* ---------- Bulk select ---------- */
+function toggleAllCheckboxes(master) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
+}
+function toggleSelectAll() {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = true);
+    document.getElementById('selectAllCheckbox').checked = true;
+}
+function deselectAll() {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+    document.getElementById('selectAllCheckbox').checked = false;
+}
+document.getElementById('bulkApplyBtn').addEventListener('click', function() {
+    const action = document.querySelector('select[name="bulk_action"]').value;
+    const selected = document.querySelectorAll('.row-checkbox:checked');
+    if (!action || selected.length === 0) return;
+    document.getElementById('bulkForm').submit();
+});
+
+/* ---------- Check-in modal ---------- */
+function openCheckInModal(pk, booker, listing, qty, total) {
+    document.getElementById('ciBooker').textContent = booker;
+    document.getElementById('ciListing').textContent = listing;
+    document.getElementById('ciQty').textContent = qty;
+    document.getElementById('ciTotal').textContent = total;
+    document.getElementById('checkInForm').action = '/business/admin/bookings/' + pk + '/check-in/';
+    document.getElementById('checkInModal').classList.add('active');
+}
+function closeCheckInModal() {
+    document.getElementById('checkInModal').classList.remove('active');
+}
+
+/* ---------- Delete modal ---------- */
+function openDeleteModal(pk, booker, listing) {
+    document.getElementById('delBooker').textContent = booker;
+    document.getElementById('delListing').textContent = listing;
+    document.getElementById('deleteForm').action = '/business/admin/bookings/' + pk + '/delete/';
+    document.getElementById('deleteModal').classList.add('active');
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('active');
+}
+
+/* ---------- Overlay click + ESC ---------- */
+['checkInModal', 'deleteModal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('active');
+    });
+});
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        closeCheckInModal();
+        closeDeleteModal();
+    }
+});
+</script>
+
+{% endblock %}

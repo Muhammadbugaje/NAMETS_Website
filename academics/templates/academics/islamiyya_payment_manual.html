@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Pay at Mosque · Islamiyya{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/global.css' %}">
+<style>
+.manual-page { max-width: 720px; margin: 0 auto; padding: 24px 16px; }
+
+.manual-hero {
+    background: linear-gradient(135deg, #7a4a1a 0%, #a8671a 100%);
+    border-radius: 24px; padding: 2rem 1.75rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 12px 36px rgba(168,103,26,0.25);
+    color: #fff; text-align: center;
+}
+.manual-hero::before {
+    content: "🕌"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1rem; opacity: 0.12;
+}
+.manual-hero .eyebrow {
+    display: inline-block; font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; color: #ffe4a8;
+    background: rgba(255,255,255,0.15);
+    padding: 0.2rem 0.9rem; border-radius: 20px; margin-bottom: 0.6rem;
+    letter-spacing: 0.08em;
+}
+.manual-hero h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.35rem; }
+.manual-hero p { font-size: 0.88rem; color: rgba(255,255,255,0.9); margin: 0; }
+
+.step-card {
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(200,169,81,0.25);
+    border-radius: 18px; padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    display: flex; gap: 1rem; align-items: flex-start;
+}
+.step-num {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #C8A951; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.95rem; flex-shrink: 0;
+}
+.step-body { flex: 1; min-width: 0; }
+.step-title { font-weight: 700; color: #0F3D2E; font-size: 0.95rem; margin-bottom: 0.35rem; }
+.step-desc { font-size: 0.85rem; color: #5A5A5A; line-height: 1.6; }
+.step-desc code {
+    background: #f5e9c8; padding: 0.15rem 0.5rem; border-radius: 6px;
+    font-weight: 700; color: #8a6a1a;
+}
+
+.app-id-box {
+    background: linear-gradient(135deg, #f5e9c8, #fbf3d9);
+    border-left: 4px solid var(--gold, #C8A951);
+    border-radius: 14px; padding: 1.1rem 1.35rem;
+    margin: 1.25rem 0; text-align: center;
+}
+.app-id-box .lbl {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a6a1a; font-weight: 700; margin-bottom: 0.35rem;
+}
+.app-id-box .val {
+    font-size: 1.35rem; font-weight: 800; color: #0F3D2E;
+    letter-spacing: 0.05em; font-family: 'Courier New', monospace;
+}
+
+.amount-badge {
+    display: inline-block; background: #0F3D2E; color: #fff;
+    padding: 0.5rem 1.5rem; border-radius: 50px;
+    font-weight: 800; font-size: 1.15rem; margin-top: 0.5rem;
+}
+
+.action-row {
+    display: flex; gap: 0.65rem; flex-wrap: wrap;
+    margin-top: 1.5rem; justify-content: center;
+}
+.btn-print {
+    background: var(--primary, #0F3D2E); color: #fff;
+    padding: 0.75rem 1.75rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.88rem;
+    border: none; cursor: pointer; font-family: inherit;
+    text-decoration: none; display: inline-flex;
+    align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.btn-print:hover { background: #1a5a44; transform: translateY(-2px); color: #fff; }
+.btn-dashboard {
+    background: var(--gold, #C8A951); color: #0F3D2E;
+    padding: 0.75rem 1.75rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.88rem;
+    border: none; cursor: pointer; font-family: inherit;
+    text-decoration: none; display: inline-flex;
+    align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.btn-dashboard:hover { background: #E0C96E; transform: translateY(-2px); color: #0F3D2E; }
+
+.info-note {
+    background: rgba(15,61,46,0.05);
+    border-left: 4px solid #0F3D2E;
+    border-radius: 12px; padding: 1rem 1.25rem;
+    margin-top: 1.5rem; font-size: 0.82rem;
+    color: #2d3748; line-height: 1.6;
+}
+.info-note strong { color: #0F3D2E; }
+
+@media (max-width: 640px) {
+    .manual-hero h1 { font-size: 1.2rem; }
+    .action-row { flex-direction: column; }
+    .action-row a, .action-row button { justify-content: center; width: 100%; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="manual-page">
+
+    <div class="manual-hero">
+        <span class="eyebrow">Manual Payment</span>
+        <h1>Pay at the Mosque</h1>
+        <p>Follow the steps below. Your registration will be verified on the spot.</p>
+    </div>
+
+    <div class="app-id-box">
+        <div class="lbl">Show this App ID at the office</div>
+        <div class="val">{{ registration.application_id }}</div>
+        {% if settings %}
+        <div style="margin-top:0.5rem;font-size:0.82rem;color:#8a6a1a;">
+            Amount: <span class="amount-badge">₦{{ settings.registration_fee|floatformat:2 }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-body">
+            <div class="step-title">Visit the Engineering Mosque</div>
+            <div class="step-desc">
+                Go to the <strong>Imam's Office</strong> during opening hours.
+                The office is usually open on weekdays. If unsure, ask any EXCO member.
+            </div>
+        </div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-body">
+            <div class="step-title">Pay the registration fee in cash</div>
+            <div class="step-desc">
+                Hand the officer your App ID
+                (<code>{{ registration.application_id }}</code>)
+                and pay ₦{{ settings.registration_fee|floatformat:2|default:"—" }} in cash.
+            </div>
+        </div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-body">
+            <div class="step-title">Get verified immediately</div>
+            <div class="step-desc">
+                The officer will mark your payment as received. Your status
+                will update from <strong>Pending</strong> to <strong>Verified</strong>,
+                and the WhatsApp group link will unlock on your dashboard.
+            </div>
+        </div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-body">
+            <div class="step-title">Check your dashboard later</div>
+            <div class="step-desc">
+                Come back to your dashboard and refresh. You should see
+                the green verified badge and the WhatsApp link.
+            </div>
+        </div>
+    </div>
+
+    <div class="info-note">
+        <strong>💡 No printer needed.</strong> You don't need to print this page.
+        Just show your App ID from your phone or say your full name + registration number.
+        The officer can look you up in the system.
+    </div>
+
+    <div class="action-row">
+        <a href="{% url 'academics:islamiyya_dashboard' %}" class="btn-dashboard">
+            <i class="fas fa-arrow-left"></i> Back to My Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

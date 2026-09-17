@@ -1,0 +1,521 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Transactions · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.tx-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.tx-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #fff;
+}
+.tx-eyebrow {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.3rem;
+}
+.tx-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.tx-header p { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+.tx-header-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.tx-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-decoration: none;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.25s;
+}
+.tx-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); color:#fff; }
+.tx-btn-gold { background: var(--gold); color: var(--text-primary); border-color: var(--gold); }
+.tx-btn-gold:hover { background: var(--gold-light); color: var(--text-primary); }
+.tx-btn-danger { background: #c0392b; color: #fff; border-color: #c0392b; }
+.tx-btn-danger:hover { background: #9b2c2c; color: #fff; }
+
+.tx-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1.2rem;
+    margin-bottom: 1rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form input, .filter-form select {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 120px;
+    font-size: 0.85rem;
+}
+.filter-form .btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.filter-form .clear { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.bulk-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0.5rem 0;
+    padding: 0.5rem 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.bulk-actions select { padding: 0.3rem 0.8rem; border: 1px solid #d0d9d6; border-radius: 6px; background: var(--card-bg); }
+.bulk-actions .btn-sm {
+    padding: 0.3rem 1rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--primary);
+    color: #fff;
+}
+.bulk-actions .btn-sm:hover { background: var(--primary-dark); }
+
+.tx-table-wrapper { overflow-x: auto; }
+.tx-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.tx-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+}
+.tx-table td { padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 0.85rem; vertical-align: middle; }
+.tx-table tr:hover { background: rgba(200,169,81,0.04); }
+.amount.income { color: #1a3c2e; font-weight: 600; }
+.amount.expense { color: #9b2c2c; font-weight: 600; }
+.badge-sm {
+    font-size: 0.6rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 10px;
+    font-weight: 600;
+}
+.badge-sm.correction { background: #fef3e8; color: #a8671a; }
+.badge-sm.normal { background: #e8f2ec; color: #1a3c2e; }
+.btn-sm {
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-primary { background: var(--primary); color: #fff; }
+.btn-sm-primary:hover { background: var(--primary-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.btn-sm-warning { background: #fef3e8; color: #a8671a; }
+.btn-sm-warning:hover { background: #fce4d4; }
+.empty { text-align: center; color: var(--text-muted); padding: 2rem; }
+
+.pagination { margin-top: 1rem; text-align: center; }
+.pagination .step-links a {
+    color: var(--gold);
+    text-decoration: none;
+    margin: 0 0.2rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.3rem; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,42,31,0.55);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+    background: #fff;
+    border: 1px solid rgba(200,169,81,0.2);
+    border-radius: var(--radius-md);
+    max-width: 460px;
+    width: 100%;
+    padding: 2rem 1.75rem 1.75rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+    text-align: center;
+    animation: modalIn 0.25s ease-out;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal .modal-icon {
+    width: 64px; height: 64px; margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+}
+.modal .modal-icon.danger  { background: #fdecea; color: #9b2c2c; }
+.modal .modal-icon.warning { background: #fef3e8; color: #a8671a; }
+.modal h3 { color: var(--text-primary); margin: 0 0 0.35rem; font-size: 1.2rem; font-weight: 700; }
+.modal p { color: var(--text-muted); font-size: 0.88rem; margin: 0 0 1.25rem; line-height: 1.5; }
+.modal .info-box {
+    background: #f8faf9;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    margin: 0 0 1.25rem;
+    text-align: left;
+    border-left: 3px solid var(--gold);
+}
+.modal .info-box .field {
+    display: flex; justify-content: space-between;
+    padding: 0.25rem 0; font-size: 0.83rem; gap: 0.5rem;
+}
+.modal .info-box .field .label { color: var(--text-muted); font-weight: 500; }
+.modal .info-box .field .value { color: var(--text-primary); font-weight: 600; text-align: right; word-break: break-word; }
+.modal-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+.modal-actions .btn {
+    padding: 0.65rem 1.6rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.modal-actions .btn-secondary {
+    background: #f0f4f2; color: var(--text-primary);
+}
+.modal-actions .btn-secondary:hover { background: #e0e8e5; }
+.modal-actions .btn-danger {
+    background: #c0392b; color: #fff;
+    box-shadow: 0 4px 14px rgba(192,57,43,0.25);
+}
+.modal-actions .btn-danger:hover { background: #9b2c2c; transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+    .tx-header { padding: 1rem 1.25rem; }
+    .tx-header-content { flex-direction: column; align-items: stretch; }
+    .tx-btn { justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .bulk-actions { flex-direction: column; align-items: stretch; }
+    .tx-table th, .tx-table td { font-size: 0.7rem; padding: 0.3rem 0.4rem; }
+    .modal { padding: 1.5rem 1.25rem; }
+    .modal-actions .btn { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="tx-header">
+    <div class="tx-header-content">
+        <div>
+            <span class="tx-eyebrow">Financial Secretary</span>
+            <h1>💰 Transactions</h1>
+            <p>Manage all financial transactions across NAMETS accounts.</p>
+        </div>
+        <div class="tx-header-actions">
+            {% if perms.business.add_transaction %}
+            <a href="{% url 'business:admin_transaction_create' %}" class="tx-btn tx-btn-gold">
+                <i class="fas fa-plus-circle"></i> Add Transaction
+            </a>
+            <a href="{% url 'business:admin_expense_create' %}" class="tx-btn tx-btn-danger">
+                <i class="fas fa-minus-circle"></i> Record Expense
+            </a>
+            {% endif %}
+            {% if perms.business.view_transaction %}
+            <a href="{% url 'business:admin_revenue_report' %}" class="tx-btn">
+                <i class="fas fa-chart-pie"></i> Revenue
+            </a>
+            <a href="{% url 'business:admin_transaction_export' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}" class="tx-btn">
+                <i class="fas fa-file-excel"></i> Export
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="tx-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search description..." value="{{ query }}">
+        <select name="category">
+            <option value="">All Categories</option>
+            {% for value, label in category_choices %}
+            <option value="{{ value }}" {% if category_filter == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="account">
+            <option value="">All Accounts</option>
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}" {% if account_filter == acc.id|stringformat:"s" %}selected{% endif %}>{{ acc.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="date_from" value="{{ date_from }}" placeholder="From">
+        <input type="date" name="date_to" value="{{ date_to }}" placeholder="To">
+        <select name="correction">
+            <option value="">All</option>
+            <option value="yes" {% if correction_filter == 'yes' %}selected{% endif %}>Corrections</option>
+            <option value="no" {% if correction_filter == 'no' %}selected{% endif %}>Original</option>
+        </select>
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query or category_filter or account_filter or date_from or date_to or correction_filter %}
+        <a href="{% url 'business:admin_transaction_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<form method="post" id="bulkForm">
+    {% csrf_token %}
+    <div class="bulk-actions">
+        <span style="font-weight:600; font-size:0.75rem;">Bulk Actions:</span>
+        <select name="bulk_action">
+            <option value="">— Select —</option>
+            <option value="delete">🗑️ Delete Selected</option>
+        </select>
+        <button type="button" class="btn-sm" id="bulkApplyBtn">Apply</button>
+        <span style="font-size:0.7rem; color:var(--text-muted); margin-left:auto;">
+            <a href="#" onclick="toggleSelectAll(); return false;">Select All</a> / <a href="#" onclick="deselectAll(); return false;">Deselect All</a>
+        </span>
+    </div>
+
+    <div class="tx-table-wrapper">
+        <table class="tx-table">
+            <thead>
+                <tr>
+                    <th style="width:36px;"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"></th>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Account</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th style="width:140px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr>
+                    <td><input type="checkbox" name="selected_ids" value="{{ tx.id }}" class="row-checkbox"></td>
+                    <td>{{ tx.date|date:"M d, Y H:i" }}</td>
+                    <td>{{ tx.get_category_display }}</td>
+                    <td>{{ tx.description|truncatechars:25 }}</td>
+                    <td>{{ tx.account.name }}</td>
+                    <td class="amount {% if tx.is_income %}income{% else %}expense{% endif %}">
+                        {% if tx.is_income %}+{% else %}-{% endif %}₦{{ tx.amount|floatformat:2 }}
+                    </td>
+                    <td>
+                        {% if tx.is_correction %}
+                        <span class="badge-sm correction">⚠️ Correction</span>
+                        {% else %}
+                        <span class="badge-sm normal">Original</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:0.2rem; flex-wrap:wrap;">
+                            {% if not tx.is_correction %}
+                            <a href="{% url 'business:admin_transaction_correct' tx.pk %}" class="btn-sm btn-sm-warning" title="Correct"><i class="fas fa-pen"></i></a>
+                            {% endif %}
+                            <a href="{% url 'business:admin_transaction_edit' tx.pk %}" class="btn-sm btn-sm-gold" title="Edit"><i class="fas fa-edit"></i></a>
+                            <button type="button" class="btn-sm btn-sm-danger" title="Delete"
+                                    onclick="openDeleteModal(
+                                        '{{ tx.pk }}',
+                                        '{{ tx.description|escapejs }}',
+                                        '{% if tx.is_income %}+{% else %}-{% endif %}₦{{ tx.amount|floatformat:2 }}'
+                                    )">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="empty">
+                    <span style="font-size:2.5rem; display:block; margin-bottom:0.3rem;">📭</span>
+                    No transactions found.
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">‹ Prev</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next ›</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+<!-- ===== DELETE MODAL ===== -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+        <div class="modal-icon danger"><i class="fas fa-trash"></i></div>
+        <h3>Delete Transaction</h3>
+        <p>This action cannot be undone. The account balance will be reverted.</p>
+        <div class="info-box">
+            <div class="field"><span class="label">Description</span><span class="value" id="deleteDesc">—</span></div>
+            <div class="field"><span class="label">Amount</span><span class="value" id="deleteAmount">—</span></div>
+        </div>
+        <form method="post" id="deleteForm">
+            {% csrf_token %}
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Yes, Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== BULK CONFIRM MODAL ===== -->
+<div class="modal-overlay" id="bulkModal">
+    <div class="modal">
+        <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+        <h3>Apply Bulk Action</h3>
+        <p>You are about to <strong id="bulkActionLabel">delete</strong> <strong id="bulkCountLabel">0</strong> transaction(s).</p>
+        <div class="info-box">
+            <div class="field"><span class="label">Action</span><span class="value" id="bulkActionText">—</span></div>
+            <div class="field"><span class="label">Selected</span><span class="value" id="bulkCountText">0</span></div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeBulkModal()">Cancel</button>
+            <button type="button" class="btn btn-danger" id="bulkConfirmBtn"><i class="fas fa-check"></i> Yes, Apply</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ---------- Select/Deselect ---------- */
+function toggleAllCheckboxes(master) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
+}
+function toggleSelectAll() {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = true);
+    document.getElementById('selectAllCheckbox').checked = true;
+}
+function deselectAll() {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+    document.getElementById('selectAllCheckbox').checked = false;
+}
+
+/* ---------- Bulk apply ---------- */
+document.getElementById('bulkApplyBtn').addEventListener('click', function() {
+    const actionSelect = document.querySelector('select[name="bulk_action"]');
+    const action = actionSelect.value;
+    const selected = document.querySelectorAll('.row-checkbox:checked');
+
+    if (!action || selected.length === 0) {
+        // Show a friendly inline message instead of alert
+        const msg = document.createElement('div');
+        msg.textContent = 'Please select an action and at least one transaction.';
+        msg.style.cssText = 'position:fixed;top:1rem;left:50%;transform:translateX(-50%);background:#fef3e8;color:#a8671a;padding:0.6rem 1.2rem;border-radius:50px;box-shadow:0 4px 14px rgba(0,0,0,0.15);z-index:99999;font-size:0.85rem;font-weight:600;';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 2500);
+        return;
+    }
+
+    const actionLabel = actionSelect.options[actionSelect.selectedIndex].text;
+    document.getElementById('bulkActionLabel').textContent = actionLabel.replace(/^[^\w]*\s*/, '').toLowerCase();
+    document.getElementById('bulkActionText').textContent = actionLabel;
+    document.getElementById('bulkCountLabel').textContent = selected.length;
+    document.getElementById('bulkCountText').textContent = selected.length;
+    document.getElementById('bulkModal').classList.add('active');
+});
+
+document.getElementById('bulkConfirmBtn').addEventListener('click', function() {
+    document.getElementById('bulkForm').submit();
+});
+
+function closeBulkModal() {
+    document.getElementById('bulkModal').classList.remove('active');
+}
+document.getElementById('bulkModal').addEventListener('click', function(e) {
+    if (e.target === this) closeBulkModal();
+});
+
+/* ---------- Delete modal ---------- */
+function openDeleteModal(pk, desc, amount) {
+    document.getElementById('deleteDesc').textContent = desc;
+    document.getElementById('deleteAmount').textContent = amount;
+    document.getElementById('deleteForm').action = '/business/admin/transactions/' + pk + '/delete/';
+    document.getElementById('deleteModal').classList.add('active');
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('active');
+}
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
+
+/* ---------- ESC key ---------- */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDeleteModal();
+        closeBulkModal();
+    }
+});
+</script>
+
+{% endblock %}

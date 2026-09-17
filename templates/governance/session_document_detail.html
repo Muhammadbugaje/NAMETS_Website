@@ -1,0 +1,381 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ doc.title }} · Session Archives · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.sdd-wrap { max-width: 1100px; margin: 0 auto; }
+
+.sdd-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: #8a6a1a; text-decoration: none;
+    font-weight: 700; font-size: 0.85rem; margin-bottom: 1rem;
+}
+.sdd-back:hover { text-decoration: underline; }
+
+.sdd-hero {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    border-radius: 26px;
+    padding: 2.25rem;
+    box-shadow: 0 20px 50px rgba(15,61,46,0.25);
+    position: relative; overflow: hidden;
+    margin-bottom: 1.75rem;
+    color: #fff;
+}
+.sdd-hero::after {
+    content: ''; position: absolute;
+    top: -40%; right: -15%;
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(200,169,81,0.2) 0%, transparent 70%);
+    pointer-events: none;
+}
+@media (max-width: 800px) {
+    .sdd-hero { grid-template-columns: 1fr; padding: 1.75rem; gap: 1.5rem; }
+}
+
+.sdd-cover-wrap {
+    position: relative; z-index: 1;
+    aspect-ratio: 3 / 4;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 20px 44px rgba(0,0,0,0.35);
+    background: linear-gradient(135deg, #2D7D5A, #0F3D2E);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(200,169,81,0.7); font-size: 4.5rem;
+    border: 3px solid rgba(200,169,81,0.5);
+}
+.sdd-cover-wrap img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 800px) {
+    .sdd-cover-wrap { max-width: 220px; margin: 0 auto; }
+}
+
+.sdd-info { position: relative; z-index: 1; display: flex; flex-direction: column; }
+.sdd-type-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    align-self: flex-start;
+    font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951;
+    background: rgba(200,169,81,0.18);
+    padding: 0.3rem 0.9rem; border-radius: 20px;
+    margin-bottom: 0.75rem;
+}
+.sdd-info h1 {
+    font-size: 1.8rem; font-weight: 800;
+    margin: 0 0 0.4rem; letter-spacing: -0.02em;
+    line-height: 1.25;
+}
+.sdd-session-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.82rem; font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 1rem;
+}
+.sdd-session-badge i { color: #C8A951; }
+.sdd-desc {
+    font-size: 0.92rem; line-height: 1.65;
+    color: rgba(255,255,255,0.85);
+    margin: 0 0 1.5rem;
+    max-width: 620px;
+}
+
+.sdd-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: auto; }
+.sdd-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.8rem 1.6rem; border-radius: 50px;
+    font-weight: 800; font-size: 0.88rem;
+    text-decoration: none; cursor: pointer;
+    border: none; transition: all 0.25s ease;
+    font-family: inherit;
+}
+.sdd-btn.gold {
+    background: #C8A951; color: #0F3D2E;
+    box-shadow: 0 8px 22px rgba(200,169,81,0.4);
+}
+.sdd-btn.gold:hover {
+    background: #E0C96E; transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(200,169,81,0.55);
+}
+.sdd-btn.outline {
+    background: rgba(255,255,255,0.12); color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.3);
+}
+.sdd-btn.outline:hover {
+    background: rgba(255,255,255,0.22); transform: translateY(-3px);
+}
+
+.sdd-meta-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+.sdd-meta-item {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
+    box-shadow: 0 4px 12px rgba(15,61,46,0.05);
+}
+.sdd-meta-item .lbl {
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a9b95; margin-bottom: 0.25rem;
+}
+.sdd-meta-item .val {
+    font-size: 0.88rem; font-weight: 700;
+    color: #0F3D2E; word-break: break-word;
+}
+
+/* PREVIEW */
+.sdd-preview {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+    margin-bottom: 1.5rem;
+}
+.sdd-preview-head {
+    padding: 1rem 1.35rem;
+    background: #f8faf9;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 0.6rem;
+}
+.sdd-preview-head h2 {
+    font-size: 0.95rem; font-weight: 800;
+    color: #0F3D2E; margin: 0;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.sdd-preview-head h2 i { color: #C8A951; }
+.sdd-preview-head a {
+    font-size: 0.78rem; color: #8a6a1a;
+    text-decoration: none; font-weight: 700;
+}
+.sdd-preview-head a:hover { text-decoration: underline; }
+
+.sdd-preview-body {
+    padding: 0;
+    background: #f0f4f2;
+    min-height: 380px;
+    display: flex; align-items: center; justify-content: center;
+}
+.sdd-preview-body iframe {
+    width: 100%; height: 700px; border: none;
+    background: #fff;
+}
+.sdd-preview-body img {
+    max-width: 100%; max-height: 700px;
+    display: block;
+}
+.sdd-preview-placeholder {
+    text-align: center; padding: 3rem 1.5rem; color: #8a9b95;
+}
+.sdd-preview-placeholder .ic {
+    font-size: 3.5rem; display: block; margin-bottom: 0.85rem;
+    opacity: 0.5; color: #0F3D2E;
+}
+.sdd-preview-placeholder h3 {
+    color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1.05rem;
+}
+.sdd-preview-placeholder p {
+    font-size: 0.85rem; margin: 0 0 1.25rem;
+}
+
+/* RELATED */
+.sdd-related {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    padding: 1.35rem 1.5rem;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+}
+.sdd-related h2 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #8a6a1a; margin: 0 0 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.sdd-related h2::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.35), transparent);
+}
+.sdd-related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+.sdd-related-card {
+    background: #f8faf9; border-radius: 10px;
+    overflow: hidden; text-decoration: none; color: inherit;
+    transition: all 0.25s; border: 1px solid transparent;
+}
+.sdd-related-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(200,169,81,0.4);
+    background: #fff;
+}
+.sdd-related-cover {
+    aspect-ratio: 3/4;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(200,169,81,0.6); font-size: 1.5rem;
+}
+.sdd-related-cover img { width: 100%; height: 100%; object-fit: cover; }
+.sdd-related-body { padding: 0.55rem 0.7rem 0.75rem; }
+.sdd-related-body .t {
+    font-size: 0.76rem; font-weight: 800;
+    color: #0F3D2E;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+}
+.sdd-related-body .s {
+    font-size: 0.65rem; color: #8a9b95; margin-top: 0.2rem;
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="sdd-wrap">
+
+    <a href="{% url 'governance:session_document_list' %}" class="sdd-back">
+        <i class="fas fa-arrow-left"></i> Back to Session Archives
+    </a>
+
+    <!-- HERO -->
+    <div class="sdd-hero">
+        <div class="sdd-cover-wrap">
+            {% if doc.has_cover %}
+                <img src="{{ doc.cover_url }}" alt="{{ doc.title }}">
+            {% else %}
+                <i class="fas {{ doc.type_icon }}"></i>
+            {% endif %}
+        </div>
+
+        <div class="sdd-info">
+            <span class="sdd-type-badge">
+                <i class="fas {{ doc.type_icon }}"></i>
+                {{ doc.get_document_type_display }}
+            </span>
+
+            <h1>{{ doc.title }}</h1>
+
+            <div class="sdd-session-badge">
+                <i class="fas fa-calendar-alt"></i> {{ doc.session_label }}
+                {% if doc.uploaded_by %}
+                · Uploaded by {{ doc.uploaded_by.get_full_name|default:doc.uploaded_by.email }}
+                {% endif %}
+            </div>
+
+            {% if doc.description %}
+            <p class="sdd-desc">{{ doc.description }}</p>
+            {% endif %}
+
+            <div class="sdd-actions">
+                {% if doc.has_file %}
+                <a href="{{ doc.file_url }}" target="_blank" rel="noopener" class="sdd-btn gold">
+                    <i class="fas {{ doc.file_icon }}"></i> {{ doc.file_label }}
+                </a>
+                {% endif %}
+                {% if can_manage %}
+                <a href="{% url 'governance:session_document_edit' doc.pk %}" class="sdd-btn outline">
+                    <i class="fas fa-pen"></i> Edit
+                </a>
+                <a href="{% url 'governance:session_document_delete' doc.pk %}" class="sdd-btn outline">
+                    <i class="fas fa-trash"></i> Delete
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- META -->
+    <div class="sdd-meta-strip">
+        <div class="sdd-meta-item">
+            <div class="lbl">Session</div>
+            <div class="val">{{ doc.session_label }}</div>
+        </div>
+        <div class="sdd-meta-item">
+            <div class="lbl">Type</div>
+            <div class="val">{{ doc.get_document_type_display }}</div>
+        </div>
+        <div class="sdd-meta-item">
+            <div class="lbl">Format</div>
+            <div class="val">{% if doc.file_extension %}{{ doc.file_extension|upper }}{% else %}—{% endif %}</div>
+        </div>
+        <div class="sdd-meta-item">
+            <div class="lbl">Uploaded</div>
+            <div class="val">{{ doc.uploaded_at|date:"M j, Y" }}</div>
+        </div>
+        {% if not doc.is_published %}
+        <div class="sdd-meta-item" style="border-color: rgba(220,53,69,0.3);">
+            <div class="lbl" style="color:#9b2c2c;">Status</div>
+            <div class="val" style="color:#9b2c2c;">Draft — not visible</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="sdd-preview">
+        <div class="sdd-preview-head">
+            <h2><i class="fas fa-eye"></i> Preview</h2>
+            {% if doc.has_file %}
+            <a href="{{ doc.file_url }}" target="_blank" rel="noopener">
+                Open in new tab <i class="fas fa-external-link-alt"></i>
+            </a>
+            {% endif %}
+        </div>
+        <div class="sdd-preview-body">
+            {% if doc.is_pdf %}
+                <iframe src="{{ doc.file_url }}" loading="lazy"></iframe>
+            {% elif doc.is_image %}
+                <img src="{{ doc.file_url }}" alt="{{ doc.title }}">
+            {% elif doc.has_file %}
+                <div class="sdd-preview-placeholder">
+                    <i class="fas {{ doc.file_icon }} ic"></i>
+                    <h3>Preview not available</h3>
+                    <p>This file type can't be previewed in the browser.</p>
+                    <a href="{{ doc.file_url }}" target="_blank" rel="noopener" class="sdd-btn gold" style="display:inline-flex;">
+                        <i class="fas {{ doc.file_icon }}"></i> {{ doc.file_label }}
+                    </a>
+                </div>
+            {% else %}
+                <div class="sdd-preview-placeholder">
+                    <i class="fas fa-file-alt ic"></i>
+                    <h3>No file attached</h3>
+                    <p>There's no document file or external link for this entry.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- RELATED -->
+    {% if related %}
+    <div class="sdd-related">
+        <h2><i class="fas fa-layer-group"></i> More from {{ doc.session_label }}</h2>
+        <div class="sdd-related-grid">
+            {% for r in related %}
+            <a href="{% url 'governance:session_document_detail' r.pk %}" class="sdd-related-card">
+                <div class="sdd-related-cover">
+                    {% if r.has_cover %}
+                        <img src="{{ r.cover_url }}" alt="{{ r.title }}">
+                    {% else %}
+                        <i class="fas {{ r.type_icon }}"></i>
+                    {% endif %}
+                </div>
+                <div class="sdd-related-body">
+                    <div class="t">{{ r.title }}</div>
+                    <div class="s">{{ r.get_document_type_display }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,225 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Selection Records · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.gov-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.6rem 2rem; margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.gov-head::before {
+    content: "📜"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.gov-head-inner {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.gov-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.85rem; border-radius: 20px; margin-bottom: 0.35rem;
+}
+.gov-head h1 { font-size: 1.4rem; font-weight: 800; margin: 0; }
+.gov-head p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+.gov-head-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.25rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem; text-decoration: none;
+    border: 1px solid transparent; transition: all 0.25s;
+}
+.hbtn-gold { background: #C8A951; color: #0F3D2E; border-color: #C8A951; }
+.hbtn-gold:hover { background: #E0C96E; color: #0F3D2E; transform: translateY(-2px); }
+.hbtn-outline { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2); }
+.hbtn-outline:hover { background: rgba(255,255,255,0.22); color: #fff; transform: translateY(-2px); }
+
+.selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1rem;
+}
+
+.sel-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 1.5rem 1.6rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none; color: inherit;
+    display: block;
+}
+.sel-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(200,169,81,0.4);
+}
+.sel-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #0F3D2E, #C8A951);
+    opacity: 0.85;
+}
+
+.sel-head {
+    display: flex; justify-content: space-between;
+    align-items: flex-start; margin-bottom: 0.9rem;
+    gap: 0.75rem;
+}
+.sel-session {
+    font-size: 1.15rem; font-weight: 800;
+    color: #0F3D2E; letter-spacing: -0.01em;
+    margin: 0 0 0.3rem;
+}
+.sel-session-label {
+    font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8a9b95;
+}
+.sel-publish-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.3rem 0.85rem; border-radius: 50px;
+    font-size: 0.68rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+.sel-publish-badge.published { background: #e8f2ec; color: #1a6b3c; }
+.sel-publish-badge.draft     { background: #f0f4f2; color: #4a5568; }
+
+.sel-stats {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    font-size: 0.78rem; color: #8a9b95;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    margin-top: 0.6rem;
+}
+.sel-stats span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.sel-stats i { color: #C8A951; }
+.sel-stats strong { color: #0F3D2E; font-weight: 800; }
+
+.sel-notes {
+    font-size: 0.82rem; color: #5A5A5A;
+    line-height: 1.55; margin: 0.75rem 0 0;
+    padding: 0.75rem 1rem;
+    background: #f8faf9; border-radius: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.empty-state {
+    text-align: center; padding: 4rem 1.5rem;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 2px dashed rgba(200,169,81,0.35);
+    border-radius: 18px;
+    grid-column: 1 / -1;
+}
+.empty-state .ic { font-size: 3.5rem; display: block; margin-bottom: 0.75rem; }
+.empty-state h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1.05rem; }
+.empty-state p { color: #8a9b95; font-size: 0.85rem; margin: 0 0 1rem; }
+
+.pagination { margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap; }
+.pagination a, .pagination .current {
+    min-width: 38px; height: 38px; padding: 0 0.8rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.82rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: #0F3D2E;
+}
+.pagination a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pagination .current { background: var(--primary); color: #C8A951; border-color: var(--primary); }
+
+@media (max-width: 768px) {
+    .gov-head-inner { flex-direction: column; align-items: stretch; }
+    .gov-head-actions { flex-direction: column; }
+    .hbtn { justify-content: center; width: 100%; }
+    .selection-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="gov-head">
+    <div class="gov-head-inner">
+        <div>
+            <span class="gov-eyebrow">Governance · Shura</span>
+            <h1>Selection Records</h1>
+            <p>The finalized EXCO selection for each session.</p>
+        </div>
+        <div class="gov-head-actions">
+            <a href="{% url 'governance:selection_create' %}" class="hbtn hbtn-gold">
+                <i class="fas fa-plus"></i> New Record
+            </a>
+            <a href="{% url 'governance:dashboard' %}" class="hbtn hbtn-outline">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="selection-grid">
+    {% for r in records %}
+    <a href="{% url 'governance:selection_detail' r.pk %}" class="sel-card">
+        <div class="sel-head">
+            <div>
+                <div class="sel-session-label">Session</div>
+                <h3 class="sel-session">{{ r.session_label }}</h3>
+            </div>
+            {% if r.is_published %}
+            <span class="sel-publish-badge published">
+                <i class="fas fa-check-circle"></i> Published
+            </span>
+            {% else %}
+            <span class="sel-publish-badge draft">
+                <i class="fas fa-pencil"></i> Draft
+            </span>
+            {% endif %}
+        </div>
+
+        {% if r.notes %}
+        <div class="sel-notes">{{ r.notes }}</div>
+        {% endif %}
+
+        <div class="sel-stats">
+            <span><i class="fas fa-users"></i> <strong>{{ r.snapshot|length|default:0 }}</strong> entries</span>
+            {% if r.finalized_by %}
+            <span><i class="fas fa-user-tie"></i> {{ r.finalized_by.get_full_name|default:r.finalized_by.username }}</span>
+            {% endif %}
+            <span><i class="far fa-clock"></i> {{ r.finalized_at|date:"M d, Y" }}</span>
+        </div>
+    </a>
+    {% empty %}
+    <div class="empty-state">
+        <span class="ic">📜</span>
+        <h3>No selection records yet</h3>
+        <p>Once a Shura Committee finalizes an EXCO selection, the record appears here.</p>
+        <a href="{% url 'governance:selection_create' %}" class="hbtn hbtn-gold" style="display:inline-flex;">
+            <i class="fas fa-plus"></i> Create first record
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}">‹</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}">›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

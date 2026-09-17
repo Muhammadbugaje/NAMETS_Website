@@ -1,0 +1,782 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ proposal.title|truncatechars:50 }} · Proposal{% endblock %}
+
+{% block extra_css %}
+<style>
+.prop-wrap { max-width: 1100px; margin: 0 auto; }
+
+.prop-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.prop-back:hover { text-decoration: underline; }
+
+/* Header */
+.prop-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.85rem 2rem;
+    margin-bottom: 1.25rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 12px 36px rgba(15,61,46,0.24);
+}
+.prop-header::before {
+    content: "⚖️"; font-size: 7rem;
+    position: absolute; bottom: -1.5rem; right: 1.5rem;
+    opacity: 0.08; pointer-events: none;
+}
+.prop-header-inner { position: relative; z-index: 1; }
+.prop-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.6rem;
+}
+.prop-header h1 {
+    font-size: 1.5rem; font-weight: 800;
+    margin: 0 0 0.6rem; line-height: 1.3;
+    letter-spacing: -0.01em;
+}
+.prop-meta {
+    display: flex; flex-wrap: wrap; gap: 0.85rem 1.25rem;
+    font-size: 0.82rem; color: rgba(255,255,255,0.85);
+}
+.prop-meta span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.prop-meta i { color: #C8A951; }
+
+.prop-status-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.4rem 1.1rem; border-radius: 50px;
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-top: 0.9rem;
+}
+.prop-status-badge.draft     { background: rgba(255,255,255,0.15); color: #fff; }
+.prop-status-badge.voting    { background: #f5e9c8; color: #8a6a1a; animation: votePulse 2s infinite; }
+.prop-status-badge.passed    { background: #d4edda; color: #155724; }
+.prop-status-badge.rejected  { background: #f8d7da; color: #721c24; }
+.prop-status-badge.cancelled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); }
+@keyframes votePulse {
+    0%,100% { box-shadow: 0 0 0 rgba(200,169,81,0.5); }
+    50% { box-shadow: 0 0 0 8px rgba(200,169,81,0); }
+}
+
+/* Grid */
+.prop-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 1.25rem;
+}
+@media (max-width: 900px) { .prop-grid { grid-template-columns: 1fr; } }
+
+/* Cards */
+.card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem 1.75rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.25rem;
+}
+.card-title {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #8a6a1a; margin: 0 0 1.1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.card-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent);
+}
+
+.prop-body {
+    font-size: 0.92rem; color: #4a5568;
+    line-height: 1.75; white-space: pre-wrap;
+    margin: 0;
+}
+
+/* Info rows */
+.info-row {
+    display: flex; justify-content: space-between;
+    align-items: flex-start; gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px dashed rgba(0,0,0,0.06);
+    font-size: 0.85rem;
+}
+.info-row:last-child { border-bottom: none; }
+.info-row .lbl {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: #8a9b95; flex-shrink: 0; min-width: 110px;
+}
+.info-row .val { color: #0F3D2E; font-weight: 600; text-align: right; word-break: break-word; }
+
+/* Vote box */
+.vote-box {
+    background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 100%);
+    border: 2px solid rgba(200,169,81,0.4);
+    border-radius: 18px;
+    padding: 1.75rem 1.75rem 1.5rem;
+    position: relative; overflow: hidden;
+    animation: votePulse 3s infinite;
+}
+.vote-box::before {
+    content: '🗳️';
+    position: absolute; bottom: -1rem; right: 1rem;
+    font-size: 5rem; opacity: 0.1;
+}
+.vote-box h3 {
+    font-size: 1.05rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.4rem;
+    position: relative;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.vote-box h3 i { color: #8a6a1a; }
+.vote-box p {
+    font-size: 0.82rem; color: #5a4815;
+    margin: 0 0 1.25rem; line-height: 1.55;
+    position: relative;
+}
+
+.vote-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+}
+.vote-radio {
+    position: relative;
+    cursor: pointer;
+}
+.vote-radio input {
+    position: absolute; opacity: 0; pointer-events: none;
+}
+.vote-radio .inner {
+    padding: 1rem 0.75rem;
+    border-radius: 14px;
+    text-align: center;
+    border: 2px solid transparent;
+    background: #fff;
+    transition: all 0.2s;
+}
+.vote-radio .inner .icon {
+    font-size: 1.6rem; display: block;
+    margin-bottom: 0.4rem;
+}
+.vote-radio .inner .label {
+    font-size: 0.82rem; font-weight: 800;
+    color: #0F3D2E;
+    display: block;
+}
+.vote-radio:hover .inner {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+.vote-radio input:checked + .inner.agree {
+    background: linear-gradient(135deg, #38a169, #48bb78);
+    border-color: #1a6b3c;
+    color: #fff;
+}
+.vote-radio input:checked + .inner.agree .label { color: #fff; }
+.vote-radio input:checked + .inner.disagree {
+    background: linear-gradient(135deg, #c0392b, #e53e3e);
+    border-color: #9b2c2c;
+}
+.vote-radio input:checked + .inner.disagree .label { color: #fff; }
+.vote-radio input:checked + .inner.abstain {
+    background: linear-gradient(135deg, #d69e2e, #ecc94b);
+    border-color: #8a6a1a;
+}
+.vote-radio input:checked + .inner.abstain .label { color: #fff; }
+
+.vote-feedback {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 12px;
+    font-family: inherit; font-size: 0.88rem;
+    resize: vertical; min-height: 70px;
+    margin-bottom: 1rem;
+    background: #fff;
+    position: relative;
+}
+.vote-feedback:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 4px rgba(200,169,81,0.15);
+}
+.vote-submit {
+    width: 100%;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff; border: none; cursor: pointer;
+    padding: 0.95rem 1.75rem; border-radius: 50px;
+    font-weight: 800; font-size: 0.95rem;
+    font-family: inherit;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 8px 24px rgba(15,61,46,0.25);
+    transition: all 0.25s;
+    position: relative;
+}
+.vote-submit:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(15,61,46,0.35);
+}
+.vote-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Voted confirmation */
+.voted-box {
+    background: linear-gradient(135deg, #e8f2ec 0%, #f0faf4 100%);
+    border-left: 5px solid #38a169;
+    border-radius: 18px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem;
+}
+.voted-box h3 {
+    font-size: 1rem; font-weight: 800;
+    color: #1a6b3c; margin: 0 0 0.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.voted-box .choice-line {
+    font-size: 0.9rem; color: #0F3D2E;
+    margin: 0 0 0.5rem;
+}
+.voted-box .choice-line strong {
+    display: inline-block;
+    padding: 0.15rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.voted-box .choice-line strong.agree { background: #e8f2ec; color: #1a6b3c; }
+.voted-box .choice-line strong.disagree { background: #fdecea; color: #9b2c2c; }
+.voted-box .choice-line strong.abstain { background: #f5e9c8; color: #8a6a1a; }
+.voted-box .feedback-line {
+    font-size: 0.85rem; color: #4a5568;
+    margin: 0.75rem 0 0;
+    padding: 0.75rem 1rem;
+    background: rgba(255,255,255,0.7);
+    border-radius: 10px;
+    line-height: 1.55;
+    font-style: italic;
+}
+.voted-box .vote-time {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.75rem;
+}
+
+/* Tally visualization */
+.tally-visual {
+    background: #f8faf9;
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+.tally-cols {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+.tally-col {
+    text-align: center;
+}
+.tally-col .num {
+    font-size: 1.5rem; font-weight: 800;
+    line-height: 1;
+    color: #0F3D2E;
+}
+.tally-col .num.agree { color: #1a6b3c; }
+.tally-col .num.disagree { color: #9b2c2c; }
+.tally-col .num.abstain { color: #8a6a1a; }
+.tally-col .lbl {
+    font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: #8a9b95; margin-top: 0.35rem;
+}
+
+.tally-progress-large {
+    display: flex; height: 12px; border-radius: 6px;
+    overflow: hidden; background: #e8edec;
+    margin-bottom: 0.5rem;
+}
+.tally-progress-large .seg { transition: width 0.6s ease-out; }
+.tally-progress-large .seg.agree { background: linear-gradient(90deg,#38a169,#48bb78); }
+.tally-progress-large .seg.disagree { background: linear-gradient(90deg,#c0392b,#e53e3e); }
+.tally-progress-large .seg.abstain { background: linear-gradient(90deg,#d69e2e,#ecc94b); }
+
+.progress-labels {
+    display: flex; justify-content: space-between;
+    font-size: 0.7rem; color: #8a9b95;
+    font-weight: 700;
+}
+
+.quorum-status {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.35rem 0.9rem; border-radius: 50px;
+    font-size: 0.72rem; font-weight: 800;
+    margin-top: 0.75rem;
+}
+.quorum-status.met { background: #e8f2ec; color: #1a6b3c; }
+.quorum-status.not-met { background: #f5e9c8; color: #8a6a1a; }
+
+/* Voter list */
+.voter-list {
+    list-style: none; padding: 0; margin: 0;
+    max-height: 400px; overflow-y: auto;
+}
+.voter-item {
+    display: flex; align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.voter-item:last-child { border-bottom: none; }
+.voter-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.78rem;
+    flex-shrink: 0;
+}
+.voter-info { flex: 1; min-width: 0; }
+.voter-name {
+    font-size: 0.85rem; font-weight: 700;
+    color: #0F3D2E;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.voter-time {
+    font-size: 0.68rem; color: #8a9b95;
+    margin-top: 0.1rem;
+}
+.voter-choice {
+    padding: 0.25rem 0.7rem; border-radius: 20px;
+    font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    flex-shrink: 0;
+}
+.voter-choice.agree { background: #e8f2ec; color: #1a6b3c; }
+.voter-choice.disagree { background: #fdecea; color: #9b2c2c; }
+.voter-choice.abstain { background: #f5e9c8; color: #8a6a1a; }
+
+/* Result summary */
+.result-summary {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    font-size: 0.88rem;
+    color: #4a5568;
+    line-height: 1.65;
+    border-left: 4px solid #C8A951;
+    margin-bottom: 1rem;
+}
+.result-summary.passed { border-left-color: #38a169; background: #f0faf4; }
+.result-summary.rejected { border-left-color: #c0392b; background: #fdf6f3; }
+
+/* Action buttons */
+.actions-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+}
+@media (max-width: 480px) { .actions-card { grid-template-columns: 1fr; } }
+
+.act-btn {
+    padding: 0.7rem 1.25rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem;
+    text-decoration: none; border: none;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 0.4rem; transition: all 0.2s;
+}
+.act-btn.primary { background: var(--primary); color: #fff; }
+.act-btn.primary:hover { background: var(--primary-dark); color: #fff; transform: translateY(-2px); }
+.act-btn.gold { background: var(--gold); color: var(--primary); }
+.act-btn.gold:hover { background: #E0C96E; color: var(--primary); transform: translateY(-2px); }
+.act-btn.danger { background: #fdecea; color: #9b2c2c; }
+.act-btn.danger:hover { background: #f5c2bc; }
+.act-btn.ghost { background: transparent; color: var(--primary); border: 1.5px solid rgba(15,61,46,0.25); }
+.act-btn.ghost:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.act-btn.full { grid-column: 1 / -1; }
+
+@media (max-width: 768px) {
+    .prop-header { padding: 1.35rem 1.35rem 1.25rem; }
+    .prop-header h1 { font-size: 1.15rem; }
+    .card { padding: 1.25rem 1.35rem; }
+    .vote-options { grid-template-columns: 1fr; }
+    .tally-cols { grid-template-columns: repeat(2, 1fr); }
+    .info-row { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+    .info-row .val { text-align: left; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="prop-wrap">
+
+    <a href="{% url 'governance:proposal_list' %}" class="prop-back">
+        <i class="fas fa-arrow-left"></i> Back to Proposals
+    </a>
+
+    <!-- HEADER -->
+    <div class="prop-header">
+        <div class="prop-header-inner">
+            <span class="prop-eyebrow">Proposal</span>
+            <h1>{{ proposal.title }}</h1>
+            <div class="prop-meta">
+                <span><i class="fas fa-user"></i> {{ proposal.proposed_by.get_full_name|default:proposal.proposed_by.username }}</span>
+                <span><i class="fas fa-calendar"></i> {{ proposal.created_at|date:"M d, Y" }}</span>
+                {% if proposal.proposed_budget %}
+                <span><i class="fas fa-coins"></i> ₦{{ proposal.proposed_budget|floatformat:0 }}</span>
+                {% endif %}
+                {% if proposal.status == 'voting' %}
+                <span><i class="fas fa-clock"></i> Closes {{ proposal.voting_end|date:"M d, Y · H:i" }}</span>
+                {% endif %}
+            </div>
+            <span class="prop-status-badge {{ proposal.status }}">
+                {% if proposal.status == 'voting' %}<i class="fas fa-vote-yea"></i>{% endif %}
+                {{ proposal.get_status_display }}
+            </span>
+        </div>
+    </div>
+
+    <div class="prop-grid">
+
+        <!-- LEFT COLUMN -->
+        <div>
+
+            <!-- Body -->
+            <div class="card">
+                <h3 class="card-title"><i class="fas fa-align-left"></i> Proposal Details</h3>
+                <div class="prop-body">{{ proposal.description }}</div>
+            </div>
+
+            <!-- Voting section -->
+            {% if proposal.status == 'voting' %}
+
+                {% if my_vote %}
+                <!-- Already voted -->
+                <div class="voted-box">
+                    <h3><i class="fas fa-check-circle"></i> You have voted</h3>
+                    <p class="choice-line">
+                        Your choice:
+                        <strong class="{{ my_vote.choice }}">{{ my_vote.get_choice_display }}</strong>
+                    </p>
+                    {% if my_vote.feedback %}
+                    <div class="feedback-line">
+                        <strong style="color:#8a6a1a;">Your comment:</strong> {{ my_vote.feedback }}
+                    </div>
+                    {% endif %}
+                    <div class="vote-time">
+                        <i class="far fa-clock"></i> Voted {{ my_vote.cast_at|timesince }} ago
+                    </div>
+                    <div style="margin-top:1rem;padding-top:1rem;border-top:1px dashed rgba(56,161,105,0.3);">
+                        <form method="post" action="{% url 'governance:vote_cast' proposal.pk %}" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="choice" value="{{ my_vote.choice }}">
+                            <input type="hidden" name="feedback" value="{{ my_vote.feedback }}">
+                            <button type="button" class="act-btn ghost" onclick="showRevoteForm()">
+                                <i class="fas fa-redo"></i> Change my vote
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% elif can_vote %}
+                <!-- Can vote -->
+                <div class="vote-box" id="vote">
+                    <h3><i class="fas fa-vote-yea"></i> Cast Your Vote</h3>
+                    <p>Your vote is recorded on the association's permanent record. Choose carefully.</p>
+                    <form method="post" action="{% url 'governance:vote_cast' proposal.pk %}" id="voteForm">
+                        {% csrf_token %}
+                        <div class="vote-options">
+                            <label class="vote-radio">
+                                <input type="radio" name="choice" value="agree" required>
+                                <div class="inner agree">
+                                    <span class="icon">👍</span>
+                                    <span class="label">Agree</span>
+                                </div>
+                            </label>
+                            <label class="vote-radio">
+                                <input type="radio" name="choice" value="disagree" required>
+                                <div class="inner disagree">
+                                    <span class="icon">👎</span>
+                                    <span class="label">Disagree</span>
+                                </div>
+                            </label>
+                            <label class="vote-radio">
+                                <input type="radio" name="choice" value="abstain" required>
+                                <div class="inner abstain">
+                                    <span class="icon">⊘</span>
+                                    <span class="label">Abstain</span>
+                                </div>
+                            </label>
+                        </div>
+                        <textarea name="feedback" class="vote-feedback"
+                                  placeholder="Optional — share your reasoning (visible to other voters)"></textarea>
+                        <button type="submit" class="vote-submit">
+                            <i class="fas fa-paper-plane"></i> Submit Vote
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <!-- Can't vote -->
+                <div class="card" style="text-align:center;">
+                    <p style="font-size:0.88rem;color:#8a9b95;margin:0;">
+                        <i class="fas fa-info-circle"></i>
+                        You're not eligible to vote on this proposal.
+                    </p>
+                </div>
+                {% endif %}
+
+            {% elif proposal.status in 'passed,rejected' %}
+                <!-- Result -->
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-flag-checkered"></i> Result</h3>
+                    <div class="result-summary {{ proposal.status }}">
+                        {{ proposal.result_summary }}
+                    </div>
+                    {% if proposal.decided_at %}
+                    <p style="font-size:0.78rem;color:#8a9b95;margin:0;">
+                        <i class="far fa-clock"></i> Decided {{ proposal.decided_at|date:"M d, Y · H:i" }}
+                    </p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Voter list -->
+            {% if votes %}
+            <div class="card">
+                <h3 class="card-title"><i class="fas fa-users"></i> Votes Cast ({{ votes|length }})</h3>
+                <ul class="voter-list">
+                    {% for v in votes %}
+                    <li class="voter-item">
+                        <div class="voter-avatar">
+                            {{ v.voter.first_name|first|upper }}{{ v.voter.last_name|first|upper }}
+                        </div>
+                        <div class="voter-info">
+                            <div class="voter-name">
+                                {{ v.voter.get_full_name|default:v.voter.username }}
+                            </div>
+                            <div class="voter-time">{{ v.cast_at|timesince }} ago</div>
+                        </div>
+                        <span class="voter-choice {{ v.choice }}">{{ v.get_choice_display }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div>
+
+            <!-- Live tally -->
+            <div class="card">
+                <h3 class="card-title"><i class="fas fa-chart-pie"></i> Live Tally</h3>
+                <div class="tally-visual">
+                    <div class="tally-cols">
+                        <div class="tally-col">
+                            <div class="num agree">{{ tally.agree }}</div>
+                            <div class="lbl">Agree</div>
+                        </div>
+                        <div class="tally-col">
+                            <div class="num disagree">{{ tally.disagree }}</div>
+                            <div class="lbl">Disagree</div>
+                        </div>
+                        <div class="tally-col">
+                            <div class="num abstain">{{ tally.abstain }}</div>
+                            <div class="lbl">Abstain</div>
+                        </div>
+                        <div class="tally-col">
+                            <div class="num">{{ tally.cast }}/{{ tally.eligible }}</div>
+                            <div class="lbl">Total</div>
+                        </div>
+                    </div>
+
+                    {% if tally.cast %}
+                    <div class="tally-progress-large">
+                        {% widthratio tally.agree tally.cast 100 as ap %}
+                        {% widthratio tally.disagree tally.cast 100 as dp %}
+                        {% widthratio tally.abstain tally.cast 100 as ab %}
+                        <div class="seg agree" style="width: {{ ap }}%;"></div>
+                        <div class="seg disagree" style="width: {{ dp }}%;"></div>
+                        <div class="seg abstain" style="width: {{ ab }}%;"></div>
+                    </div>
+                    {% endif %}
+
+                    <div class="progress-labels">
+                        <span>Participation: <strong style="color:#0F3D2E;">{{ tally.participation_pct }}%</strong></span>
+                        <span>Quorum: {{ tally.quorum_target }}%</span>
+                    </div>
+
+                    {% if tally.quorum_reached %}
+                    <span class="quorum-status met">
+                        <i class="fas fa-check-circle"></i> Quorum reached
+                    </span>
+                    {% else %}
+                    <span class="quorum-status not-met">
+                        <i class="fas fa-hourglass-half"></i> Quorum not yet reached
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card">
+                <h3 class="card-title"><i class="fas fa-calendar-alt"></i> Timeline</h3>
+                <div class="info-row">
+                    <span class="lbl">Created</span>
+                    <span class="val">{{ proposal.created_at|date:"M d, Y · H:i" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="lbl">Voting opens</span>
+                    <span class="val">{{ proposal.voting_start|date:"M d, Y · H:i" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="lbl">Voting closes</span>
+                    <span class="val">{{ proposal.voting_end|date:"M d, Y · H:i" }}</span>
+                </div>
+                {% if proposal.decided_at %}
+                <div class="info-row">
+                    <span class="lbl">Decided</span>
+                    <span class="val">{{ proposal.decided_at|date:"M d, Y · H:i" }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Rules -->
+            <div class="card">
+                <h3 class="card-title"><i class="fas fa-gavel"></i> Voting Rules</h3>
+                <div class="info-row">
+                    <span class="lbl">Quorum required</span>
+                    <span class="val">{{ proposal.quorum_percentage }}% of eligible voters</span>
+                </div>
+                <div class="info-row">
+                    <span class="lbl">Approval threshold</span>
+                    <span class="val">{{ proposal.approval_percentage }}% of votes cast</span>
+                </div>
+                <div class="info-row">
+                    <span class="lbl">Eligible voters</span>
+                    <span class="val">{{ tally.eligible }} active EXCO member{{ tally.eligible|pluralize }}</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <h3 class="card-title"><i class="fas fa-cogs"></i> Actions</h3>
+                <div class="actions-card">
+                    {% if is_owner and proposal.status in 'draft,voting' %}
+                    <a href="{% url 'governance:proposal_edit' proposal.pk %}" class="act-btn gold">
+                        <i class="fas fa-pen"></i> Edit
+                    </a>
+                    {% endif %}
+
+                    {% if proposal.status == 'draft' and is_owner %}
+                    <button type="button" class="act-btn primary" onclick="openVoting()">
+                        <i class="fas fa-vote-yea"></i> Open Voting
+                    </button>
+                    {% endif %}
+
+                    {% if proposal.status == 'voting' and is_wakeel_or_ict %}
+                    <button type="button" class="act-btn primary" onclick="closeProposal()">
+                        <i class="fas fa-flag-checkered"></i> Close & Decide
+                    </button>
+                    {% endif %}
+
+                    {% if is_owner and proposal.status in 'draft,voting' %}
+                    <button type="button" class="act-btn danger" onclick="cancelProposal()">
+                        <i class="fas fa-ban"></i> Cancel
+                    </button>
+                    {% endif %}
+
+                    {% if perms.governance.delete_proposal %}
+                    <button type="button" class="act-btn danger" onclick="deleteProposal()">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    {% endif %}
+
+                    <a href="{% url 'governance:proposal_list' %}" class="act-btn ghost full">
+                        <i class="fas fa-list"></i> All Proposals
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden forms -->
+<form method="post" action="{% url 'governance:proposal_open_voting' proposal.pk %}" id="openVotingForm" style="display:none;">{% csrf_token %}</form>
+<form method="post" action="{% url 'governance:proposal_close' proposal.pk %}" id="closeForm" style="display:none;">{% csrf_token %}</form>
+<form method="post" action="{% url 'governance:proposal_cancel' proposal.pk %}" id="cancelForm" style="display:none;">{% csrf_token %}</form>
+<form method="post" action="{% url 'governance:proposal_delete' proposal.pk %}" id="deleteForm" style="display:none;">{% csrf_token %}</form>
+
+<script>
+// ============ VOTE SUBMIT ============
+document.getElementById('voteForm')?.addEventListener('submit', function(e) {
+    const choice = this.querySelector('input[name="choice"]:checked');
+    if (!choice) {
+        e.preventDefault();
+        NAMETS.notify('Please select Agree, Disagree, or Abstain.', 'warning');
+        return;
+    }
+    const btn = this.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…'; }
+});
+
+// ============ RE-VOTE ============
+function showRevoteForm() {
+    // Show the vote form so user can submit a new choice
+    const voteBox = document.getElementById('vote');
+    if (voteBox) {
+        voteBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+        location.reload();
+    }
+}
+
+// ============ PROPOSAL ACTIONS ============
+function openVoting() {
+    NAMETS.confirm({
+        title: 'Open Proposal for Voting?',
+        message: 'Every eligible EXCO member will be notified and can cast their vote. The voting window will start immediately.',
+        confirmText: 'Yes, Open Voting',
+        danger: false,
+    }).then(ok => { if (ok) document.getElementById('openVotingForm').submit(); });
+}
+
+function closeProposal() {
+    NAMETS.confirm({
+        title: 'Close Voting & Decide Result?',
+        message: 'This will tally all votes and set the final result based on quorum and approval thresholds. This cannot be undone.',
+        confirmText: 'Yes, Close & Decide',
+        danger: false,
+    }).then(ok => { if (ok) document.getElementById('closeForm').submit(); });
+}
+
+function cancelProposal() {
+    NAMETS.confirm({
+        title: 'Cancel This Proposal?',
+        message: 'The proposal will no longer accept votes. This cannot be undone.',
+        confirmText: 'Yes, Cancel',
+        danger: true,
+    }).then(ok => { if (ok) document.getElementById('cancelForm').submit(); });
+}
+
+function deleteProposal() {
+    NAMETS.confirm({
+        title: 'Delete Proposal?',
+        message: 'The proposal and all its votes will be permanently deleted. This cannot be undone.',
+        confirmText: 'Yes, Delete',
+        danger: true,
+    }).then(ok => { if (ok) document.getElementById('deleteForm').submit(); });
+}
+</script>
+
+{% endblock %}

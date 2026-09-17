@@ -1,0 +1,515 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 800px; margin: 0 auto; }
+.form-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+.form-back:hover { text-decoration: underline; }
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.form-header h2 { margin: 0; color: var(--text-primary); }
+.form-header p { color: var(--text-muted); margin: 0.25rem 0 0; }
+.form-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+.form-group label .required { color: #e53e3e; font-size: 1.1rem; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.6rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.95rem; background: var(--card-bg);
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--gold); outline: none;
+}
+.form-group .help-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+.form-group .error-text {
+    font-size: 0.8rem;
+    color: #e53e3e;
+    margin-top: 0.2rem;
+}
+.form-check-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+}
+.form-check-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--gold);
+    cursor: pointer;
+}
+.form-check-group label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+.form-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.05); }
+.btn-primary {
+    background: var(--primary); color: #fff;
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; transition: var(--transition);
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; text-decoration: none; text-align: center;
+    transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+.btn-outline {
+    background: transparent;
+    border: 1px solid #d0d9d6;
+    color: var(--text-secondary);
+    padding: 0.6rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: var(--transition);
+}
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+.image-preview {
+    margin-top: 0.5rem;
+    max-width: 300px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e8edec;
+}
+.image-preview img { width: 100%; height: auto; display: block; }
+.slug-live {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 0.2rem 0.5rem;
+    background: #f8faf9;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 0.2rem;
+}
+.slug-live strong { color: var(--text-primary); }
+.link-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #f8faf9;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+@media (max-width: 768px) {
+    .link-item {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+@media (max-width: 600px) {
+    .form-row { grid-template-columns: 1fr; }
+    .link-item {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="form-container">
+    <a href="{% url 'events:event_admin_list' %}" class="form-back">← Back to Events</a>
+
+    <div class="form-header">
+        <div>
+            <h2>{{ title }}</h2>
+            <p>{{ button_text }} for the NAMETS community.</p>
+        </div>
+        {% if event and event.slug %}
+        <a href="{% url 'events:detail' event.slug %}" target="_blank" class="btn-outline" style="padding:0.4rem 1.2rem; font-size:0.85rem;">
+            <i class="fas fa-eye"></i> Preview
+        </a>
+        {% endif %}
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="form-card" id="eventForm">
+        {% csrf_token %}
+
+        <!-- Title -->
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_title">Title <span class="required">*</span></label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <div class="error-text">{{ form.title.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Slug -->
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_slug">Slug</label>
+                {{ form.slug }}
+                <div class="help-text">
+                    <span class="slug-live">🔗 URL: <strong id="slugPreview">{% if form.instance.slug %}{{ form.instance.slug }}{% else %}auto-generated{% endif %}</strong></span>
+                </div>
+                {% if form.slug.errors %}
+                <div class="error-text">{{ form.slug.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ===== AI DRAFT SECTION ===== -->
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="ai_bullets">🤖 AI Draft from Bullet Points</label>
+                <textarea id="ai_bullets" class="form-control" rows="3" placeholder="Paste rough bullet points here...&#10;e.g. Islamiyya lecture this Friday. Venue: Engineering Mosque. Guest speaker: Sheikh Abdullah. Time: 4pm."></textarea>
+                <button type="button" id="aiDraftBtn" class="btn-secondary" style="padding:0.4rem 1.2rem; margin-top:0.4rem; font-size:0.8rem;">
+                    <i class="fas fa-wand-magic-sparkles"></i> Generate Draft
+                </button>
+                <div class="help-text">AI will turn these bullet points into a polished event description.</div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_description">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <div class="error-text">{{ form.description.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Category + Location -->
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_category">Category</label>
+                {{ form.category }}
+                {% if form.category.errors %}
+                <div class="error-text">{{ form.category.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_location">Location <span class="required">*</span></label>
+                {{ form.location }}
+                {% if form.location.errors %}
+                <div class="error-text">{{ form.location.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Start + End datetime -->
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_start_datetime">Start Date/Time <span class="required">*</span></label>
+                {{ form.start_datetime }}
+                {% if form.start_datetime.errors %}
+                <div class="error-text">{{ form.start_datetime.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_end_datetime">End Date/Time <span class="required">*</span></label>
+                {{ form.end_datetime }}
+                {% if form.end_datetime.errors %}
+                <div class="error-text">{{ form.end_datetime.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Image -->
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_image">Image</label>
+                {{ form.image }}
+                <div class="help-text">Upload a banner image for the event.</div>
+                {% if form.image.errors %}
+                <div class="error-text">{{ form.image.errors }}</div>
+                {% endif %}
+                {% if form.instance.image %}
+                <div class="image-preview">
+                    <img src="{{ form.instance.image.url }}" alt="Current image">
+                    <div class="help-text" style="padding:0.3rem 0.6rem;">Current image</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ===== HERO LAYOUT (NEW) ===== -->
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_hero_layout">🎨 Hero Layout</label>
+                {{ form.hero_layout }}
+                <div class="help-text">
+                    <strong>Overlay</strong> — text appears on top of the image (best for dark, minimalist images that can serve as a backdrop).<br>
+                    <strong>Separate</strong> — image shown full-width, text below (best for busy, colorful, or text-heavy images).
+                </div>
+                {% if form.hero_layout.errors %}
+                <div class="error-text">{{ form.hero_layout.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Checkboxes -->
+        <div class="form-row">
+            <div class="form-group full" style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+                <div class="form-check-group">
+                    {{ form.is_featured }}
+                    <label for="id_is_featured">⭐ Featured</label>
+                </div>
+                <div class="form-check-group">
+                    {{ form.is_active }}
+                    <label for="id_is_active">✅ Active</label>
+                </div>
+                <div class="form-check-group">
+                    {{ form.send_email }}
+                    <label for="id_send_email">📧 Send Email Notification</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Errors -->
+        {% if form.non_field_errors %}
+        <div class="form-row">
+            <div class="form-group full">
+                {% for error in form.non_field_errors %}
+                <div class="error-text" style="background:#fdecea; padding:0.8rem 1rem; border-radius:8px; border-left:4px solid #e53e3e;">
+                    {{ error }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ===== LINKS SECTION ===== -->
+        <div class="form-row">
+            <div class="form-group full">
+                <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">🔗 Links</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+                    Add links to Zoom meetings, YouTube streams, registration pages, etc.
+                </p>
+
+                {{ formset.management_form }}
+                <div id="links-container">
+                    {% for link_form in formset %}
+                    <div class="link-item">
+                        {{ link_form.id }}
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; color: var(--text-muted);">URL</label>
+                            {{ link_form.url }}
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; color: var(--text-muted);">Type</label>
+                            {{ link_form.link_type }}
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; color: var(--text-muted);">Description</label>
+                            {{ link_form.description }}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; padding-top: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.3rem;">
+                                {{ link_form.is_primary }}
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-primary); cursor: pointer;">★ Primary</label>
+                            </div>
+                            {% if link_form.instance.pk %}
+                            <div style="display: flex; align-items: center; gap: 0.3rem;">
+                                {{ link_form.DELETE }}
+                                <label style="font-size: 0.7rem; font-weight: 600; color: #e53e3e; cursor: pointer;">Remove</label>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" id="add-link-btn" class="btn-secondary" style="padding: 0.3rem 1rem; font-size: 0.8rem; margin-top: 0.5rem;">
+                    <i class="fas fa-plus"></i> Add Link
+                </button>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">{{ button_text }}</button>
+            <a href="{% url 'events:event_admin_list' %}" class="btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // === Live slug generation ===
+    (function() {
+        const titleInput = document.getElementById('id_title');
+        const slugInput = document.getElementById('id_slug');
+        const slugPreview = document.getElementById('slugPreview');
+
+        function generateSlug(value) {
+            return value
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '');
+        }
+
+        function updateSlugPreview() {
+            if (slugInput.value) {
+                slugPreview.textContent = slugInput.value;
+            } else if (titleInput.value) {
+                slugPreview.textContent = generateSlug(titleInput.value) || 'auto-generated';
+            } else {
+                slugPreview.textContent = 'auto-generated';
+            }
+        }
+
+        titleInput.addEventListener('input', function() {
+            if (!slugInput.value) {
+                const generated = generateSlug(this.value);
+                slugInput.value = generated;
+                updateSlugPreview();
+            } else {
+                updateSlugPreview();
+            }
+        });
+
+        slugInput.addEventListener('input', updateSlugPreview);
+        updateSlugPreview();
+    })();
+
+    // === AI Draft ===
+    document.addEventListener('DOMContentLoaded', function() {
+        const draftBtn = document.getElementById('aiDraftBtn');
+        const bulletsInput = document.getElementById('ai_bullets');
+        const contentField = document.getElementById('id_description');
+
+        if (!draftBtn || !bulletsInput || !contentField) {
+            console.warn('AI draft elements not found.');
+            return;
+        }
+
+        draftBtn.addEventListener('click', function() {
+            const bullets = bulletsInput.value.trim();
+            if (!bullets) {
+                alert('Please enter some bullet points first.');
+                return;
+            }
+
+            draftBtn.disabled = true;
+            draftBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+            fetch('{% url "events:ai_draft_event" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'bullet_points=' + encodeURIComponent(bullets),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.draft) {
+                    contentField.value = data.draft;
+                } else if (data.error) {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Something went wrong. Check your API key.');
+                console.error(error);
+            })
+            .finally(() => {
+                draftBtn.disabled = false;
+                draftBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Generate Draft';
+            });
+        });
+    });
+
+    // === Dynamic "Add Link" ===
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('links-container');
+        const addBtn = document.getElementById('add-link-btn');
+        const totalForms = document.getElementById('id_eventlink_set-TOTAL_FORMS');
+
+        if (!addBtn || !container || !totalForms) return;
+
+        addBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const lastItem = container.querySelector('.link-item:last-child');
+            if (!lastItem) return;
+
+            const currentCount = parseInt(totalForms.value);
+            const newIndex = currentCount;
+            const newItem = lastItem.cloneNode(true);
+
+            // Clear values
+            newItem.querySelectorAll('input[type="text"], input[type="url"]').forEach(input => {
+                input.value = '';
+            });
+            newItem.querySelectorAll('select').forEach(select => {
+                select.selectedIndex = 0;
+            });
+            newItem.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+            // Clear id field
+            const idInput = newItem.querySelector('input[name$="-id"]');
+            if (idInput) idInput.value = '';
+
+            // Update indices
+            const regex = new RegExp('eventlink_set-(\\d+)-', 'g');
+            newItem.querySelectorAll('[name], [id]').forEach(el => {
+                if (el.name) el.name = el.name.replace(regex, `eventlink_set-${newIndex}-`);
+                if (el.id) el.id = el.id.replace(regex, `eventlink_set-${newIndex}-`);
+            });
+            newItem.querySelectorAll('label[for]').forEach(label => {
+                label.htmlFor = label.htmlFor.replace(regex, `eventlink_set-${newIndex}-`);
+            });
+
+            // Remove delete checkbox for new forms
+            const deleteCheck = newItem.querySelector('input[name$="-DELETE"]');
+            if (deleteCheck) {
+                const deleteContainer = deleteCheck.closest('div');
+                if (deleteContainer) deleteContainer.remove();
+            }
+
+            container.appendChild(newItem);
+            totalForms.value = newIndex + 1;
+        });
+    });
+</script>
+{% endblock %}

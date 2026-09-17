@@ -1,0 +1,1470 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0F3D2E">
+  <title>{% block title %}NAMETS · EXCO Dashboard{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Amiri:wght@400;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', 'DM Sans', sans-serif;
+      background: #f2f5f4;
+      color: #2d3748;
+      min-height: 100vh;
+    }
+    :root {
+      --primary: #0F3D2E;
+      --primary-dark: #0A2A1F;
+      --primary-light: #2D7D5A;
+      --gold: #C8A951;
+      --gold-light: #E0C96E;
+      --gold-dark: #B8943F;
+      --bg: #f2f5f4;
+      --card-bg: rgba(255,255,255,0.88);
+      --card-border: rgba(255,255,255,0.3);
+      --shadow-sm: 0 2px 12px rgba(0,0,0,0.04);
+      --shadow-md: 0 8px 32px rgba(0,0,0,0.08);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,0.12);
+      --text-primary: #0F3D2E;
+      --text-secondary: #2d3748;
+      --text-muted: #8a9b95;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --transition: all 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+
+    .dash-app { display: flex; min-height: 100vh; }
+
+    /* ----- Sidebar ----- */
+    .dash-sidebar {
+      width: 280px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--card-border);
+      padding: 1.5rem 0;
+      flex-shrink: 0;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      transition: transform 0.3s ease;
+    }
+    .sidebar-brand { text-align: center; padding: 0 1rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .sidebar-brand img { max-height: 60px; border-radius: 50%; border: 3px solid var(--gold); padding: 2px; }
+    .sidebar-brand span { display: block; font-weight: 700; font-size: 1.2rem; color: var(--text-primary); margin-top: 0.25rem; }
+    .sidebar-brand small { display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .sidebar-nav { flex: 1; padding: 1rem 0; }
+    .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
+
+    /* ---- Nav group headers ---- */
+    .nav-group-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      background: rgba(200,169,81,0.06);
+      border: none;
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-primary);
+      padding: 0.6rem 1.5rem 0.5rem;
+      font-weight: 700;
+      font-family: inherit;
+      transition: all 0.2s;
+      margin-top: 0.2rem;
+      border-radius: 0 8px 8px 0;
+    }
+    .nav-group-toggle:hover {
+      background: rgba(200,169,81,0.12);
+      border-left-color: var(--gold);
+    }
+    .nav-group-toggle i {
+      font-size: 0.9rem;
+      color: var(--gold);
+      width: 1.5rem;
+      text-align: center;
+    }
+    .nav-group-toggle .chev {
+      margin-left: auto;
+      transition: transform 0.25s ease;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .nav-group.collapsed .nav-group-toggle .chev {
+      transform: rotate(-90deg);
+    }
+    .nav-group-items {
+      max-height: 1400px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .nav-group.collapsed .nav-group-items { max-height: 0; }
+
+    /* Section label */
+    .nav-header {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 0.5rem 1.5rem 0.25rem;
+      font-weight: 700;
+      opacity: 0.6;
+      list-style: none;
+    }
+
+    .sidebar-nav li a {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.6rem 1.5rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: var(--transition);
+      border-left: 3px solid transparent;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    .sidebar-nav li a:hover,
+    .sidebar-nav li a.active {
+      background: rgba(200,169,81,0.08);
+      border-left-color: var(--gold);
+      color: var(--text-primary);
+    }
+    .sidebar-nav li a i { width: 1.5rem; text-align: center; font-size: 1.1rem; color: var(--gold); }
+    .sidebar-nav .nav-divider { height: 1px; background: rgba(0,0,0,0.05); margin: 0.75rem 1.5rem; }
+    .sidebar-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid rgba(0,0,0,0.05);
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .sidebar-footer .sidebar-clock { font-weight: 600; font-size: 1.1rem; color: var(--text-primary); }
+    .sidebar-footer .sidebar-date { font-size: 0.75rem; color: var(--text-muted); }
+    .sidebar-footer .sidebar-dua { margin-top: 0.5rem; font-style: italic; font-size: 0.8rem; color: var(--gold); }
+
+    /* ----- Sidebar overlay (mobile) ----- */
+    .dash-sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 42, 31, 0.45);
+      backdrop-filter: blur(2px);
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .dash-sidebar-overlay.show { display: block; opacity: 1; }
+
+    /* ----- Main content ----- */
+    .dash-main { flex: 1; padding: 0 2rem 2rem; overflow-x: hidden; min-height: 100vh; }
+
+    /* ----- Top bar ----- */
+    .dash-topbar {
+      display: flex; justify-content: flex-end; align-items: center;
+      padding: 0.75rem 0 1rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .dash-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; }
+    .dash-topbar-right { display: flex; align-items: center; gap: 1.25rem; }
+    .dash-topbar-clock {
+      font-weight: 600; color: var(--text-primary); font-size: 0.9rem;
+      background: var(--card-bg); padding: 0.3rem 1rem; border-radius: 30px;
+      border: 1px solid var(--card-border);
+    }
+    .dash-bell {
+      position: relative; color: var(--text-primary); font-size: 1.2rem;
+      transition: var(--transition); text-decoration: none;
+      padding: 0.35rem;
+      border-radius: 50%;
+    }
+    .dash-bell:hover {
+      color: var(--gold);
+      background: rgba(200,169,81,0.1);
+    }
+    .dash-bell-badge {
+      position: absolute; top: -2px; right: -4px;
+      background: var(--gold); color: #fff;
+      font-size: 0.6rem; font-weight: 700; border-radius: 50%;
+      padding: 0.1rem 0.35rem; min-width: 18px; text-align: center; line-height: 1.3;
+      box-shadow: 0 2px 6px rgba(200,169,81,0.4);
+    }
+    .dash-user { display: flex; align-items: center; gap: 0.75rem; }
+    .dash-user-name { font-weight: 600; color: var(--text-primary); font-size: 0.9rem; }
+    .dash-user-role {
+      font-size: 0.7rem; color: var(--text-muted);
+      background: rgba(200,169,81,0.12); padding: 0.15rem 0.7rem; border-radius: 20px;
+    }
+    .dash-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem;
+    }
+
+    /* ----- Office switcher ----- */
+    .office-switcher {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-sm);
+    }
+    .office-switcher .label {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .office-switcher select {
+      padding: 0.5rem 2rem 0.5rem 1rem;
+      border: 1px solid #e0e8e5;
+      border-radius: 50px;
+      background: #fff;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238a9b95' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.8rem center;
+      transition: var(--transition);
+    }
+    .office-switcher select:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(200,169,81,0.2);
+    }
+
+    /* ----- Duties section ----- */
+    .duties-section {
+      background: linear-gradient(135deg, #f8faf9 0%, #f0f4f2 100%);
+      border-left: 4px solid var(--gold);
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .duties-section::after {
+      content: "📋";
+      position: absolute; right: 1.5rem; top: 50%;
+      transform: translateY(-50%);
+      font-size: 3rem; opacity: 0.08;
+    }
+    .duties-section h4 {
+      margin: 0 0 0.4rem; color: var(--text-primary);
+      font-size: 0.9rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .duties-section ul { margin: 0; padding-left: 1.2rem; color: var(--text-secondary); line-height: 1.8; font-size: 0.9rem; }
+    .duties-section ul li::marker { color: var(--gold); }
+
+    /* ----- Quick actions ----- */
+    .quick-actions-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1rem 0 1.5rem; }
+    .quick-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 50px;
+      padding: 0.4rem 1.2rem;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 500;
+      font-size: 0.8rem;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .quick-btn:hover {
+      background: var(--gold);
+      color: #fff;
+      border-color: var(--gold);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ----- Recent activity ----- */
+    .recent-activity-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.04); }
+    .recent-activity-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .recent-activity-header h3 { color: var(--text-primary); margin: 0; font-size: 1.1rem; }
+    .view-all-link { color: var(--gold); text-decoration: none; font-weight: 500; }
+    .view-all-link:hover { text-decoration: underline; }
+    .activity-list { list-style: none; padding: 0; margin: 0; }
+    .activity-list li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.85rem; color: var(--text-secondary);
+      transition: var(--transition); flex-wrap: wrap; gap: 0.5rem;
+    }
+    .activity-list li:hover { background: rgba(200,169,81,0.05); padding-left: 0.5rem; border-radius: var(--radius-sm); }
+    .activity-list li:last-child { border-bottom: none; }
+    .activity-list .badge-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.5rem; }
+    .badge-dot.gold { background: var(--gold); }
+    .badge-dot.green { background: #38a169; }
+    .badge-dot.red { background: #e53e3e; }
+    .badge-dot.blue { background: #3182ce; }
+    .activity-list .time { color: var(--text-muted); font-size: 0.7rem; font-weight: 500; }
+
+    /* ============================================================
+       INLINE ALERTS
+       Each shows once per session, auto-dismisses after 4 seconds.
+       Click anywhere on the banner to dismiss manually.
+       ============================================================ */
+    .namets-inline-alerts {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      margin: 0 0 1.25rem;
+    }
+    .namets-alert {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      animation: nametsAlertIn 0.35s ease;
+      border-left: 4px solid transparent;
+      box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+      cursor: pointer;
+      user-select: none;
+      transition: box-shadow 0.2s ease;
+    }
+    .namets-alert:hover {
+      box-shadow: 0 6px 20px rgba(15,61,46,0.09);
+    }
+    @keyframes nametsAlertIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .namets-alert-icon {
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.5);
+    }
+    .namets-alert-text {
+      flex: 1; min-width: 0;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+    .namets-alert-close {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      width: 26px; height: 26px;
+      border-radius: 6px;
+      color: inherit;
+      opacity: 0.55;
+      font-size: 0.85rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .namets-alert-close:hover {
+      opacity: 1;
+      background: rgba(0,0,0,0.06);
+    }
+
+    .namets-alert-success {
+      background: #e8f2ec;
+      color: #1a6b3c;
+      border-left-color: #38a169;
+    }
+    .namets-alert-success .namets-alert-icon { color: #38a169; }
+
+    .namets-alert-error {
+      background: #fdecea;
+      color: #9b2c2c;
+      border-left-color: #dc3545;
+    }
+    .namets-alert-error .namets-alert-icon { color: #dc3545; }
+
+    .namets-alert-warning {
+      background: #fef3e8;
+      color: #a8671a;
+      border-left-color: #C8A951;
+    }
+    .namets-alert-warning .namets-alert-icon { color: #a8671a; }
+
+    .namets-alert-info,
+    .namets-alert-debug {
+      background: #e6f0fb;
+      color: #185fa5;
+      border-left-color: #4299e1;
+    }
+    .namets-alert-info .namets-alert-icon,
+    .namets-alert-debug .namets-alert-icon { color: #185fa5; }
+
+    /* ============ CONFIRM MODAL ============ */
+    .namets-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 42, 31, 0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+    .namets-modal-overlay.active { display: flex; }
+
+    .namets-modal {
+      background: #fff;
+      border-radius: 22px;
+      max-width: 460px;
+      width: 100%;
+      padding: 2rem 1.75rem 1.5rem;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      animation: nametsModalIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    @keyframes nametsModalIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .namets-modal-icon {
+      width: 68px; height: 68px; margin: 0 auto 1rem;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .namets-modal-icon.success  { background: #e8f2ec; color: #1a6b3c; }
+    .namets-modal-icon.error    { background: #fdecea; color: #9b2c2c; }
+    .namets-modal-icon.warning  { background: #fef3e8; color: #a8671a; }
+    .namets-modal-icon.info     { background: #e6f0fb; color: #185fa5; }
+    .namets-modal-icon.question { background: #f5e9c8; color: #8a6a1a; }
+
+    .namets-modal h3 {
+      color: #0F3D2E;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem;
+    }
+    .namets-modal p {
+      color: #5A5A5A;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      margin: 0 0 1.5rem;
+      word-break: break-word;
+    }
+    .namets-modal-actions {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .namets-btn {
+      padding: 0.7rem 1.75rem;
+      border: none;
+      border-radius: 50px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 110px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+    .namets-btn-primary {
+      background: #0F3D2E;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(15, 61, 46, 0.25);
+    }
+    .namets-btn-primary:hover {
+      background: #1a5a44;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(15, 61, 46, 0.35);
+    }
+    .namets-btn-danger {
+      background: #c0392b;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(192, 57, 43, 0.25);
+    }
+    .namets-btn-danger:hover {
+      background: #9b2c2c;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(192, 57, 43, 0.35);
+    }
+    .namets-btn-secondary {
+      background: #f0f4f2;
+      color: #0F3D2E;
+    }
+    .namets-btn-secondary:hover {
+      background: #e0e8e5;
+      transform: translateY(-2px);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .dash-sidebar {
+        position: fixed; left: -300px; top: 0; bottom: 0; width: 280px;
+        border-radius: 0; box-shadow: var(--shadow-lg);
+        transition: left 0.3s ease;
+      }
+      .dash-sidebar.open { left: 0; }
+      .dash-toggle { display: block; }
+      .dash-main { padding: 0 1rem 1rem; }
+      .dash-topbar-right { gap: 0.85rem; }
+      .dash-topbar-right .dash-user-name,
+      .dash-topbar-right .dash-user-role { display: none; }
+      .dash-topbar-clock { display: none; }
+      .office-switcher { flex-direction: column; align-items: stretch; padding: 1rem; }
+      .office-switcher select { width: 100%; }
+      .duties-section { padding: 0.8rem 1rem; }
+      .duties-section::after { display: none; }
+      .quick-actions-row { gap: 0.4rem; }
+      .quick-btn { font-size: 0.75rem; padding: 0.3rem 0.8rem; }
+      .namets-alert { padding: 0.65rem 0.85rem; font-size: 0.83rem; gap: 0.6rem; }
+      .namets-alert-icon { width: 24px; height: 24px; font-size: 0.85rem; }
+    }
+    @media (max-width: 480px) {
+      .namets-modal { padding: 1.5rem 1.25rem 1.25rem; }
+      .namets-modal-actions { flex-direction: column; }
+      .namets-btn { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="dash-app">
+
+  <div class="dash-sidebar-overlay" id="dashSidebarOverlay" aria-hidden="true"></div>
+
+  <!-- ====== SIDEBAR ====== -->
+  <aside class="dash-sidebar" id="dashSidebar">
+    <div class="sidebar-brand">
+      <img src="{% static 'images/Namets.jpg' %}" alt="NAMETS">
+      <span>NAMETS</span>
+      <small>EXCO Dashboard</small>
+    </div>
+
+{% url 'dashboards:dashboard' as dashboard_url %}
+{% url 'dashboards:inbox' as inbox_url %}
+{% url 'dashboards:messages' as messages_url %}
+
+<nav class="sidebar-nav">
+  <ul>
+    <!-- === DASHBOARD === -->
+    <li class="nav-header">Dashboard</li>
+    <li>
+      <a href="{{ dashboard_url }}" class="{% if request.path == dashboard_url %}active{% endif %}">
+        <i class="fas fa-th-large"></i> Home
+      </a>
+    </li>
+    <li>
+      <a href="{{ inbox_url }}" class="{% if request.path == inbox_url %}active{% endif %}">
+        <i class="fas fa-bell"></i> Notifications
+      </a>
+    </li>
+    <li>
+      <a href="{{ messages_url }}" class="{% if '/messages/' in request.path %}active{% endif %}">
+        <i class="fas fa-envelope"></i> Messages
+      </a>
+    </li>
+
+        <!-- === CONTENT === -->
+        {% if perms.communications.view_announcement or perms.events.view_event or perms.gallery.view_gallery or perms.communications.view_magazineissue or perms.communications.view_article %}
+        <li class="nav-group" data-nav-group="content">
+          <button type="button" class="nav-group-toggle">
+            <i class="fas fa-folder-open"></i> Content
+            <i class="fas fa-chevron-down chev"></i>
+          </button>
+          <ul class="nav-group-items">
+            {% if perms.communications.view_announcement %}
+            <li><a href="{% url 'communications:announcement_admin_list' %}" class="{% if request.path == '/communications/admin/announcements/' %}active{% endif %}"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+            {% endif %}
+            {% if perms.events.view_event %}
+            <li><a href="{% url 'events:event_admin_list' %}" class="{% if request.path == '/events/admin/' %}active{% endif %}"><i class="fas fa-calendar-alt"></i> Events</a></li>
+            {% endif %}
+            {% if perms.gallery.view_gallery %}
+            <li><a href="{% url 'gallery:admin_gallery_list' %}" class="{% if request.path == '/gallery/admin/' %}active{% endif %}"><i class="fas fa-images"></i> Gallery</a></li>
+            {% endif %}
+            {% if perms.communications.view_magazineissue %}
+            <li><a href="{% url 'communications:admin_magazine_list' %}" class="{% if request.path == '/communications/admin/magazines/' %}active{% endif %}"><i class="fas fa-book"></i> Magazines</a></li>
+            {% endif %}
+            {% if perms.communications.view_article %}
+            <li><a href="{% url 'communications:admin_article_list' %}" class="{% if request.path == '/communications/admin/articles/' %}active{% endif %}"><i class="fas fa-newspaper"></i> Articles</a></li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+
+        <!-- === COMMUNITY === -->
+        {% if perms.community.view_patron or perms.community.view_executive or perms.community.view_developer or perms.community.view_question or perms.community.view_tutorapplication or perms.community.view_membershipapplication %}
+        <li class="nav-group" data-nav-group="community">
+          <button type="button" class="nav-group-toggle">
+            <i class="fas fa-users"></i> Community
+            <i class="fas fa-chevron-down chev"></i>
+          </button>
+          <ul class="nav-group-items">
+            {% if perms.community.view_patron %}
+            <li><a href="{% url 'community:admin_patron_list' %}" class="{% if request.path == '/community/admin/patrons/' %}active{% endif %}"><i class="fas fa-users"></i> Patrons</a></li>
+            {% endif %}
+            {% if perms.community.view_executive %}
+            <li><a href="{% url 'community:admin_executive_list' %}" class="{% if request.path == '/community/admin/executives/' %}active{% endif %}"><i class="fas fa-user-tie"></i> Executives</a></li>
+            {% endif %}
+            {% if perms.community.view_developer %}
+            <li><a href="{% url 'community:admin_developer_list' %}" class="{% if request.path == '/community/admin/developers/' %}active{% endif %}"><i class="fas fa-code"></i> Developers</a></li>
+            {% endif %}
+            {% if perms.community.view_question %}
+            <li><a href="{% url 'community:admin_question_list' %}" class="{% if request.path == '/community/admin/questions/' %}active{% endif %}"><i class="fas fa-question-circle"></i> Questions</a></li>
+            {% endif %}
+            {% if perms.community.view_tutorapplication %}
+            <li><a href="{% url 'community:admin_tutor_application_list' %}" class="{% if request.path == '/community/admin/tutor-applications/' %}active{% endif %}"><i class="fas fa-chalkboard-teacher"></i> Tutor Apps</a></li>
+            {% endif %}
+            {% if perms.community.view_membershipapplication %}
+            <li><a href="{% url 'community:admin_membership_application_list' %}" class="{% if request.path == '/community/admin/membership-applications/' %}active{% endif %}"><i class="fas fa-user-plus"></i> Membership Apps</a></li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+
+        <!-- === COMMUNICATIONS === -->
+        {% if perms.communications.view_subscriber or perms.communications.view_prayerschedule or perms.communications.view_donationcampaign or perms.communications.view_mosqueinfo or perms.communications.can_send_broadcast or user.is_superuser %}
+        <li class="nav-group" data-nav-group="communications">
+          <button type="button" class="nav-group-toggle">
+            <i class="fas fa-bullhorn"></i> Communications
+            <i class="fas fa-chevron-down chev"></i>
+          </button>
+          <ul class="nav-group-items">
+            {% if perms.communications.view_subscriber %}
+            <li><a href="{% url 'communications:admin_subscriber_list' %}" class="{% if request.path == '/communications/admin/subscribers/' %}active{% endif %}"><i class="fas fa-envelope"></i> Subscribers</a></li>
+            {% endif %}
+            {% if perms.communications.view_prayerschedule %}
+            <li><a href="{% url 'communications:admin_prayer_list' %}" class="{% if request.path == '/communications/admin/prayer/' %}active{% endif %}"><i class="fas fa-clock"></i> Prayer Times</a></li>
+            {% endif %}
+            {% if perms.communications.view_donationcampaign %}
+            <li><a href="{% url 'communications:admin_donation_list' %}" class="{% if request.path == '/communications/admin/donations/' %}active{% endif %}"><i class="fas fa-hand-holding-heart"></i> Donations</a></li>
+            {% endif %}
+            {% if perms.communications.view_mosqueinfo %}
+            <li><a href="{% url 'communications:admin_mosque_edit' %}" class="{% if request.path == '/communications/admin/mosque/' %}active{% endif %}"><i class="fas fa-mosque"></i> Mosque Info</a></li>
+            {% endif %}
+            {% if perms.communications.can_send_broadcast or user.is_superuser %}
+            <li><a href="{% url 'communications:admin_broadcast' %}" class="{% if request.path == '/communications/admin/broadcast/' %}active{% endif %}"><i class="fas fa-broadcast-tower"></i> Broadcast</a></li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+
+        <!-- === BUSINESS === -->
+        {% if perms.business.view_transaction or perms.business.view_bankaccount or perms.business.view_equipmentitem or perms.business.view_shopitem or perms.business.view_booking or perms.business.view_freeclaim or perms.business.view_sellableform or perms.business.view_collectioncenter %}
+        <li class="nav-group" data-nav-group="business">
+          <button type="button" class="nav-group-toggle">
+            <i class="fas fa-briefcase"></i> Business
+            <i class="fas fa-chevron-down chev"></i>
+          </button>
+          <ul class="nav-group-items">
+            <li><a href="{% url 'business:dashboard' %}" class="{% if request.path == '/business/dashboard/' %}active{% endif %}"><i class="fas fa-chart-line"></i> Overview</a></li>
+            <li><a href="{% url 'business:admin_revenue_report' %}" class="{% if '/business/admin/revenue/' in request.path %}active{% endif %}"><i class="fas fa-chart-pie"></i> Revenue Report</a></li>
+            <li><a href="{% url 'business:admin_expense_report' %}" class="{% if '/business/admin/expenses/' in request.path %}active{% endif %}"><i class="fas fa-receipt"></i> Expenses</a></li>
+            {% if perms.business.view_bankaccount %}
+            <li><a href="{% url 'business:admin_bank_account_list' %}" class="{% if '/business/admin/bank-accounts/' in request.path %}active{% endif %}"><i class="fas fa-university"></i> Bank Accounts</a></li>
+            {% endif %}
+
+            {% if perms.business.view_transaction %}
+            <li><a href="{% url 'business:admin_transaction_list' %}" class="{% if '/business/admin/transactions/' in request.path %}active{% endif %}"><i class="fas fa-money-bill-wave"></i> Transactions</a></li>
+            {% endif %}
+
+            {% if perms.business.view_equipmentitem %}
+            <li><a href="{% url 'business:admin_equipment_list' %}" class="{% if '/business/admin/equipment/' in request.path %}active{% endif %}"><i class="fas fa-box"></i> Equipment</a></li>
+            {% endif %}
+
+            {% if perms.business.view_equipmentborrow %}
+            <li><a href="{% url 'business:admin_equipment_borrow_list' %}" class="{% if '/business/admin/equipment-borrows/' in request.path %}active{% endif %}"><i class="fas fa-hand-holding"></i> Equipment Borrows</a></li>
+            {% endif %}
+
+            {% if perms.business.view_shopitem %}
+            <li><a href="{% url 'business:admin_shop_list' %}" class="{% if request.path == '/business/admin/shop/' %}active{% endif %}"><i class="fas fa-shopping-bag"></i> Shop Items</a></li>
+            {% endif %}
+
+            {% if perms.business.view_shoporder %}
+            <li><a href="{% url 'business:admin_shop_order_list' %}" class="{% if '/business/admin/shop-orders/' in request.path %}active{% endif %}"><i class="fas fa-receipt"></i> Shop Orders</a></li>
+            {% endif %}
+
+            {% if perms.business.view_freeclaim %}
+            <li><a href="{% url 'business:admin_free_claim_list' %}" class="{% if '/business/admin/free-claims/' in request.path %}active{% endif %}"><i class="fas fa-gift"></i> Free Claims</a></li>
+            {% endif %}
+
+            {% if perms.business.view_sellableform %}
+            <li><a href="{% url 'business:admin_sellable_form_list' %}" class="{% if '/business/admin/sellable-forms/' in request.path %}active{% endif %}"><i class="fas fa-file-invoice"></i> Sellable Forms</a></li>
+            {% endif %}
+
+            {% if perms.business.view_formpurchase %}
+            <li><a href="{% url 'business:admin_form_purchase_list' %}" class="{% if '/business/admin/form-purchases/' in request.path %}active{% endif %}"><i class="fas fa-file-signature"></i> Form Purchases</a></li>
+            {% endif %}
+
+            {% if perms.business.change_booking or perms.business.view_booking %}
+            <li>
+              <a href="{% url 'business:admin_qr_scanner' %}"
+                class="{% if '/business/admin/qr-scanner/' in request.path %}active{% endif %}">
+                <i class="fas fa-qrcode"></i> QR Check-In
+              </a>
+            </li>
+            {% endif %}
+
+            {% if perms.business.view_bookinglisting %}
+            <li><a href="{% url 'business:admin_booking_listing_list' %}" class="{% if '/business/admin/booking-listings/' in request.path %}active{% endif %}"><i class="fas fa-calendar-check"></i> Booking Listings</a></li>
+            {% endif %}
+
+            {% if perms.business.view_booking %}
+            <li><a href="{% url 'business:admin_booking_list' %}" class="{% if '/business/admin/bookings/' in request.path %}active{% endif %}"><i class="fas fa-ticket-alt"></i> Bookings</a></li>
+            {% endif %}
+
+            {% if perms.business.view_collectioncenter %}
+            <li><a href="{% url 'business:admin_collection_center_list' %}" class="{% if '/business/admin/collection-centers/' in request.path %}active{% endif %}"><i class="fas fa-map-marker-alt"></i> Collection Centers</a></li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+
+        <!-- === ACADEMICS === -->
+        {% if perms.academics.view_course or perms.academics.view_islamiyyaregistration or perms.academics.view_userresourcesubmission or perms.academics.view_cbtcourse or perms.academics.view_questionbank %}
+        <li class="nav-group" data-nav-group="academics">
+          <button type="button" class="nav-group-toggle">
+            <i class="fas fa-graduation-cap"></i> Academics
+            <i class="fas fa-chevron-down chev"></i>
+          </button>
+          <ul class="nav-group-items">
+            <li><a href="{% url 'academics:admin_dashboard' %}" class="{% if request.path == '/academics/admin/' %}active{% endif %}"><i class="fas fa-chart-line"></i> Overview</a></li>
+
+            {% if perms.academics.view_course %}
+            <li><a href="{% url 'academics:admin_course_list' %}" class="{% if '/academics/admin/courses/' in request.path %}active{% endif %}"><i class="fas fa-book"></i> Courses</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_tutor %}
+            <li><a href="{% url 'academics:admin_tutor_list' %}" class="{% if '/academics/admin/tutors/' in request.path %}active{% endif %}"><i class="fas fa-user-tie"></i> Tutors</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_session %}
+            <li><a href="{% url 'academics:admin_session_list' %}" class="{% if '/academics/admin/sessions/' in request.path %}active{% endif %}"><i class="fas fa-calendar-day"></i> Sessions</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_material %}
+            <li><a href="{% url 'academics:admin_material_list' %}" class="{% if '/academics/admin/materials/' in request.path %}active{% endif %}"><i class="fas fa-file-alt"></i> Materials</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_evaluation %}
+            <li><a href="{% url 'academics:admin_evaluation_list' %}" class="{% if '/academics/admin/evaluations/' in request.path %}active{% endif %}"><i class="fas fa-file-signature"></i> Exams</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_result %}
+            <li><a href="{% url 'academics:admin_result_list' %}" class="{% if '/academics/admin/results/' in request.path %}active{% endif %}"><i class="fas fa-clipboard-list"></i> Results</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_timetableentry %}
+            <li><a href="{% url 'academics:admin_timetable_list' %}" class="{% if '/academics/admin/timetable/' in request.path %}active{% endif %}"><i class="fas fa-table"></i> Timetable</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_islamiyyaregistration or perms.academics.view_islamiyyasettings or perms.academics.view_islamiyyacourse %}
+            <li style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);padding:0.6rem 1.5rem 0.25rem;font-weight:700;opacity:0.6;">🕌 Islamiyya</li>
+            {% endif %}
+
+            {% if perms.academics.view_islamiyyaregistration %}
+            <li><a href="{% url 'academics:admin_islamiyya_verification_queue' %}" class="{% if '/academics/admin/islamiyya/queue/' in request.path %}active{% endif %}"><i class="fas fa-clipboard-check"></i> Verification Queue</a></li>
+            <li><a href="{% url 'academics:admin_islamiyya_registration_list' %}" class="{% if request.path == '/academics/admin/islamiyya/' %}active{% endif %}"><i class="fas fa-users"></i> Registrations</a></li>
+            <li><a href="{% url 'academics:admin_islamiyya_analytics' %}" class="{% if '/academics/admin/islamiyya/analytics/' in request.path %}active{% endif %}"><i class="fas fa-chart-pie"></i> Analytics</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_islamiyyacourse %}
+            <li><a href="{% url 'academics:admin_islamiyya_course_list' %}" class="{% if '/academics/admin/islamiyya-courses/' in request.path %}active{% endif %}"><i class="fas fa-quran"></i> Islamiyya Courses</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_islamiyyasettings %}
+            <li><a href="{% url 'academics:admin_islamiyya_settings_list' %}" class="{% if '/academics/admin/islamiyya-settings/' in request.path %}active{% endif %}"><i class="fas fa-cog"></i> Session Settings</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_userresourcesubmission or perms.academics.view_tutorevaluation or perms.academics.view_competitionresult or perms.academics.view_attendancesession %}
+            <li class="nav-divider"></li>
+            {% endif %}
+
+            {% if perms.academics.view_userresourcesubmission %}
+            <li><a href="{% url 'academics:admin_resource_list' %}" class="{% if '/academics/admin/resources/' in request.path %}active{% endif %}"><i class="fas fa-inbox"></i> Resources</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_tutorevaluation %}
+            <li><a href="{% url 'academics:admin_tutor_evaluation_list' %}" class="{% if '/academics/admin/tutor-evaluations/' in request.path %}active{% endif %}"><i class="fas fa-star"></i> Tutor Evaluations</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_competitionresult %}
+            <li><a href="{% url 'academics:admin_competition_list' %}" class="{% if '/academics/admin/competition/' in request.path %}active{% endif %}"><i class="fas fa-trophy"></i> Competition Results</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_attendancesession %}
+            <li><a href="{% url 'academics:admin_attendance_list' %}" class="{% if '/academics/admin/attendance/' in request.path %}active{% endif %}"><i class="fas fa-user-check"></i> Attendance</a></li>
+            {% endif %}
+
+            {% if perms.academics.view_cbtcourse or perms.academics.view_questionbank %}
+            <li style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);padding:0.6rem 1.5rem 0.25rem;font-weight:700;opacity:0.6;">🧠 CBT</li>
+            <li><a href="{% url 'academics:admin_cbt_dashboard' %}" class="{% if request.path == '/academics/admin/cbt/' %}active{% endif %}"><i class="fas fa-brain"></i> CBT Dashboard</a></li>
+            {% if perms.academics.view_cbtcourse %}
+            <li><a href="{% url 'academics:admin_cbt_course_list' %}" class="{% if '/academics/admin/cbt/courses/' in request.path %}active{% endif %}"><i class="fas fa-book-open"></i> CBT Courses</a></li>
+            {% endif %}
+            {% if perms.academics.view_questionbank %}
+            <li><a href="{% url 'academics:admin_question_list' %}" class="{% if '/academics/admin/cbt/questions/' in request.path %}active{% endif %}"><i class="fas fa-question-circle"></i> Question Bank</a></li>
+            {% endif %}
+            {% endif %}
+
+            {% if perms.academics.change_course or user.is_superuser %}
+            <li class="nav-divider"></li>
+            <li><a href="{% url 'academics:admin_academics_settings' %}" class="{% if '/academics/admin/settings/' in request.path %}active{% endif %}"><i class="fas fa-sliders-h"></i> Academics Settings</a></li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+
+        <!-- === LIBRARY === -->
+        <li class="nav-group" data-nav-group="library">
+          <button type="button" class="nav-group-toggle">
+            <i class="fas fa-book"></i> Library
+            <i class="fas fa-chevron-down chev"></i>
+          </button>
+          <ul class="nav-group-items">
+            <li>
+              <a href="{% url 'academics:library_home' %}"
+                class="{% if request.path == '/academics/library/' %}active{% endif %}">
+                <i class="fas fa-book-open"></i> Browse Library
+              </a>
+            </li>
+
+            {% if user.is_staff or user.is_superuser or user.office_assignments.exists %}
+            <li>
+              <a href="{% url 'academics:library_manage' %}"
+                class="{% if '/academics/library/manage/' in request.path and 'new' not in request.path and 'categories' not in request.path and 'borrowers' not in request.path and '/edit/' not in request.path %}active{% endif %}">
+                <i class="fas fa-tasks"></i> Manage Library
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'academics:library_book_create' %}"
+                class="{% if 'library/manage/new' in request.path %}active{% endif %}">
+                <i class="fas fa-plus-circle"></i> Add Book
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'academics:library_category_manage' %}"
+                class="{% if 'library/manage/categories' in request.path %}active{% endif %}">
+                <i class="fas fa-tags"></i> Categories
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </li>
+
+        <!-- === MANAGEMENT === -->
+        {% if perms.lostfound.view_item or perms.community.view_socialmedialink or perms.community.view_contactphone or perms.community.view_nametsdocument or perms.community.view_skill or perms.accounts.view_user or perms.ict.view_user %}
+        <li class="nav-group" data-nav-group="management">
+          <button type="button" class="nav-group-toggle">
+            <i class="fas fa-cogs"></i> Management
+            <i class="fas fa-chevron-down chev"></i>
+          </button>
+          <ul class="nav-group-items">
+            {% if perms.lostfound.view_item %}
+            <li><a href="{% url 'lostfound:admin_item_list' %}" class="{% if request.path == '/lostfound/admin/' %}active{% endif %}"><i class="fas fa-search"></i> Lost & Found</a></li>
+            {% endif %}
+            {% if perms.community.view_socialmedialink %}
+            <li><a href="{% url 'community:admin_social_link_list' %}" class="{% if request.path == '/community/admin/social-links/' %}active{% endif %}"><i class="fas fa-share-alt"></i> Social Links</a></li>
+            {% endif %}
+            {% if perms.community.view_contactphone %}
+            <li><a href="{% url 'community:admin_contact_phone_list' %}" class="{% if request.path == '/community/admin/contact-phones/' %}active{% endif %}"><i class="fas fa-phone"></i> Contact Phones</a></li>
+            {% endif %}
+            {% if perms.community.view_nametsdocument %}
+            <li><a href="{% url 'community:admin_document_list' %}" class="{% if request.path == '/community/admin/documents/' %}active{% endif %}"><i class="fas fa-file-pdf"></i> Documents</a></li>
+            {% endif %}
+            {% if perms.community.view_skill %}
+            <li><a href="{% url 'community:admin_skill_list' %}" class="{% if request.path == '/community/admin/skills/' %}active{% endif %}"><i class="fas fa-tools"></i> Skills</a></li>
+            {% endif %}
+            {% if perms.accounts.view_user or perms.ict.view_user %}
+            <li><a href="{% url 'ict:user_list' %}" class="{% if request.path == '/ict/users/' %}active{% endif %}"><i class="fas fa-users-cog"></i> User Management</a></li>
+            <li><a href="{% url 'ict:email_logs' %}" class="{% if request.path == '/ict/email-logs/' %}active{% endif %}"><i class="fas fa-envelope"></i> Email Logs</a></li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+
+
+        <!-- === GOVERNANCE === -->
+        {% if perms.governance.view_task or perms.governance.view_proposal or perms.governance.view_auditlog or perms.governance.view_nominationintake or perms.governance.view_selectionrecord or perms.governance.view_oathacknowledgment or perms.governance.view_graduationprofile or perms.accounts.change_office or user.is_superuser %}
+        <li class="nav-group" data-nav-group="governance">
+          <button type="button" class="nav-group-toggle">
+            <i class="fas fa-landmark"></i> Governance
+            <i class="fas fa-chevron-down chev"></i>
+          </button>
+          <ul class="nav-group-items">
+            {% if perms.governance.view_task %}
+            <li><a href="{% url 'governance:dashboard' %}" class="{% if request.path == '/governance/' %}active{% endif %}"><i class="fas fa-chart-line"></i> Overview</a></li>
+            {% endif %}
+
+            {% if perms.governance.view_task %}
+            <li><a href="{% url 'governance:task_list' %}" class="{% if '/governance/tasks/' in request.path %}active{% endif %}"><i class="fas fa-list-check"></i> Tasks</a></li>
+            {% endif %}
+
+            {% if perms.governance.view_proposal %}
+            <li><a href="{% url 'governance:proposal_list' %}" class="{% if '/governance/proposals/' in request.path %}active{% endif %}"><i class="fas fa-gavel"></i> Proposals &amp; Voting</a></li>
+            {% endif %}
+
+            {% if perms.governance.view_auditlog %}
+            <li><a href="{% url 'governance:audit_list' %}" class="{% if '/governance/audit/' in request.path %}active{% endif %}"><i class="fas fa-history"></i> Audit Log</a></li>
+            {% endif %}
+
+            {% if perms.governance.view_nominationintake or perms.governance.view_selectionrecord or perms.governance.view_oathacknowledgment %}
+            <li style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);padding:0.6rem 1.5rem 0.25rem;font-weight:700;opacity:0.6;">🕌 Shura</li>
+            {% endif %}
+
+            {% if perms.governance.view_nominationintake %}
+            <li><a href="{% url 'governance:nomination_list' %}" class="{% if '/governance/nominations/' in request.path %}active{% endif %}"><i class="fas fa-user-plus"></i> Nominations</a></li>
+            {% endif %}
+
+            {% if perms.governance.view_selectionrecord %}
+            <li><a href="{% url 'governance:selection_list' %}" class="{% if '/governance/selections/' in request.path %}active{% endif %}"><i class="fas fa-scroll"></i> Selection Records</a></li>
+            {% endif %}
+
+            {% if perms.governance.view_oathacknowledgment %}
+            <li><a href="{% url 'governance:oath_list' %}" class="{% if '/governance/oaths/' in request.path %}active{% endif %}"><i class="fas fa-handshake"></i> Oaths</a></li>
+            {% endif %}
+
+            {% if perms.governance.view_graduationprofile or perms.accounts.change_office %}
+            <li class="nav-divider"></li>
+            {% endif %}
+
+            {% if perms.governance.view_graduationprofile %}
+            <li><a href="{% url 'governance:graduation_list' %}" class="{% if '/governance/graduation/' in request.path %}active{% endif %}"><i class="fas fa-graduation-cap"></i> Alumni</a></li>
+            {% endif %}
+
+            {% if perms.accounts.change_office %}
+            <li><a href="{% url 'governance:office_list' %}" class="{% if '/governance/offices/' in request.path %}active{% endif %}"><i class="fas fa-building"></i> Offices</a></li>
+            <li><a href="{% url 'governance:user_office_assignment' %}" class="{% if '/governance/assignments/' in request.path %}active{% endif %}"><i class="fas fa-user-tag"></i> Assignments</a></li>
+            {% endif %}
+
+            {% if user.is_superuser or perms.auth.change_user or perms.accounts.change_user %}
+            <li><a href="{% url 'governance:user_list' %}" class="{% if '/governance/users/' in request.path %}active{% endif %}"><i class="fas fa-users-cog"></i> User Management</a></li>
+            {% endif %}
+            {% if user.is_superuser or perms.auth.change_group %}
+            <li><a href="{% url 'governance:group_list' %}" class="{% if '/governance/groups/' in request.path %}active{% endif %}"><i class="fas fa-key"></i> Groups</a></li>
+            {% endif %}
+
+
+            {% if perms.governance.change_task or perms.governance.view_auditlog %}
+            <li><a href="{% url 'governance:delegation_home' %}" class="{% if '/governance/delegation/' in request.path %}active{% endif %}"><i class="fas fa-user-shield"></i> Delegation</a></li>
+            {% endif %}
+
+            {% if perms.governance.view_auditlog %}
+            <li class="nav-divider"></li>
+            <li><a href="{% url 'governance:handover_confirm' %}" class="{% if '/governance/handover/' in request.path %}active{% endif %}"><i class="fas fa-exchange-alt"></i> Handover</a></li>
+            <li><a href="{% url 'governance:handover_history' %}" class="{% if '/governance/handover/history/' in request.path %}active{% endif %}"><i class="fas fa-book"></i> Handover History</a></li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+
+        {% if user.is_alumni %}
+        <li class="nav-group" data-nav-group="alumni">
+          <button type="button" class="nav-group-toggle">
+            <i class="fas fa-user-graduate"></i> Alumni
+            <i class="fas fa-chevron-down chev"></i>
+          </button>
+          <ul class="nav-group-items">
+            <li>
+              <a href="{% url 'dashboards:alumni_dashboard' %}"
+                class="{% if '/alumni/' in request.path and 'directory' not in request.path %}active{% endif %}">
+                <i class="fas fa-home"></i> Alumni Home
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'dashboards:alumni_directory' %}"
+                class="{% if '/directory/' in request.path %}active{% endif %}">
+                <i class="fas fa-address-book"></i> Contact Directory
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'accounts:profile_update' %}">
+                <i class="fas fa-user-circle"></i> My Profile
+              </a>
+            </li>
+          </ul>
+        </li>
+        {% endif %}
+
+
+        {% if perms.governance.view_graduationprofile %}
+        <li>
+          <a href="{% url 'governance:graduation_list' %}"
+            class="{% if '/governance/graduation/' in request.path %}active{% endif %}">
+            <i class="fas fa-graduation-cap"></i> Alumni
+          </a>
+        </li>
+        {% endif %}
+        <li>
+          <a href="{% url 'governance:session_document_list' %}"
+            class="{% if '/governance/sessions/' in request.path %}active{% endif %}">
+            <i class="fas fa-book-open"></i> Session Archives
+          </a>
+        </li>
+        {% if perms.governance.add_sessiondocument or perms.governance.change_sessiondocument or user.is_superuser %}
+        <li>
+          <a href="{% url 'governance:session_document_manage' %}"
+            class="{% if '/governance/sessions/manage/' in request.path %}active{% endif %}">
+            <i class="fas fa-tasks"></i> Manage Archives
+          </a>
+        </li>
+        {% endif %}
+
+
+        <!-- === SETTINGS === -->
+        {% if perms.community.change_aboutpage or user.is_superuser or perms.core.change_sitesettings %}
+        <li class="nav-group" data-nav-group="settings">
+          <button type="button" class="nav-group-toggle">
+            <i class="fas fa-sliders-h"></i> Settings
+            <i class="fas fa-chevron-down chev"></i>
+          </button>
+          <ul class="nav-group-items">
+            {% if perms.core.change_sitesettings or user.is_superuser %}
+            <li><a href="{% url 'core:site_settings' %}" class="{% if request.path == '/core/settings/' %}active{% endif %}"><i class="fas fa-cog"></i> Site Settings</a></li>
+            {% endif %}
+            {% if perms.core.add_heroslide or perms.core.change_heroslide or user.is_superuser %}
+            <li>
+              <a href="{% url 'core:hero_slide_list' %}"
+                class="{% if '/core/admin/hero-slides/' in request.path %}active{% endif %}">
+                <i class="fas fa-images"></i> Hero Slides
+              </a>
+            </li>
+            {% endif %}
+            {% if perms.community.change_aboutpage %}
+            <li><a href="{% url 'community:admin_about_edit' %}" class="{% if request.path == '/community/admin/about/' %}active{% endif %}"><i class="fas fa-info-circle"></i> About Page</a></li>
+            {% endif %}
+            {% if user.is_superuser %}
+            <li><a href="{% url 'admin:index' %}" class="{% if request.path|slice:':7' == '/admin/' %}active{% endif %}"><i class="fas fa-cogs"></i> Django Admin</a></li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+
+        <li class="nav-divider"></li>
+        <li><a href="{% url 'accounts:profile_update' %}" class="{% if request.path == '/accounts/profile/' %}active{% endif %}"><i class="fas fa-user-circle"></i> Profile</a></li>
+        <li><a href="{% url 'accounts:logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-clock" id="sidebarClock"></div>
+      <div class="sidebar-date" id="sidebarDate"></div>
+      <div class="sidebar-dua">🤲 May Allah bless our efforts.</div>
+    </div>
+  </aside>
+
+  <!-- ====== MAIN CONTENT ====== -->
+  <main class="dash-main">
+
+    <header class="dash-topbar">
+      <button class="dash-toggle" id="dashToggle" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="dashSidebar">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="dash-topbar-right">
+        <span class="dash-topbar-clock" id="topbarClock">--:--:--</span>
+
+        {# ---- Notifications bell ---- #}
+        <a href="{% url 'dashboards:inbox' %}" class="dash-bell" id="dashBell" title="Notifications">
+          <i class="fas fa-bell"></i>
+          <span class="dash-bell-badge" id="bellBadge" style="display:none;">0</span>
+        </a>
+
+        {# ---- Messages envelope ---- #}
+        <a href="{% url 'dashboards:messages' %}" class="dash-bell" id="dashMsgBell" title="Messages">
+          <i class="fas fa-envelope"></i>
+          <span class="dash-bell-badge" id="msgBadge" style="display:none;">0</span>
+        </a>
+
+        <div class="dash-user">
+          <span class="dash-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+          <span class="dash-user-role">
+            {% if assignment %}
+              {{ assignment.display_label|default:assignment.office.name }}
+            {% else %}
+              Member
+            {% endif %}
+          </span>
+          <div class="dash-avatar">
+            {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    {# ============ INLINE ALERTS ============ #}
+    {# Each alert carries a data-fingerprint so JS can ensure it only shows once per session. #}
+    {% if messages %}
+    <div class="namets-inline-alerts">
+        {% for message in messages %}
+        {% with tag=message.tags|default:'info' %}
+        <div class="namets-alert namets-alert-{{ tag|cut:' ' }}"
+             data-fp="{{ tag|cut:' ' }}::{{ message|escapejs }}"
+             role="alert">
+            <div class="namets-alert-icon">
+                {% if 'success' in tag %}<i class="fas fa-check-circle"></i>
+                {% elif 'error' in tag %}<i class="fas fa-times-circle"></i>
+                {% elif 'warning' in tag %}<i class="fas fa-exclamation-triangle"></i>
+                {% else %}<i class="fas fa-info-circle"></i>
+                {% endif %}
+            </div>
+            <div class="namets-alert-text">{{ message }}</div>
+            <button type="button" class="namets-alert-close" aria-label="Dismiss">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        {% endwith %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ====== PAGE CONTENT ====== -->
+    <div class="dash-content">
+      {% block dash_content %}{% endblock %}
+    </div>
+
+    <footer class="dash-footer" style="margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(0,0,0,0.04);text-align:center;font-size:0.8rem;color:var(--text-muted);">
+      <p>&copy; {% now "Y" %} NAMETS — Technology for Creative Islamic Life</p>
+    </footer>
+  </main>
+</div>
+
+
+<!-- ============ CONFIRM MODAL ============ -->
+<div class="namets-modal-overlay" id="nametsConfirmModal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="namets-modal">
+    <div class="namets-modal-icon question" id="nametsConfirmIcon">?</div>
+    <h3 id="nametsConfirmTitle">Confirm</h3>
+    <p id="nametsConfirmText">Are you sure?</p>
+    <div class="namets-modal-actions">
+      <button type="button" class="namets-btn namets-btn-secondary" id="nametsConfirmCancel">Cancel</button>
+      <button type="button" class="namets-btn namets-btn-primary" id="nametsConfirmOk">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ============================================================
+    // INLINE ALERTS — show once per session, auto-dismiss in 4s
+    // ============================================================
+    const ALERTS_STORAGE_KEY = 'namets_shown_alerts_v1';
+    const ALERT_LIFETIME_MS = 4000;
+    const MAX_REMEMBERED = 100;
+
+    // Load fingerprints we've already shown this session
+    let shownFingerprints = [];
+    try {
+      shownFingerprints = JSON.parse(sessionStorage.getItem(ALERTS_STORAGE_KEY) || '[]');
+      if (!Array.isArray(shownFingerprints)) shownFingerprints = [];
+    } catch (e) {
+      shownFingerprints = [];
+    }
+
+    function rememberFingerprint(fp) {
+      if (!fp) return;
+      shownFingerprints.push(fp);
+      // Keep only the last N to avoid unbounded growth
+      if (shownFingerprints.length > MAX_REMEMBERED) {
+        shownFingerprints = shownFingerprints.slice(-MAX_REMEMBERED);
+      }
+      try {
+        sessionStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(shownFingerprints));
+      } catch (e) { /* quota errors — ignore */ }
+    }
+
+    function fingerprintFor(el) {
+      // Prefer explicit data-fp from server; fall back to building one
+      let fp = el.getAttribute('data-fp');
+      if (fp) return fp.trim();
+
+      const text = (el.querySelector('.namets-alert-text')?.textContent || '').trim();
+      const tagClass = Array.from(el.classList).find(
+        c => c.startsWith('namets-alert-') && c !== 'namets-alert-close'
+      ) || 'namets-alert-info';
+      return tagClass + '::' + text.slice(0, 200);
+    }
+
+    function fadeOutAlert(el) {
+      if (!el || el.dataset.fading === '1') return;
+      el.dataset.fading = '1';
+      el.style.transition = 'opacity 0.35s, transform 0.35s, max-height 0.35s, margin 0.35s, padding 0.35s';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(-6px)';
+      el.style.maxHeight = '0';
+      el.style.marginTop = '0';
+      el.style.marginBottom = '0';
+      el.style.paddingTop = '0';
+      el.style.paddingBottom = '0';
+      setTimeout(() => el.remove(), 400);
+    }
+
+    function handleAlert(el) {
+      const fp = fingerprintFor(el);
+
+      // Already shown in this session? Remove immediately, no flash
+      if (shownFingerprints.includes(fp)) {
+        el.remove();
+        return;
+      }
+
+      // Mark as shown and start the 4-second dismiss timer
+      rememberFingerprint(fp);
+      setTimeout(() => fadeOutAlert(el), ALERT_LIFETIME_MS);
+    }
+
+    // Process server-rendered alerts on load
+    document.querySelectorAll('.namets-alert').forEach(handleAlert);
+
+    // Click anywhere on the banner dismisses it (bigger hit target than just the ✕)
+    document.addEventListener('click', function(e) {
+      const alertEl = e.target.closest('.namets-alert');
+      if (!alertEl) return;
+      // Ignore if user clicked a link inside (future-proofing)
+      if (e.target.closest('a')) return;
+      fadeOutAlert(alertEl);
+    });
+
+    // ============================================================
+    // GLOBAL CONFIRM MODAL
+    // ============================================================
+    const cModal   = document.getElementById('nametsConfirmModal');
+    const cIcon    = document.getElementById('nametsConfirmIcon');
+    const cTitle   = document.getElementById('nametsConfirmTitle');
+    const cText    = document.getElementById('nametsConfirmText');
+    const cOk      = document.getElementById('nametsConfirmOk');
+    const cCancel  = document.getElementById('nametsConfirmCancel');
+    let confirmResolve = null;
+
+    function closeConfirm(result) {
+      cModal.classList.remove('active');
+      cModal.setAttribute('aria-hidden', 'true');
+      if (confirmResolve) { confirmResolve(result); confirmResolve = null; }
+    }
+    cOk.addEventListener('click', function() { closeConfirm(true); });
+    cCancel.addEventListener('click', function() { closeConfirm(false); });
+    cModal.addEventListener('click', function(e) {
+      if (e.target === cModal) closeConfirm(false);
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (!cModal.classList.contains('active')) return;
+      if (e.key === 'Escape') closeConfirm(false);
+      if (e.key === 'Enter')  closeConfirm(true);
+    });
+
+    // ============================================================
+    // PUBLIC API
+    // ============================================================
+    window.NAMETS = window.NAMETS || {};
+
+    // NAMETS.notify('Saved!', 'success') — inline banner, once, 4s lifetime
+    window.NAMETS.notify = function(text, type) {
+      let container = document.querySelector('.namets-inline-alerts');
+      if (!container) {
+        container = document.createElement('div');
+        container.className = 'namets-inline-alerts';
+        const content = document.querySelector('.dash-content');
+        if (content && content.parentNode) {
+          content.parentNode.insertBefore(container, content);
+        } else {
+          document.body.prepend(container);
+        }
+      }
+
+      const tag = (type || 'info').split(' ')[0];
+      const fp = tag + '::' + String(text).slice(0, 200);
+
+      // If we've already shown this exact message this session, skip silently
+      if (shownFingerprints.includes(fp)) return;
+
+      const el = document.createElement('div');
+      el.className = 'namets-alert namets-alert-' + tag;
+      el.setAttribute('data-fp', fp);
+      el.setAttribute('role', 'alert');
+      el.innerHTML =
+        '<div class="namets-alert-icon">' +
+          (tag === 'success' ? '<i class="fas fa-check-circle"></i>' :
+           tag === 'error'   ? '<i class="fas fa-times-circle"></i>' :
+           tag === 'warning' ? '<i class="fas fa-exclamation-triangle"></i>' :
+                               '<i class="fas fa-info-circle"></i>') +
+        '</div>' +
+        '<div class="namets-alert-text"></div>' +
+        '<button type="button" class="namets-alert-close" aria-label="Dismiss"><i class="fas fa-times"></i></button>';
+
+      el.querySelector('.namets-alert-text').textContent = text;
+      container.appendChild(el);
+
+      handleAlert(el);
+    };
+
+    // NAMETS.confirm({ title, message, danger, ... })
+    window.NAMETS.confirm = function(opts) {
+      opts = opts || {};
+      return new Promise(function(resolve) {
+        confirmResolve = resolve;
+        const isDanger = !!opts.danger;
+        cIcon.className = 'namets-modal-icon ' + (isDanger ? 'error' : 'question');
+        cIcon.textContent = isDanger ? '!' : '?';
+        cTitle.textContent = opts.title || 'Confirm';
+        cText.textContent = opts.message || 'Are you sure?';
+        cOk.textContent = opts.confirmText || 'Confirm';
+        cCancel.textContent = opts.cancelText || 'Cancel';
+        cOk.className = 'namets-btn ' + (isDanger ? 'namets-btn-danger' : 'namets-btn-primary');
+        cModal.classList.add('active');
+        cModal.setAttribute('aria-hidden', 'false');
+      });
+    };
+
+    // ============================================================
+    // SIDEBAR
+    // ============================================================
+    const sidebar  = document.getElementById('dashSidebar');
+    const toggle   = document.getElementById('dashToggle');
+    const overlay  = document.getElementById('dashSidebarOverlay');
+
+    function openSidebar() {
+      sidebar.classList.add('open');
+      overlay.classList.add('show');
+      toggle.setAttribute('aria-expanded', 'true');
+    }
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('show');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    toggle.addEventListener('click', function() {
+      sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
+    overlay.addEventListener('click', closeSidebar);
+    document.addEventListener('click', function(e) {
+      if (window.innerWidth <= 768 && sidebar.classList.contains('open') &&
+          !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        closeSidebar();
+      }
+    });
+
+    // ── Clocks ──
+    function updateClocks() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString();
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+      const topEl = document.getElementById('topbarClock');
+      const clockEl = document.getElementById('sidebarClock');
+      const dateEl = document.getElementById('sidebarDate');
+      if (topEl) topEl.textContent = timeStr;
+      if (clockEl) clockEl.textContent = timeStr;
+      if (dateEl) dateEl.textContent = dateStr;
+    }
+    updateClocks();
+    setInterval(updateClocks, 1000);
+
+    // ── Collapsible sidebar nav groups, state persisted per-browser ──
+    document.querySelectorAll('.nav-group').forEach(function(group) {
+      const key = 'nametsNavGroup_' + group.dataset.navGroup;
+      const toggleBtn = group.querySelector('.nav-group-toggle');
+      if (!toggleBtn) return;
+      const isCollapsed = localStorage.getItem(key) === 'collapsed';
+      if (isCollapsed) group.classList.add('collapsed');
+
+      toggleBtn.addEventListener('click', function() {
+        group.classList.toggle('collapsed');
+        localStorage.setItem(key, group.classList.contains('collapsed') ? 'collapsed' : 'open');
+      });
+    });
+  })();
+
+  // ============================================================
+  // UNREAD BADGES — notifications (bell) & messages (envelope)
+  // ============================================================
+  function updateNotificationBadge() {
+    if (document.visibilityState !== 'visible') return;
+    const badge = document.getElementById('bellBadge');
+    if (!badge) return;
+    fetch("{% url 'dashboards:unread_count_api' %}")
+      .then(r => r.json())
+      .then(data => {
+        if (data.count > 0) {
+          badge.textContent = data.count;
+          badge.style.display = 'block';
+        } else {
+          badge.style.display = 'none';
+        }
+      })
+      .catch(() => {});
+  }
+
+  function updateMessageBadge() {
+    if (document.visibilityState !== 'visible') return;
+    const badge = document.getElementById('msgBadge');
+    if (!badge) return;
+    fetch("{% url 'dashboards:messages_unread_api' %}")
+      .then(r => r.json())
+      .then(data => {
+        if (data.count > 0) {
+          badge.textContent = data.count;
+          badge.style.display = 'block';
+        } else {
+          badge.style.display = 'none';
+        }
+      })
+      .catch(() => {});
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    updateNotificationBadge();
+    updateMessageBadge();
+  });
+  document.addEventListener('visibilitychange', function() {
+    updateNotificationBadge();
+    updateMessageBadge();
+  });
+  setInterval(updateNotificationBadge, 30000);
+  setInterval(updateMessageBadge, 30000);
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

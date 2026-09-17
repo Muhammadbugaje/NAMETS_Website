@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .done-section {
+        max-width: 700px;
+        margin: 2rem auto;
+        padding: 2rem 0;
+    }
+    .done-header {
+        background: linear-gradient(135deg, #0F3D2E 0%, #1A5A44 100%);
+        color: #ffffff;
+        padding: 2rem 2.5rem;
+        border-radius: 16px 16px 0 0;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .done-header::after {
+        content: "🎉";
+        position: absolute;
+        right: 2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 4rem;
+        opacity: 0.15;
+    }
+    .done-header h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+    .done-header .icon-big {
+        font-size: 4rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    .done-body {
+        background: #ffffff;
+        padding: 2.5rem;
+        border-radius: 0 0 16px 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        text-align: center;
+    }
+    .done-body .success-icon {
+        font-size: 4rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    .done-body .count {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #0F3D2E;
+        display: block;
+    }
+    .done-body .label {
+        color: #5a6b65;
+        font-size: 1.1rem;
+    }
+    .done-body .failed-list {
+        text-align: left;
+        margin: 1.5rem 0;
+        padding: 0;
+        list-style: none;
+    }
+    .done-body .failed-list li {
+        background: #fdf6f3;
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+        border-left: 3px solid #d48b7a;
+        margin-bottom: 0.4rem;
+        color: #6b3d32;
+        font-size: 0.9rem;
+    }
+    .action-buttons-done {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid #f0f4f2;
+    }
+    .btn-import-again {
+        background: #f0f4f2;
+        color: #0F3D2E;
+        border: 2px solid #d0d9d6;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .btn-import-again:hover {
+        background: #e8edec;
+        border-color: #C8A951;
+    }
+    .btn-home {
+        background: linear-gradient(135deg, #0F3D2E 0%, #1A5A44 100%);
+        color: #ffffff;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .btn-home:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(15, 61, 46, 0.25);
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="done-section">
+    <!-- Header -->
+    <div class="done-header">
+        <span class="icon-big">🎉</span>
+        <h1>Import Complete!</h1>
+        <p>Your data has been processed.</p>
+    </div>
+
+    <!-- Body -->
+    <div class="done-body">
+        <span class="success-icon">✅</span>
+        <span class="count">{{ created }}</span>
+        <span class="label">row(s) imported successfully</span>
+
+        {% if failed %}
+        <hr style="border: none; border-top: 2px solid #f0f4f2; margin: 1.5rem 0;">
+        <h3 style="color: #b85c4a; margin: 0 0 0.5rem;">⚠️ {{ failed|length }} row(s) failed to save</h3>
+        <ul class="failed-list">
+            {% for f in failed %}
+            <li>{{ f }}</li>
+            {% endfor %}
+        </ul>
+        <p style="color: #8a9b95; font-size: 0.9rem;">These rows were skipped. Please check the data and try again.</p>
+        {% endif %}
+
+        <div class="action-buttons-done">
+            <a href="{% url 'importers:upload' spec.key %}" class="btn-import-again">
+                📤 Import Another File
+            </a>
+            <a href="{% url 'ict:user_list' %}" class="btn-home">
+                🏠 Users
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

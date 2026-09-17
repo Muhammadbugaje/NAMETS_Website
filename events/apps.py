@@ -6,3 +6,4 @@ class EventsConfig(AppConfig):
 
     def ready(self):
         import events.signals
+        import events.dashboard_widgets

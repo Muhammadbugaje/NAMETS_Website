@@ -1,0 +1,399 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Membership Applications · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== Header ===== */
+.member-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.member-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.member-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    color: #fff;
+}
+.member-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.member-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0; }
+.member-header p { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+.member-header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.member-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    transition: all 0.25s;
+}
+.member-btn:hover { background: rgba(255,255,255,0.2); color: #fff; transform: translateY(-2px); }
+.member-btn-gold { background: var(--gold); color: var(--text-primary); border: 1px solid var(--gold); }
+.member-btn-gold:hover { background: var(--gold-light); color: var(--text-primary); }
+
+.member-filters {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.filter-form input, .filter-form select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d0d9d6;
+    border-radius: 8px;
+    background: var(--card-bg);
+    flex: 1;
+    min-width: 150px;
+}
+.filter-form .btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.filter-form .clear { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
+.filter-form .clear:hover { color: var(--text-primary); }
+
+.bulk-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0.75rem 0;
+    padding: 0.75rem 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.bulk-actions select { padding: 0.4rem 1rem; border: 1px solid #d0d9d6; border-radius: 8px; background: var(--card-bg); }
+.bulk-actions .btn-sm {
+    padding: 0.4rem 1.2rem; border: none; border-radius: 50px;
+    font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: var(--transition);
+    background: var(--primary); color: #fff;
+}
+.bulk-actions .btn-sm:hover { background: var(--primary-dark); }
+.bulk-actions .email-fields { display: none; flex-wrap: wrap; gap: 0.5rem; align-items: center; width: 100%; margin-top: 0.5rem; }
+.bulk-actions .email-fields input,
+.bulk-actions .email-fields textarea { padding: 0.4rem 0.8rem; border: 1px solid #d0d9d6; border-radius: 6px; background: #fff; font-size: 0.85rem; flex: 1; min-width: 120px; }
+.bulk-actions .email-fields textarea { flex: 2; min-width: 200px; }
+
+.app-table-wrapper { overflow-x: auto; }
+.app-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md); overflow: hidden;
+}
+.app-table th { background: var(--primary); color: #fff; padding: 0.75rem 1rem; text-align: left; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
+.app-table td { padding: 0.75rem 1rem; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.9rem; vertical-align: middle; }
+.app-table tr:hover { background: rgba(200,169,81,0.05); }
+.badge-sm { font-size: 0.65rem; padding: 0.1rem 0.5rem; border-radius: 12px; font-weight: 600; }
+.badge-success { background: #e8f2ec; color: #1a3c2e; }
+.badge-warning { background: #fef3e8; color: #a8671a; }
+.btn-sm { padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-decoration: none; transition: var(--transition); }
+.btn-sm-primary { background: var(--primary); color: #fff; }
+.btn-sm-primary:hover { background: var(--primary-dark); }
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.empty { text-align: center; color: var(--text-muted); padding: 3rem 2rem; }
+.empty .empty-icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
+.pagination { margin-top: 1.5rem; text-align: center; }
+.pagination .step-links a { color: var(--gold); text-decoration: none; margin: 0 0.3rem; padding: 0.2rem 0.6rem; border-radius: 4px; }
+.pagination .step-links a:hover { background: var(--gold); color: #fff; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.5rem; }
+
+/* Modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    max-width: 500px;
+    width: 90%;
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+}
+.modal h3 { color: var(--text-primary); margin: 0 0 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.modal .recipient-count { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
+.modal .preview-box { background: #f8faf9; border-radius: 8px; padding: 0.8rem 1rem; margin-bottom: 1.5rem; max-height: 150px; overflow-y: auto; font-size: 0.9rem; }
+.modal .preview-box .label { font-weight: 600; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+.modal .preview-box .subject-preview { font-weight: 600; color: var(--text-primary); }
+.modal .preview-box .body-preview { color: var(--text-secondary); margin-top: 0.3rem; }
+.modal-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 0.5rem; }
+.modal-actions .btn { padding: 0.5rem 1.5rem; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; transition: var(--transition); }
+.modal-actions .btn-primary { background: var(--primary); color: #fff; }
+.modal-actions .btn-primary:hover { background: var(--primary-dark); }
+.modal-actions .btn-secondary { background: var(--gold); color: var(--text-primary); }
+.modal-actions .btn-secondary:hover { background: var(--gold-dark); }
+
+@media (max-width: 768px) {
+    .member-header { padding: 1.4rem 1.25rem; }
+    .member-header-content { flex-direction: column; align-items: stretch; }
+    .member-btn { width: 100%; justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .bulk-actions { flex-direction: column; align-items: stretch; }
+    .bulk-actions .email-fields { flex-direction: column; align-items: stretch; }
+    .modal { padding: 1.5rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="member-header">
+    <div class="member-header-glow" aria-hidden="true"></div>
+    <div class="member-header-content">
+        <div>
+            <span class="member-eyebrow">Da'awah Office</span>
+            <h1>🤝 Membership Applications</h1>
+            <p>Review and manage membership applications.</p>
+        </div>
+        <div class="member-header-actions">
+            {% if perms.community.add_membershipapplication %}
+            <a href="{% url 'community:admin_membership_application_create' %}" class="member-btn">
+                <i class="fas fa-plus-circle"></i> Add Application
+            </a>
+            {% endif %}
+            {% if perms.community.view_membershipapplication %}
+            <a href="{% url 'community:admin_membership_application_export' %}" class="member-btn member-btn-gold">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="member-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search by name, email, reg..." value="{{ query }}">
+        <select name="status">
+            <option value="">All</option>
+            <option value="processed" {% if status_filter == 'processed' %}selected{% endif %}>Processed</option>
+            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+        </select>
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query or status_filter %}
+        <a href="{% url 'community:admin_membership_application_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<form method="post" id="bulkForm">
+    {% csrf_token %}
+    <div class="bulk-actions">
+        <span style="font-weight:600; font-size:0.9rem;">Bulk Actions:</span>
+        <select name="bulk_action" id="bulkActionSelect">
+            <option value="">— Select —</option>
+            <option value="delete">🗑️ Delete Selected</option>
+            <option value="mark_processed">✅ Mark Processed</option>
+            <option value="mark_unprocessed">⛔ Mark Unprocessed</option>
+            <option value="send_email">📧 Send Email</option>
+        </select>
+        <div class="email-fields" id="emailFields">
+            <input type="text" name="email_subject" placeholder="Subject" required>
+            <textarea name="email_body" placeholder="Email body..." rows="2" required></textarea>
+        </div>
+        <button type="button" class="btn-sm" id="bulkApplyBtn">Apply</button>
+        <span style="font-size:0.8rem; color:var(--text-muted); margin-left:auto;">
+            <a href="#" onclick="toggleSelectAll(); return false;">Select All</a> / <a href="#" onclick="deselectAll(); return false;">Deselect All</a>
+        </span>
+    </div>
+
+    <div class="app-table-wrapper">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th style="width:40px;"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"></th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Reg Number</th>
+                    <th>Department</th>
+                    <th>Gender</th>
+                    <th>Status</th>
+                    <th style="width:160px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td><input type="checkbox" name="selected_ids" value="{{ app.id }}" class="row-checkbox"></td>
+                    <td><strong>{{ app.name }}</strong></td>
+                    <td>{{ app.email|truncatechars:20 }}</td>
+                    <td>{{ app.reg_number|default:"—" }}</td>
+                    <td>{{ app.department|truncatechars:15 }}</td>
+                    <td>{{ app.get_gender_display }}</td>
+                    <td>
+                        {% if app.is_processed %}
+                        <span class="badge-sm badge-success">Processed</span>
+                        {% else %}
+                        <span class="badge-sm badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:0.3rem; flex-wrap:wrap;">
+                            <a href="{% url 'community:admin_membership_application_detail' app.pk %}" class="btn-sm btn-sm-primary"><i class="fas fa-eye"></i></a>
+                            <a href="{% url 'community:admin_membership_application_edit' app.pk %}" class="btn-sm btn-sm-gold"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'community:admin_membership_application_delete' app.pk %}" class="btn-sm btn-sm-danger"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="empty">
+                    <span class="empty-icon">📭</span>
+                    <h3>No applications found</h3>
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+<!-- MODAL (same as tutor) -->
+<div class="modal-overlay" id="emailModal">
+    <div class="modal">
+        <h3><i class="fas fa-envelope" style="color:var(--gold);"></i> Confirm Email</h3>
+        <div class="recipient-count">
+            This will send an email to <strong id="recipientCount">0</strong> applicant(s).
+        </div>
+        <div class="preview-box">
+            <div class="label">Subject</div>
+            <div class="subject-preview" id="modalSubject">—</div>
+            <div class="label" style="margin-top:0.5rem;">Body</div>
+            <div class="body-preview" id="modalBody">—</div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" id="modalCancel">Cancel</button>
+            <button type="button" class="btn btn-primary" id="modalConfirm">Confirm Send</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---- Toggle email fields ----
+    document.querySelector('select[name="bulk_action"]').addEventListener('change', function() {
+        const emailFields = document.getElementById('emailFields');
+        if (this.value === 'send_email') {
+            emailFields.style.display = 'flex';
+        } else {
+            emailFields.style.display = 'none';
+        }
+    });
+
+    // ---- Bulk Apply with modal ----
+    const applyBtn = document.getElementById('bulkApplyBtn');
+    const modal = document.getElementById('emailModal');
+    const modalSubject = document.getElementById('modalSubject');
+    const modalBody = document.getElementById('modalBody');
+    const recipientCount = document.getElementById('recipientCount');
+    const modalConfirm = document.getElementById('modalConfirm');
+    const modalCancel = document.getElementById('modalCancel');
+
+    applyBtn.addEventListener('click', function(e) {
+        const action = document.getElementById('bulkActionSelect').value;
+        const selected = document.querySelectorAll('.row-checkbox:checked');
+
+        if (!action || selected.length === 0) {
+            alert('Please select an action and at least one item.');
+            return;
+        }
+
+        if (action === 'send_email') {
+            const subject = document.querySelector('input[name="email_subject"]').value.trim();
+            const body = document.querySelector('textarea[name="email_body"]').value.trim();
+            if (!subject || !body) {
+                alert('Subject and body are required for email.');
+                return;
+            }
+            modalSubject.textContent = subject;
+            modalBody.textContent = body;
+            recipientCount.textContent = selected.length;
+            modal.classList.add('active');
+            return;
+        }
+
+        document.getElementById('bulkForm').submit();
+    });
+
+    modalConfirm.addEventListener('click', function() {
+        const form = document.getElementById('bulkForm');
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'email_confirmed';
+        input.value = 'true';
+        form.appendChild(input);
+        form.submit();
+    });
+
+    modalCancel.addEventListener('click', function() {
+        modal.classList.remove('active');
+    });
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) modal.classList.remove('active');
+    });
+
+    function toggleAllCheckboxes(master) {
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
+    }
+    function toggleSelectAll() {
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = true);
+        document.getElementById('selectAllCheckbox').checked = true;
+    }
+    function deselectAll() {
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('selectAllCheckbox').checked = false;
+    }
+</script>
+
+{% endblock %}

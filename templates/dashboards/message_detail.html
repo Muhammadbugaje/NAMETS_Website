@@ -1,0 +1,378 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ message.subject }} · NAMETS Messages{% endblock %}
+
+{% block extra_css %}
+<style>
+.mdx-wrap { max-width: 900px; margin: 0 auto; }
+
+.mdx-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: #8a6a1a; text-decoration: none;
+    font-weight: 700; font-size: 0.85rem; margin-bottom: 1rem;
+    padding: 0.4rem 0.8rem; border-radius: 8px;
+    transition: all 0.2s;
+}
+.mdx-back:hover {
+    text-decoration: underline;
+    background: rgba(200,169,81,0.08);
+}
+
+.mdx-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    animation: mdxSlideIn 0.35s ease;
+}
+@keyframes mdxSlideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.mdx-head {
+    padding: 2rem 2.25rem 1.75rem;
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 55%, #2D7D5A 100%);
+    color: #fff;
+    position: relative; overflow: hidden;
+}
+.mdx-head::before {
+    content: "✉️"; font-size: 12rem;
+    position: absolute; bottom: -4rem; right: 1.5rem;
+    opacity: 0.06; pointer-events: none;
+}
+.mdx-head::after {
+    content: ''; position: absolute;
+    top: -40%; right: -15%;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(200,169,81,0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+.mdx-head-inner { position: relative; z-index: 1; }
+
+.mdx-sender-row {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.35rem;
+    flex-wrap: wrap;
+}
+.mdx-avatar {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, #C8A951, #E0C96E);
+    color: #0F3D2E;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 800;
+    flex-shrink: 0;
+    border: 3px solid rgba(255,255,255,0.3);
+    overflow: hidden;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.25);
+}
+.mdx-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.mdx-sender-info { min-width: 0; flex: 1; }
+.mdx-sender-name {
+    font-size: 1.05rem; font-weight: 800;
+    margin-bottom: 0.2rem;
+}
+.mdx-sender-meta {
+    font-size: 0.8rem; color: rgba(255,255,255,0.78);
+    display: flex; align-items: center; gap: 0.55rem;
+    flex-wrap: wrap;
+}
+.mdx-sender-meta .sep { opacity: 0.4; }
+
+.mdx-target-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.68rem; font-weight: 800;
+    background: rgba(200,169,81,0.22);
+    color: #E0C96E;
+    padding: 0.32rem 0.9rem; border-radius: 20px;
+    border: 1px solid rgba(200,169,81,0.45);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 0.85rem;
+    align-self: flex-start;
+}
+
+.mdx-subject {
+    font-size: 1.75rem; font-weight: 800;
+    margin: 0; letter-spacing: -0.02em;
+    line-height: 1.25;
+}
+.mdx-pin-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.7rem; font-weight: 800;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 0.2rem 0.65rem; border-radius: 20px;
+    margin-left: 0.6rem;
+    vertical-align: middle;
+    border: 1px solid rgba(255,255,255,0.25);
+}
+
+.mdx-body-wrap {
+    padding: 2rem 2.25rem;
+    background: #fff;
+}
+.mdx-body {
+    font-size: 1rem; line-height: 1.8;
+    color: #2d3748;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Inter', 'DM Sans', sans-serif;
+}
+.mdx-body-wrap .no-body {
+    color: #8a9b95; font-style: italic;
+    font-size: 0.92rem;
+}
+
+.mdx-actions {
+    padding: 1.1rem 2.25rem 1.5rem;
+    background: #fff;
+    display: flex; gap: 0.6rem; flex-wrap: wrap;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.mdx-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.72rem 1.45rem; border-radius: 50px;
+    font-size: 0.85rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    border: none; transition: all 0.25s;
+    font-family: inherit;
+}
+.mdx-btn.gold {
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(15,61,46,0.22);
+}
+.mdx-btn.gold:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(15,61,46,0.32);
+}
+.mdx-btn.outline {
+    background: transparent; color: #4a5568;
+    border: 1px solid #d5dcd9;
+}
+.mdx-btn.outline:hover { background: #f0f4f2; color: #0F3D2E; }
+.mdx-btn.danger {
+    background: #fdecea; color: #9b2c2c;
+    border: 1px solid rgba(220,53,69,0.3);
+}
+.mdx-btn.danger:hover { background: #dc3545; color: #fff; }
+.mdx-btn.pin {
+    background: #f5e9c8; color: #8a6a1a;
+    border: 1px solid rgba(200,169,81,0.4);
+}
+.mdx-btn.pin:hover { background: #C8A951; color: #0F3D2E; }
+
+.mdx-recipients {
+    padding: 1.5rem 2.25rem 1.75rem;
+    background: #f8faf9;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.mdx-recipients h3 {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: #8a6a1a; margin: 0 0 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.mdx-recipients h3::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.35), transparent);
+}
+.mdx-recipients-list {
+    display: flex; flex-wrap: wrap; gap: 0.45rem;
+}
+.mdx-recipient-chip {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    background: #fff; border: 1px solid rgba(0,0,0,0.06);
+    padding: 0.4rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.76rem; font-weight: 600;
+    color: #2d3748;
+    transition: all 0.2s;
+}
+.mdx-recipient-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(15,61,46,0.06);
+}
+.mdx-recipient-chip.read { color: #1a6b3c; }
+.mdx-recipient-chip.read i { color: #38a169; }
+.mdx-recipient-chip i { color: #c0c8c5; font-size: 0.65rem; }
+
+@media (max-width: 640px) {
+    .mdx-head { padding: 1.5rem 1.35rem; }
+    .mdx-subject { font-size: 1.3rem; }
+    .mdx-body-wrap { padding: 1.5rem 1.35rem; }
+    .mdx-actions { padding: 1rem 1.35rem 1.35rem; }
+    .mdx-actions .mdx-btn { flex: 1; justify-content: center; min-width: 130px; }
+    .mdx-recipients { padding: 1.35rem 1.35rem 1.5rem; }
+    .mdx-avatar { width: 48px; height: 48px; font-size: 1rem; }
+    .mdx-sender-name { font-size: 0.95rem; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+{% csrf_token %}
+
+<div class="mdx-wrap">
+
+    {% if is_sender %}
+    <a href="{% url 'dashboards:messages_sent' %}" class="mdx-back">
+        <i class="fas fa-arrow-left"></i> Back to Sent
+    </a>
+    {% else %}
+    <a href="{% url 'dashboards:messages' %}" class="mdx-back">
+        <i class="fas fa-arrow-left"></i> Back to Inbox
+    </a>
+    {% endif %}
+
+    <div class="mdx-card">
+
+        <!-- HEADER -->
+        <div class="mdx-head">
+            <div class="mdx-head-inner">
+
+                <div class="mdx-sender-row">
+                    <div class="mdx-avatar">
+                        {% if message.sender.profile_picture %}
+                            <img src="{{ message.sender.profile_picture.url }}" alt="">
+                        {% else %}
+                            {{ message.sender.first_name|first|upper }}{{ message.sender.last_name|first|upper }}
+                        {% endif %}
+                    </div>
+                    <div class="mdx-sender-info">
+                        <div class="mdx-sender-name">
+                            {{ message.sender.get_full_name|default:message.sender.email }}
+                        </div>
+                        <div class="mdx-sender-meta">
+                            <span>{{ message.sender.email }}</span>
+                            <span class="sep">·</span>
+                            <span>{{ message.sent_at|date:"F j, Y · g:i A" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <span class="mdx-target-badge">
+                    <i class="fas {{ message.target_icon }}"></i>
+                    To: {{ message.target_label|default:message.get_target_type_display }}
+                </span>
+
+                <h1 class="mdx-subject">
+                    {{ message.subject }}
+                    {% if message.is_pinned %}
+                    <span class="mdx-pin-badge">📌 Pinned</span>
+                    {% endif %}
+                </h1>
+            </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="mdx-body-wrap">
+            {% if message.body %}
+                <div class="mdx-body">{{ message.body }}</div>
+            {% else %}
+                <div class="no-body">(No message body)</div>
+            {% endif %}
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="mdx-actions">
+            {% if not is_sender %}
+            <a href="{% url 'dashboards:message_compose' %}?to={{ message.sender.pk }}&subject=Re: {{ message.subject|urlencode }}"
+               class="mdx-btn gold">
+                <i class="fas fa-reply"></i> Reply
+            </a>
+            {% endif %}
+
+            {% if can_pin %}
+            <form method="post" action="{% url 'dashboards:message_toggle_pin' message.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="mdx-btn pin">
+                    <i class="fas fa-thumbtack"></i>
+                    {% if message.is_pinned %}Unpin{% else %}Pin message{% endif %}
+                </button>
+            </form>
+            {% endif %}
+
+            <button type="button"
+                    class="mdx-btn danger js-msg-delete"
+                    data-url="{% url 'dashboards:message_delete' message.pk %}"
+                    data-subject="{{ message.subject|escapejs }}"
+                    data-kind="{% if is_sender %}sent{% else %}inbox{% endif %}">
+                <i class="fas fa-trash"></i>
+                {% if is_sender %}Delete for everyone{% else %}Remove from my inbox{% endif %}
+            </button>
+        </div>
+
+        <!-- RECIPIENTS (only for the sender) -->
+        {% if is_sender %}
+        <div class="mdx-recipients">
+            <h3>
+                <i class="fas fa-users"></i>
+                Recipients — {{ message.read_count }} of {{ message.recipient_count }} read
+            </h3>
+            <div class="mdx-recipients-list">
+                {% for r in message.recipients.all %}
+                <span class="mdx-recipient-chip {% if r.is_read %}read{% endif %}">
+                    <i class="fas {% if r.is_read %}fa-check-double{% else %}fa-clock{% endif %}"></i>
+                    {{ r.user.get_full_name|default:r.user.email }}
+                </span>
+                {% empty %}
+                <span style="color:#8a9b95; font-size:0.82rem;">No recipients recorded.</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function() {
+    function submitDeleteForm(url) {
+        const tokenEl = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrf = tokenEl ? tokenEl.value
+                             : (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        form.style.display = 'none';
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'csrfmiddlewaretoken';
+        input.value = csrf;
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    document.querySelectorAll('.js-msg-delete').forEach(function(btn) {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const url = btn.dataset.url;
+            const subject = btn.dataset.subject || 'this message';
+            const isSent = (btn.dataset.kind === 'sent');
+
+            const ok = await window.NAMETS.confirm({
+                title: isSent ? 'Delete for everyone?' : 'Remove from inbox?',
+                message: isSent
+                    ? 'This will permanently delete "' + subject + '" for all recipients. This cannot be undone.'
+                    : 'This will remove "' + subject + '" from your inbox only. The sender will still see it in their Sent folder.',
+                danger: true,
+                confirmText: isSent ? 'Delete for everyone' : 'Remove',
+                cancelText: 'Cancel'
+            });
+
+            if (!ok) return;
+            submitDeleteForm(url);
+        });
+    });
+})();
+</script>
+{% endblock %}

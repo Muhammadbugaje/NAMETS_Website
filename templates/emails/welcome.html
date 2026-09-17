@@ -1,0 +1,36 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+    <h2>Assalamu Alaikum!</h2>
+    
+    <p>Thank you for subscribing to NAMETS notifications.</p>
+    
+    <div class="content-block">
+        <p><strong>You've chosen to receive notifications for:</strong></p>
+        <ul style="margin: 10px 0 0 20px; color: #2d3748; list-style: none; padding: 0;">
+            {% if preferences.notify_announcements %}
+                <li style="padding: 4px 0;">📢 <strong>Announcements</strong></li>
+            {% endif %}
+            {% if preferences.notify_events %}
+                <li style="padding: 4px 0;">📅 <strong>Events</strong></li>
+            {% endif %}
+            {% if preferences.notify_prayer_changes %}
+                <li style="padding: 4px 0;">🕌 <strong>Prayer time changes</strong></li>
+            {% endif %}
+            {% if not preferences.notify_announcements and not preferences.notify_events and not preferences.notify_prayer_changes %}
+                <li style="padding: 4px 0; color: #718096;">You haven't selected any notification preferences yet. You can update them anytime.</li>
+            {% endif %}
+        </ul>
+    </div>
+    
+    <p>You will receive updates based on your selections. If you ever wish to change your preferences or unsubscribe, please visit our website.</p>
+    
+    <p style="margin-top: 20px;">
+        <a href="{{ site_url }}/communications/subscribe/" class="button">Manage Preferences</a>
+    </p>
+    
+    <p style="color: #718096; font-size: 14px; margin-top: 20px;">
+        Jazakallah khair,<br>
+        <strong>NAMETS Team</strong>
+    </p>
+{% endblock %}

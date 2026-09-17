@@ -1,0 +1,259 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Delegation · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.del-wrap { max-width: 1200px; margin: 0 auto; }
+.del-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.85rem 2rem; margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22); color: #fff;
+}
+.del-head::before { content: "👑"; font-size: 6rem; position: absolute; bottom: -1.2rem; right: 1.5rem; opacity: 0.08; }
+.del-head-inner { position: relative; z-index: 1; }
+.del-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px; margin-bottom: 0.6rem;
+}
+.del-head h1 { font-size: 1.55rem; font-weight: 800; margin: 0 0 0.4rem; }
+.del-head p { color: rgba(255,255,255,0.82); font-size: 0.9rem; margin: 0; max-width: 620px; line-height: 1.6; }
+.del-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; position: relative; z-index: 1; }
+.hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.6rem 1.35rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.82rem; text-decoration: none;
+    border: 1px solid transparent; transition: all 0.25s;
+}
+.hbtn-gold { background: #C8A951; color: #0F3D2E; border-color: #C8A951; }
+.hbtn-gold:hover { background: #E0C96E; color: #0F3D2E; transform: translateY(-2px); }
+.hbtn-outline { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2); }
+.hbtn-outline:hover { background: rgba(255,255,255,0.22); color: #fff; transform: translateY(-2px); }
+
+/* Stat strip */
+.stat-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem; margin-bottom: 1.5rem;
+}
+.stat-mini {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 1rem 1.15rem; box-shadow: var(--shadow-sm);
+    display: flex; align-items: center; gap: 0.8rem;
+    position: relative; overflow: hidden;
+}
+.stat-mini::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.stat-mini.green::before { background: linear-gradient(90deg,#0F3D2E,#38a169); }
+.stat-mini.blue::before { background: linear-gradient(90deg,#185fa5,#4299e1); }
+.stat-mini.gold::before { background: linear-gradient(90deg,#8a6a1a,#E0C96E); }
+.stat-mini .ic {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+.stat-mini.green .ic { background: #e8f2ec; color: #1a6b3c; }
+.stat-mini.blue .ic { background: #e6f0fb; color: #185fa5; }
+.stat-mini.gold .ic { background: #f5e9c8; color: #8a6a1a; }
+.stat-mini .num { font-size: 1.25rem; font-weight: 800; color: #0F3D2E; line-height: 1; }
+.stat-mini .lbl { font-size: 0.68rem; color: #8a9b95; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-top: 0.2rem; }
+
+/* Office section */
+.section-block {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1.35rem 1.5rem; box-shadow: var(--shadow-sm);
+    margin-bottom: 1rem;
+}
+.section-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1rem; padding-bottom: 0.85rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    flex-wrap: wrap; gap: 0.75rem;
+}
+.section-title {
+    font-size: 0.95rem; font-weight: 800; color: #0F3D2E;
+    display: flex; align-items: center; gap: 0.55rem;
+}
+.section-title i { color: #C8A951; }
+.section-count {
+    font-size: 0.7rem; font-weight: 800;
+    background: rgba(200,169,81,0.15);
+    color: #8a6a1a; padding: 0.2rem 0.7rem; border-radius: 20px;
+}
+
+.member-list {
+    display: flex; flex-direction: column; gap: 0.5rem;
+}
+.member-item {
+    display: flex; align-items: center;
+    gap: 0.85rem; padding: 0.75rem 1rem;
+    background: #f8faf9;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+.member-item:hover {
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.06);
+    transform: translateX(3px);
+}
+.member-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F3D2E, #2D7D5A);
+    color: #C8A951;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 800;
+    border: 2px solid #C8A951;
+    flex-shrink: 0;
+}
+.member-info { flex: 1; min-width: 0; }
+.member-name {
+    font-size: 0.9rem; font-weight: 700; color: #0F3D2E;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.member-email {
+    font-size: 0.72rem; color: #8a9b95;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-top: 0.1rem;
+}
+.member-label {
+    font-size: 0.72rem; color: #8a6b1a; font-weight: 600;
+    margin-top: 0.1rem;
+}
+.member-manage {
+    padding: 0.45rem 1rem;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff; border: none;
+    border-radius: 50px;
+    font-size: 0.72rem; font-weight: 700;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.member-manage:hover {
+    background: #0A2A1F; color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15,61,46,0.25);
+}
+
+@media (max-width: 640px) {
+    .del-head-inner { flex-direction: column; }
+    .del-actions { flex-direction: column; }
+    .hbtn { justify-content: center; width: 100%; }
+    .member-item { flex-wrap: wrap; }
+    .member-manage { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="del-wrap">
+
+    <div class="del-head">
+        <div class="del-head-inner">
+            <span class="del-eyebrow">Governance · Delegation (Super Admin)</span>
+            <h1>Full Permission Control</h1>
+            <p>
+                As a super admin, you can edit anyone's permissions, groups, and office assignments.
+                Pick a user below or use the full user management page.
+            </p>
+            <div class="del-actions">
+                <a href="{% url 'governance:user_list' %}" class="hbtn hbtn-gold">
+                    <i class="fas fa-users"></i> Full User Management
+                </a>
+                <a href="{% url 'governance:group_list' %}" class="hbtn hbtn-outline">
+                    <i class="fas fa-users-cog"></i> Manage Groups
+                </a>
+                <a href="{% url 'governance:office_list' %}" class="hbtn hbtn-outline">
+                    <i class="fas fa-building"></i> Offices
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-strip">
+        <div class="stat-mini green">
+            <div class="ic"><i class="fas fa-users"></i></div>
+            <div>
+                <div class="num">{{ total_users }}</div>
+                <div class="lbl">Total Users</div>
+            </div>
+        </div>
+        <div class="stat-mini blue">
+            <div class="ic"><i class="fas fa-users-cog"></i></div>
+            <div>
+                <div class="num">{{ total_groups }}</div>
+                <div class="lbl">Permission Groups</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users grouped by office -->
+    {% for office, members in office_members %}
+    <div class="section-block">
+        <div class="section-head">
+            <div class="section-title">
+                <i class="fas fa-building"></i> {{ office.name }}
+            </div>
+            <span class="section-count">{{ members|length }} member{{ members|length|pluralize }}</span>
+        </div>
+        <div class="member-list">
+            {% for a in members %}
+            <div class="member-item">
+                <div class="member-avatar">
+                    {{ a.user.first_name|first|upper }}{{ a.user.last_name|first|upper }}
+                </div>
+                <div class="member-info">
+                    <div class="member-name">{{ a.user.get_full_name|default:a.user.email }}</div>
+                    <div class="member-email">{{ a.user.email }}</div>
+                    {% if a.display_label %}
+                    <div class="member-label">{{ a.display_label }}</div>
+                    {% endif %}
+                </div>
+                <a href="{% url 'governance:user_edit' a.user.pk %}" class="member-manage">
+                    <i class="fas fa-user-shield"></i> Manage
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Unassigned users -->
+    {% if unassigned_users %}
+    <div class="section-block">
+        <div class="section-head">
+            <div class="section-title">
+                <i class="fas fa-user-slash"></i> No Active Office
+            </div>
+            <span class="section-count">{{ unassigned_users|length }} user{{ unassigned_users|length|pluralize }}</span>
+        </div>
+        <div class="member-list">
+            {% for u in unassigned_users %}
+            <div class="member-item">
+                <div class="member-avatar" style="background:#c0c8c5;border-color:#d0d9d6;color:#fff;">
+                    {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                </div>
+                <div class="member-info">
+                    <div class="member-name">{{ u.get_full_name|default:u.email }}</div>
+                    <div class="member-email">{{ u.email }}</div>
+                </div>
+                <a href="{% url 'governance:user_edit' u.pk %}" class="member-manage">
+                    <i class="fas fa-user-shield"></i> Manage
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

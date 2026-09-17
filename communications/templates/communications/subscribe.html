@@ -5,6 +5,13 @@
 
 {% block content %}
 <div class="container">
+
+    {% for message in messages %}
+        {% if 'subscribe_success' in message.tags %}
+            <div data-subscribe-success style="display:none;"></div>
+        {% endif %}
+    {% endfor %}
+    
     <h1 class="reveal">Stay Updated</h1>
     <p class="lead reveal">Subscribe to receive notifications about announcements, events, and prayer time changes.</p>
 

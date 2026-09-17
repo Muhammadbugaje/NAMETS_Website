@@ -1,0 +1,227 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · Offices{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container { max-width: 720px; margin: 0 auto; }
+.form-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 0.85rem;
+}
+.form-back:hover { text-decoration: underline; }
+
+.form-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.75rem 2rem;
+    margin-bottom: 1.25rem; color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,61,46,0.22);
+}
+.form-head::before {
+    content: "🏛️"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.1;
+}
+.form-head-inner { position: relative; z-index: 1; }
+.form-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px; margin-bottom: 0.5rem;
+}
+.form-head h2 { font-size: 1.35rem; font-weight: 800; margin: 0 0 0.3rem; }
+.form-head p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+
+.form-card {
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem; box-shadow: var(--shadow-sm);
+}
+.form-section-title {
+    font-size: 0.7rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #8a6a1a; margin: 0 0 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.form-section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(200,169,81,0.3), transparent);
+}
+.form-section-title:not(:first-child) { margin-top: 2rem; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.9rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label {
+    font-weight: 700; color: #0F3D2E;
+    font-size: 0.8rem; margin-bottom: 0.35rem;
+}
+.form-group label .required { color: #e53e3e; margin-left: 0.15rem; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 0.65rem 0.9rem;
+    border: 1px solid #d0d9d6; border-radius: 10px;
+    font-size: 0.9rem; background: #fff;
+    font-family: inherit; transition: all 0.2s;
+    color: #0F3D2E;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 4px rgba(200,169,81,0.15);
+}
+.form-group .help {
+    font-size: 0.72rem; color: #8a9b95;
+    margin-top: 0.3rem; line-height: 1.4;
+}
+.form-group .error {
+    font-size: 0.78rem; color: #c0392b;
+    margin-top: 0.35rem;
+    padding: 0.4rem 0.7rem;
+    background: #fdecea; border-radius: 6px;
+}
+
+/* Protected warning */
+.protected-row {
+    display: flex; align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.15rem;
+    background: linear-gradient(135deg, #e6f0fb 0%, #f0f7ff 100%);
+    border-left: 4px solid #185fa5;
+    border-radius: 12px;
+    margin-top: 0.5rem;
+}
+.protected-row input[type="checkbox"] {
+    width: 20px; height: 20px;
+    accent-color: #185fa5;
+    cursor: pointer; flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+.protected-row .pr-text {
+    flex: 1; font-size: 0.82rem;
+    color: #1e40af; line-height: 1.55;
+}
+.protected-row .pr-text strong { color: #1e3a8a; }
+
+.form-actions {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    margin-top: 2rem; padding-top: 1.5rem;
+    border-top: 2px solid rgba(0,0,0,0.05);
+}
+.btn-submit {
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    color: #fff; padding: 0.85rem 2rem;
+    border: none; border-radius: 50px;
+    font-weight: 800; font-size: 0.9rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    box-shadow: 0 6px 20px rgba(15,61,46,0.25);
+    transition: all 0.25s;
+}
+.btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(15,61,46,0.35); }
+.btn-submit:disabled { opacity: 0.6; cursor: wait; }
+
+.btn-cancel {
+    background: var(--gold); color: var(--primary);
+    padding: 0.85rem 1.75rem;
+    border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.88rem;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s;
+}
+.btn-cancel:hover { background: #E0C96E; color: var(--primary); transform: translateY(-2px); }
+
+@media (max-width: 640px) {
+    .form-card { padding: 1.5rem 1.25rem; }
+    .form-row { grid-template-columns: 1fr; gap: 0.75rem; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn-submit, .form-actions .btn-cancel { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="form-container">
+    <a href="{% url 'governance:office_list' %}" class="form-back">
+        <i class="fas fa-arrow-left"></i> Back to Offices
+    </a>
+
+    <div class="form-head">
+        <div class="form-head-inner">
+            <span class="form-eyebrow">Governance · Office</span>
+            <h2>{{ title }}</h2>
+            <p>{% if office %}Update this office's details.{% else %}Create a new office. You'll assign permissions next.{% endif %}</p>
+        </div>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div style="background:#fdecea;border-left:4px solid #c0392b;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;color:#9b2c2c;font-size:0.88rem;">
+        <strong style="display:block;margin-bottom:0.4rem;">Please fix the following:</strong>
+        <ul style="margin:0;padding-left:1.2rem;">
+            {% for err in form.non_field_errors %}<li>{{ err }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" class="form-card" novalidate id="officeForm">
+        {% csrf_token %}
+
+        <div class="form-section-title"><i class="fas fa-tag"></i> Basic Info</div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="{{ form.name.id_for_label }}">Office Name <span class="required">*</span></label>
+                {{ form.name }}
+                <div class="help">Use the exact Bye-Law name (e.g. PRO I, Da'awah Officer II).</div>
+                {% if form.name.errors %}<div class="error">{{ form.name.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-section-title"><i class="fas fa-sitemap"></i> Structure</div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.committee.id_for_label }}">Committee</label>
+                {{ form.committee }}
+                {% if form.committee.errors %}<div class="error">{{ form.committee.errors|join:" " }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.reports_to.id_for_label }}">Reports To</label>
+                {{ form.reports_to }}
+                {% if form.reports_to.errors %}<div class="error">{{ form.reports_to.errors|join:" " }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-section-title"><i class="fas fa-shield-alt"></i> Protection</div>
+
+        <label class="protected-row">
+            {{ form.is_protected }}
+            <div class="pr-text">
+                <strong>Protected office</strong> — this office is <strong>never touched by handover</strong>.
+                Only the ICT Head should be marked as protected. This cannot be changed after handover.
+            </div>
+        </label>
+        {% if form.is_protected.errors %}<div class="error">{{ form.is_protected.errors|join:" " }}</div>{% endif %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> {{ button_text }}
+            </button>
+            <a href="{% url 'governance:office_list' %}" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('officeForm').addEventListener('submit', function() {
+    const btn = this.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+    <h2>Confirm Unsubscribe</h2>
+    
+    <p>Assalamu Alaikum,</p>
+    
+    <p>We received a request to unsubscribe your email address from NAMETS updates.</p>
+    
+    <div class="content-block" style="background-color: #fef9f0; border-left-color: #e53e3e;">
+        <p><strong>Email:</strong> {{ email }}</p>
+        <p style="color: #e53e3e; font-size: 14px;">
+            ⚠️ If you didn't request this, you can ignore this message or contact NAMETS ICT Office.
+        </p>
+    </div>
+    
+    <p>To confirm you want to unsubscribe, click the button below:</p>
+    
+    <p style="margin-top: 20px;">
+        <a href="{{ unsubscribe_url }}" class="button button-primary" style="background: #e53e3e; background: linear-gradient(135deg, #c0392b, #e74c3c);">
+            Confirm Unsubscribe
+        </a>
+    </p>
+    
+    <p style="color: #718096; font-size: 14px; margin-top: 20px;">
+        If you'd like to stay subscribed, no action is needed.
+    </p>
+{% endblock %}

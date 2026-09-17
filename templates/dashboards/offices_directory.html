@@ -1,0 +1,110 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block dash_content %}
+<div class="offices-directory">
+    <div class="directory-header">
+        <h1>📋 All NAMETS Offices</h1>
+        <p>Descriptions and current office holders.</p>
+    </div>
+
+    <div class="office-grid">
+        {% for office in offices %}
+        <div class="office-card-directory">
+            <div class="office-card-header">
+                <span class="office-icon">{{ office.icon }}</span>
+                <h3>{{ office.name }}</h3>
+                {% if office.is_protected %}
+                    <span class="protected-badge">Protected</span>
+                {% endif %}
+            </div>
+            <p class="office-description">{{ office.description }}</p>
+            <div class="office-holders">
+                <strong>Current Holders:</strong>
+                {% with holders=office.current_holders %}
+                    {% if holders %}
+                        {% for holder in holders %}
+                            {{ holder.get_full_name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <span class="vacant">Vacant</span>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+        {% empty %}
+        <p class="no-offices">No offices found.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.offices-directory {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+.directory-header h1 {
+    color: var(--text-primary);
+    margin: 0;
+}
+.directory-header p {
+    color: var(--text-muted);
+    margin: 0.25rem 0 1.5rem;
+}
+.office-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+.office-card-directory {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+.office-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.office-card-header .office-icon {
+    font-size: 2rem;
+}
+.office-card-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+.protected-badge {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.1rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.office-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0.25rem 0 0.75rem;
+}
+.office-holders {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.vacant {
+    color: var(--text-muted);
+}
+.no-offices {
+    color: var(--text-muted);
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+}
+</style>
+{% endblock %}

@@ -6,6 +6,355 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/global.css' %}">
 <link rel="stylesheet" href="{% static 'academics/css/academics.css' %}">
+<style>
+  /* ============ TOP FEATURE GRID (5 cards now) ============ */
+  .feature-cards .card-grid-1 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+  }
+
+  /* CBT card highlighted state */
+  .course-card-inner.cbt-highlight {
+    position: relative;
+    overflow: hidden;
+    border: 1.5px solid rgba(200, 169, 81, 0.45) !important;
+    background:
+      linear-gradient(135deg, rgba(200, 169, 81, 0.08) 0%, rgba(15, 61, 46, 0.03) 100%),
+      var(--glass-bg, rgba(255,255,255,0.85));
+  }
+  .course-card-inner.cbt-highlight::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #C8A951 0%, #0F3D2E 50%, #C8A951 100%);
+    background-size: 200% 100%;
+    animation: cbtShimmer 4s linear infinite;
+  }
+  @keyframes cbtShimmer {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+  }
+  .course-card-inner.cbt-highlight .course-type-chip {
+    background: linear-gradient(135deg, #C8A951, #E0C96E);
+    color: #0F3D2E;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(200, 169, 81, 0.35);
+    animation: cbtChipPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes cbtChipPulse {
+    0%, 100% { box-shadow: 0 4px 12px rgba(200, 169, 81, 0.35); }
+    50%      { box-shadow: 0 4px 22px rgba(200, 169, 81, 0.65); }
+  }
+  .course-card-inner.cbt-highlight .cbt-sparkle {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-size: 1.4rem;
+    opacity: 0.7;
+    animation: sparkleSpin 6s linear infinite;
+  }
+  @keyframes sparkleSpin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.15); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  /* ============ LIBRARY CARD HIGHLIGHT ============ */
+  .course-card-inner.library-highlight {
+    position: relative;
+    overflow: hidden;
+    border: 1.5px solid rgba(13, 122, 107, 0.35) !important;
+    background:
+      linear-gradient(135deg, rgba(13, 122, 107, 0.07) 0%, rgba(15, 61, 46, 0.03) 100%),
+      var(--glass-bg, rgba(255,255,255,0.85));
+  }
+  .course-card-inner.library-highlight::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #0d7a6b 0%, #C8A951 50%, #0d7a6b 100%);
+    background-size: 200% 100%;
+    animation: libShimmer 5s linear infinite;
+  }
+  @keyframes libShimmer {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+  }
+  .course-card-inner.library-highlight .course-type-chip {
+    background: linear-gradient(135deg, #0d7a6b, #0f9d8a);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(13, 122, 107, 0.35);
+  }
+  .course-card-inner.library-highlight .lib-emoji {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-size: 1.4rem;
+    opacity: 0.75;
+    animation: libBookFloat 4s ease-in-out infinite;
+  }
+  @keyframes libBookFloat {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50%      { transform: translateY(-5px) rotate(4deg); }
+  }
+  /* Small digital badge on the library card */
+  .lib-quick-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.4rem;
+  }
+  .lib-quick-chip {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 0.15rem 0.55rem;
+    border-radius: 20px;
+    background: rgba(13, 122, 107, 0.1);
+    color: #0d7a6b;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .lib-quick-chip.digital {
+    background: rgba(24, 95, 165, 0.1);
+    color: #185fa5;
+  }
+
+  /* ============ EXPLORE MORE SECTION ============ */
+  .explore-more-wrap {
+    margin: 2.5rem 0 1rem;
+  }
+  .explore-more-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+  }
+  .explore-card {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 1.75rem 1.5rem 1.5rem;
+    border-radius: 20px;
+    text-decoration: none;
+    color: inherit;
+    min-height: 220px;
+    isolation: isolate;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.35s ease;
+    box-shadow: 0 6px 22px rgba(15, 61, 46, 0.08);
+  }
+  .explore-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 44px rgba(15, 61, 46, 0.18);
+  }
+
+  /* Green variant (CBT) */
+  .explore-card.v-green {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    color: #fff;
+  }
+  .explore-card.v-green::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 85% 15%, rgba(200, 169, 81, 0.28) 0%, transparent 45%),
+      radial-gradient(circle at 10% 90%, rgba(200, 169, 81, 0.18) 0%, transparent 40%);
+    z-index: -1;
+  }
+  .explore-card.v-green .ex-icon-wrap {
+    background: rgba(200, 169, 81, 0.2);
+    color: #C8A951;
+    border: 1px solid rgba(200, 169, 81, 0.4);
+  }
+  .explore-card.v-green .ex-title { color: #fff; }
+  .explore-card.v-green .ex-desc { color: rgba(255,255,255,0.82); }
+  .explore-card.v-green .ex-cta {
+    background: #C8A951;
+    color: #0F3D2E;
+  }
+  .explore-card.v-green .ex-cta:hover {
+    background: #E0C96E;
+    color: #0F3D2E;
+  }
+
+  /* Gold variant (Competitions) */
+  .explore-card.v-gold {
+    background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 60%, #f5e9c8 100%);
+    color: #4a3a10;
+    border: 1px solid rgba(200, 169, 81, 0.4);
+  }
+  .explore-card.v-gold::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 90% 10%, rgba(200, 169, 81, 0.35) 0%, transparent 55%);
+    z-index: -1;
+  }
+  .explore-card.v-gold .ex-icon-wrap {
+    background: rgba(15, 61, 46, 0.1);
+    color: #0F3D2E;
+    border: 1px solid rgba(15, 61, 46, 0.15);
+  }
+  .explore-card.v-gold .ex-title { color: #0F3D2E; }
+  .explore-card.v-gold .ex-desc { color: #5a4815; }
+  .explore-card.v-gold .ex-cta {
+    background: #0F3D2E;
+    color: #fff;
+  }
+  .explore-card.v-gold .ex-cta:hover {
+    background: #1a5a44;
+    color: #fff;
+  }
+
+  /* Teal variant (Resources) */
+  .explore-card.v-teal {
+    background: linear-gradient(135deg, #0d7a6b 0%, #0f9d8a 100%);
+    color: #fff;
+  }
+  .explore-card.v-teal::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.18) 0%, transparent 40%),
+      radial-gradient(circle at 90% 90%, rgba(200, 169, 81, 0.2) 0%, transparent 40%);
+    z-index: -1;
+  }
+  .explore-card.v-teal .ex-icon-wrap {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+  .explore-card.v-teal .ex-title { color: #fff; }
+  .explore-card.v-teal .ex-desc { color: rgba(255, 255, 255, 0.85); }
+  .explore-card.v-teal .ex-cta {
+    background: #fff;
+    color: #0d7a6b;
+  }
+  .explore-card.v-teal .ex-cta:hover {
+    background: #f5e9c8;
+    color: #0d7a6b;
+  }
+
+  /* Blue variant (Library) */
+  .explore-card.v-blue {
+    background: linear-gradient(135deg, #0F3D2E 0%, #145a5f 45%, #0d7a6b 100%);
+    color: #fff;
+  }
+  .explore-card.v-blue::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 80% 20%, rgba(200, 169, 81, 0.3) 0%, transparent 45%),
+      radial-gradient(circle at 20% 85%, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
+    z-index: -1;
+  }
+  .explore-card.v-blue .ex-icon-wrap {
+    background: rgba(200, 169, 81, 0.22);
+    color: #E0C96E;
+    border: 1px solid rgba(200, 169, 81, 0.45);
+  }
+  .explore-card.v-blue .ex-title { color: #fff; }
+  .explore-card.v-blue .ex-desc { color: rgba(255, 255, 255, 0.85); }
+  .explore-card.v-blue .ex-cta {
+    background: #C8A951;
+    color: #0F3D2E;
+  }
+  .explore-card.v-blue .ex-cta:hover {
+    background: #E0C96E;
+    color: #0F3D2E;
+  }
+
+  /* Shared explore-card elements */
+  .ex-icon-wrap {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    transition: transform 0.4s ease;
+  }
+  .explore-card:hover .ex-icon-wrap {
+    transform: scale(1.1) rotate(-6deg);
+  }
+  .ex-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.01em;
+  }
+  .ex-desc {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin: 0 0 1.25rem;
+    flex: 1;
+  }
+  .ex-cta {
+    align-self: flex-start;
+    padding: 0.6rem 1.35rem;
+    border-radius: 50px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.25s ease;
+    text-decoration: none;
+  }
+  .ex-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+  }
+  .ex-cta i {
+    transition: transform 0.25s ease;
+  }
+  .ex-cta:hover i {
+    transform: translateX(4px);
+  }
+  .ex-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.7rem;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+  .v-gold .ex-badge {
+    background: rgba(15, 61, 46, 0.08);
+    color: #0F3D2E;
+    border-color: rgba(15, 61, 46, 0.15);
+  }
+
+  /* Mobile */
+  @media (max-width: 640px) {
+    .explore-more-grid {
+      grid-template-columns: 1fr;
+    }
+    .explore-card {
+      padding: 1.5rem 1.25rem 1.25rem;
+      min-height: auto;
+    }
+    .explore-card .ex-title {
+      font-size: 1.05rem;
+    }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -27,6 +376,7 @@
 
 <div class="feature-cards">
     <div class="card-grid-1">
+
         <!-- Tutorials Card -->
         <div class="glass-card reveal hover-lift tap-feedback course-card-inner">
             <span class="course-type-chip">Tutorials</span>
@@ -55,7 +405,25 @@
             </div>
         </div>
 
-        <!-- Results Card -->
+        <!-- CBT Card (highlighted) -->
+        <div class="glass-card reveal hover-lift tap-feedback course-card-inner cbt-highlight">
+            <span class="cbt-sparkle" aria-hidden="true">✨</span>
+            <span class="course-type-chip">🧠 CBT Test</span>
+            <h3 class="card-title">Practice Tests</h3>
+            <p class="card-desc">
+                Test yourself with randomized questions across courses. Instant scoring,
+                wrong-answer review, and a personalized AI report — all free and anonymous.
+            </p>
+            <div class="stats">
+                <span>Unlimited retakes</span>
+                <span>Instant feedback</span>
+            </div>
+            <div class="card-actions">
+                <a href="{% url 'academics:cbt_home' %}" class="btn btn-primary btn-sm">Start a Test →</a>
+            </div>
+        </div>
+
+        <!-- Exam Results Card -->
         <div class="glass-card reveal hover-lift tap-feedback course-card-inner">
             <span class="course-type-chip">Exam Results</span>
             <h3 class="card-title">Exam Results</h3>
@@ -64,6 +432,61 @@
                 <a href="{% url 'academics:exam_list' %}" class="btn btn-secondary btn-sm">View Results →</a>
             </div>
         </div>
+
+    </div>
+</div>
+
+<!-- ============ EXPLORE MORE ============ -->
+<div class="explore-more-wrap">
+    <div class="section-heading reveal">
+        <h2>More Ways to Learn</h2>
+        <div class="section-heading-line"></div>
+    </div>
+
+    <div class="explore-more-grid">
+
+        <!-- Competitions -->
+        <a href="{% url 'academics:competition_results' %}" class="explore-card v-gold reveal">
+            <span class="ex-badge">🏆 Achievements</span>
+            <div class="ex-icon-wrap">🏆</div>
+            <h3 class="ex-title">Competition Results</h3>
+            <p class="ex-desc">
+                Celebrate the winners and outstanding participants of NAMETS competitions — Quran recitation,
+                essay writing, public speaking, and more.
+            </p>
+            <span class="ex-cta">
+                View Winners <i class="fas fa-arrow-right"></i>
+            </span>
+        </a>
+
+        <!-- Library Catalog (NEW) -->
+        <a href="{% url 'academics:library_home' %}" class="explore-card v-blue reveal">
+            <span class="ex-badge">📚 Digital + Physical</span>
+            <div class="ex-icon-wrap">📖</div>
+            <h3 class="ex-title">The NAMETS Library</h3>
+            <p class="ex-desc">
+                A curated collection of books and references — from engineering texts to Islamic
+                scholarship. Read digital copies instantly or borrow a physical copy from our shelf.
+            </p>
+            <span class="ex-cta">
+                Enter Library <i class="fas fa-arrow-right"></i>
+            </span>
+        </a>
+
+        <!-- More Resources -->
+        <a href="{% url 'academics:resources' %}" class="explore-card v-teal reveal">
+            <span class="ex-badge">📁 Resources</span>
+            <div class="ex-icon-wrap">📁</div>
+            <h3 class="ex-title">More Resources</h3>
+            <p class="ex-desc">
+                Past questions, study materials, handwritten notes, and tutorials — everything
+                you need to succeed, curated by NAMETS and shared by your peers.
+            </p>
+            <span class="ex-cta">
+                Browse Resources <i class="fas fa-arrow-right"></i>
+            </span>
+        </a>
+
     </div>
 </div>
 
@@ -102,7 +525,7 @@
 </div>
 {% endif %}
 
-<!-- (Optional) If no sessions, you could show an empty state -->
+<!-- Empty state if no sessions -->
 {% if not upcoming_sessions %}
 <div class="empty-state glass card-reveal">
     <span class="empty-state-icon">📅</span>
@@ -111,10 +534,6 @@
 </div>
 {% endif %}
 
-<div class="button-group" style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin: 2rem 0;">
-    <a href="{% url 'academics:competition_results' %}" class="btn btn-primary" style="border-radius: 10px">Competitions</a>
-    <a href="{% url 'academics:resources' %}" class="btn btn-primary" style="border-radius: 10px">More Resources</a>
-</div>
 <!-- GPA Calculator -->
 <div class="section-heading reveal mt-lg">
     <h2>GPA Calculator</h2>
@@ -132,7 +551,7 @@
         </select>
     </div>
 
-    <!-- Custom Grade Points (hidden initially) -->
+    <!-- Custom Grade Points -->
     <div id="customScalePanel" class="custom-scale-panel" style="display: none;">
         <h3>Define Grade Points</h3>
         <div class="custom-grade-grid">
@@ -154,12 +573,10 @@
         </div>
     </div>
 
-    <!-- Courses Container (dynamic table) -->
-    <div id="coursesContainer" class="courses-container">
-        <!-- Generated table will appear here -->
-    </div>
+    <!-- Courses Container -->
+    <div id="coursesContainer" class="courses-container"></div>
 
-    <!-- Previous GPA (optional) -->
+    <!-- Previous GPA -->
     <div class="previous-gpa">
         <h3>Previous GPA (optional)</h3>
         <div class="form-row">
@@ -182,234 +599,190 @@
     </div>
 
     <!-- Result Display -->
-    <div id="gpaResult" class="gpa-result">
-        <!-- Results will appear here -->
-    </div>
+    <div id="gpaResult" class="gpa-result"></div>
 </div>
 
 {% endblock %}
+
 {% block extra_js %}
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // DOM elements
-        const scaleSelect = document.getElementById('gradingScale');
-        const customPanel = document.getElementById('customScalePanel');
-        const numCoursesInput = document.getElementById('numCourses');
-        const generateBtn = document.getElementById('generateCourses');
-        const container = document.getElementById('coursesContainer');
-        const calculateBtn = document.getElementById('calculateGPA');
-        const clearBtn = document.getElementById('clearAll');
-        const exportBtn = document.getElementById('exportResults');
-        const resultDiv = document.getElementById('gpaResult');
-        const prevGPAInput = document.getElementById('prevGPA');
-        const prevCreditsInput = document.getElementById('prevCredits');
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM elements
+    const scaleSelect = document.getElementById('gradingScale');
+    const customPanel = document.getElementById('customScalePanel');
+    const numCoursesInput = document.getElementById('numCourses');
+    const generateBtn = document.getElementById('generateCourses');
+    const container = document.getElementById('coursesContainer');
+    const calculateBtn = document.getElementById('calculateGPA');
+    const clearBtn = document.getElementById('clearAll');
+    const exportBtn = document.getElementById('exportResults');
+    const resultDiv = document.getElementById('gpaResult');
+    const prevGPAInput = document.getElementById('prevGPA');
+    const prevCreditsInput = document.getElementById('prevCredits');
 
-        // Grade point fields for custom scale
-        const gradeA = document.getElementById('gradeA');
-        const gradeB = document.getElementById('gradeB');
-        const gradeC = document.getElementById('gradeC');
-        const gradeD = document.getElementById('gradeD');
-        const gradeE = document.getElementById('gradeE');
-        const gradeF = document.getElementById('gradeF');
+    const gradeA = document.getElementById('gradeA');
+    const gradeB = document.getElementById('gradeB');
+    const gradeC = document.getElementById('gradeC');
+    const gradeD = document.getElementById('gradeD');
+    const gradeE = document.getElementById('gradeE');
+    const gradeF = document.getElementById('gradeF');
 
-        // Default grade points for standard scales
-        const gradePoints = {
-            '5.0': { 'A': 5.0, 'B': 4.0, 'C': 3.0, 'D': 2.0, 'E': 1.0, 'F': 0.0 },
-            '4.0': { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'E': 0.0, 'F': 0.0 }
-        };
+    const gradePoints = {
+        '5.0': { 'A': 5.0, 'B': 4.0, 'C': 3.0, 'D': 2.0, 'E': 1.0, 'F': 0.0 },
+        '4.0': { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'E': 0.0, 'F': 0.0 }
+    };
 
-        // Show/hide custom scale panel
-        scaleSelect.addEventListener('change', function() {
-            if (this.value === 'custom') {
-                customPanel.style.display = 'block';
+    scaleSelect.addEventListener('change', function() {
+        customPanel.style.display = (this.value === 'custom') ? 'block' : 'none';
+    });
+
+    function generateRows(count) {
+        let html = '<table class="gpa-table"><thead><tr><th>Course Name</th><th>Course Code</th><th>Credit Hours</th><th>Grade</th></tr></thead><tbody>';
+        for (let i = 0; i < count; i++) {
+            html += `<tr>
+                <td data-label="Course Name"><input type="text" class="course-name" placeholder="e.g., Calculus I"></td>
+                <td data-label="Course Code"><input type="text" class="course-code" placeholder="e.g., MTH101"></td>
+                <td data-label="Credit Hours"><input type="number" step="0.5" min="0" class="credit-hours" value="3"></td>
+                <td data-label="Grade">
+                    <select class="grade-select">
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                    </select>
+                </td>
+            </tr>`;
+        }
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    generateRows(parseInt(numCoursesInput.value) || 1);
+
+    generateBtn.addEventListener('click', function() {
+        const num = parseInt(numCoursesInput.value);
+        if (num && num > 0) {
+            generateRows(num);
+        } else {
+            alert('Please enter a valid number of courses.');
+        }
+    });
+
+    clearBtn.addEventListener('click', function() {
+        generateRows(1);
+        prevGPAInput.value = '';
+        prevCreditsInput.value = '';
+        scaleSelect.value = '5.0';
+        customPanel.style.display = 'none';
+        resultDiv.innerHTML = '';
+    });
+
+    function validateRows() {
+        const rows = document.querySelectorAll('#coursesContainer tbody tr');
+        let valid = true;
+        rows.forEach(row => {
+            const creditInput = row.querySelector('.credit-hours');
+            const credits = parseFloat(creditInput.value);
+            if (isNaN(credits) || credits <= 0) {
+                creditInput.style.border = '2px solid red';
+                valid = false;
             } else {
-                customPanel.style.display = 'none';
+                creditInput.style.border = '';
             }
         });
+        return valid;
+    }
 
-        // Generate course rows
-        function generateRows(count) {
-            let html = '<table class="gpa-table"><thead><tr><th>Course Name</th><th>Course Code</th><th>Credit Hours</th><th>Grade</th></tr></thead><tbody>';
-            for (let i = 0; i < count; i++) {
-                html += `<tr>
-                    <td data-label="Course Name"><input type="text" class="course-name" placeholder="e.g., Calculus I"></td>
-                    <td data-label="Course Code"><input type="text" class="course-code" placeholder="e.g., MTH101"></td>
-                    <td data-label="Credit Hours"><input type="number" step="0.5" min="0" class="credit-hours" value="3"></td>
-                    <td data-label="Grade">
-                        <select class="grade-select">
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
-                            <option value="D">D</option>
-                            <option value="E">E</option>
-                            <option value="F">F</option>
-                        </select>
-                    </td>
-                </tr>`;
-            }
-            html += '</tbody></table>';
-            container.innerHTML = html;
+    function getCurrentGradePoints() {
+        const scale = scaleSelect.value;
+        if (scale === 'custom') {
+            return {
+                'A': parseFloat(gradeA.value) || 0,
+                'B': parseFloat(gradeB.value) || 0,
+                'C': parseFloat(gradeC.value) || 0,
+                'D': parseFloat(gradeD.value) || 0,
+                'E': parseFloat(gradeE.value) || 0,
+                'F': parseFloat(gradeF.value) || 0
+            };
+        }
+        return gradePoints[scale];
+    }
+
+    calculateBtn.addEventListener('click', function() {
+        if (!validateRows()) {
+            alert('Please fix the highlighted fields (credit hours must be positive numbers).');
+            return;
         }
 
-        // Initial generation
-        generateRows(parseInt(numCoursesInput.value) || 1);
+        const points = getCurrentGradePoints();
+        const rows = document.querySelectorAll('#coursesContainer tbody tr');
+        let totalPoints = 0;
+        let totalCredits = 0;
 
-        generateBtn.addEventListener('click', function() {
-            const num = parseInt(numCoursesInput.value);
-            if (num && num > 0) {
-                generateRows(num);
-            } else {
-                alert('Please enter a valid number of courses.');
-            }
+        rows.forEach(row => {
+            const creditInput = row.querySelector('.credit-hours');
+            const gradeSelect = row.querySelector('.grade-select');
+            const credits = parseFloat(creditInput.value);
+            const grade = gradeSelect.value;
+
+            totalPoints += credits * (points[grade] || 0);
+            totalCredits += credits;
         });
 
-        // Clear all fields
-        clearBtn.addEventListener('click', function() {
-            generateRows(1);
-            prevGPAInput.value = '';
-            prevCreditsInput.value = '';
-            scaleSelect.value = '5.0';
-            customPanel.style.display = 'none';
-            resultDiv.innerHTML = '';
-        });
+        const semesterGPA = totalPoints / totalCredits;
 
-        // Validate inputs
-        function validateRows() {
-            const rows = document.querySelectorAll('#coursesContainer tbody tr');
-            let valid = true;
-            rows.forEach(row => {
-                const creditInput = row.querySelector('.credit-hours');
-                const credits = parseFloat(creditInput.value);
-                if (isNaN(credits) || credits <= 0) {
-                    creditInput.style.border = '2px solid red';
-                    valid = false;
-                } else {
-                    creditInput.style.border = '';
-                }
-            });
-            return valid;
+        const prevGPA = parseFloat(prevGPAInput.value);
+        const prevCredits = parseFloat(prevCreditsInput.value);
+        let cumulativeGPA = null;
+
+        if (!isNaN(prevGPA) && !isNaN(prevCredits) && prevCredits > 0) {
+            const totalPrevPoints = prevGPA * prevCredits;
+            const cumulativePoints = totalPrevPoints + totalPoints;
+            const cumulativeCredits = prevCredits + totalCredits;
+            cumulativeGPA = cumulativePoints / cumulativeCredits;
         }
 
-        // Get current grade points based on scale
-        function getCurrentGradePoints() {
-            const scale = scaleSelect.value;
-            if (scale === 'custom') {
-                return {
-                    'A': parseFloat(gradeA.value) || 0,
-                    'B': parseFloat(gradeB.value) || 0,
-                    'C': parseFloat(gradeC.value) || 0,
-                    'D': parseFloat(gradeD.value) || 0,
-                    'E': parseFloat(gradeE.value) || 0,
-                    'F': parseFloat(gradeF.value) || 0
-                };
-            } else {
-                return gradePoints[scale];
-            }
+        let resultHtml = `<p><strong>Semester GPA:</strong> ${semesterGPA.toFixed(2)}</p>`;
+        if (cumulativeGPA !== null) {
+            resultHtml += `<p><strong>Cumulative GPA:</strong> ${cumulativeGPA.toFixed(2)}</p>`;
+        }
+        resultDiv.innerHTML = resultHtml;
+    });
+
+    exportBtn.addEventListener('click', function() {
+        const resultText = resultDiv.innerText;
+        if (!resultText) {
+            alert('Calculate GPA first before exporting.');
+            return;
         }
 
-        // Calculate GPA
-        calculateBtn.addEventListener('click', function() {
-            if (!validateRows()) {
-                alert('Please fix the highlighted fields (credit hours must be positive numbers).');
-                return;
-            }
-
-            const points = getCurrentGradePoints();
-            const rows = document.querySelectorAll('#coursesContainer tbody tr');
-            let totalPoints = 0;
-            let totalCredits = 0;
-
-            rows.forEach(row => {
-                const creditInput = row.querySelector('.credit-hours');
-                const gradeSelect = row.querySelector('.grade-select');
-                const credits = parseFloat(creditInput.value);
-                const grade = gradeSelect.value;
-
-                totalPoints += credits * (points[grade] || 0);
-                totalCredits += credits;
-            });
-
-            const semesterGPA = totalPoints / totalCredits;
-
-            // Cumulative GPA
-            const prevGPA = parseFloat(prevGPAInput.value);
-            const prevCredits = parseFloat(prevCreditsInput.value);
-            let cumulativeGPA = null;
-
-            if (!isNaN(prevGPA) && !isNaN(prevCredits) && prevCredits > 0) {
-                const totalPrevPoints = prevGPA * prevCredits;
-                const cumulativePoints = totalPrevPoints + totalPoints;
-                const cumulativeCredits = prevCredits + totalCredits;
-                cumulativeGPA = cumulativePoints / cumulativeCredits;
-            }
-
-            // Build result HTML
-            let resultHtml = `<p><strong>Semester GPA:</strong> ${semesterGPA.toFixed(2)}</p>`;
-            if (cumulativeGPA !== null) {
-                resultHtml += `<p><strong>Cumulative GPA:</strong> ${cumulativeGPA.toFixed(2)}</p>`;
-            }
-
-            // Optionally add a table of entered courses? Not required but could be nice.
-            resultDiv.innerHTML = resultHtml;
+        const rows = document.querySelectorAll('#coursesContainer tbody tr');
+        let coursesList = '';
+        rows.forEach(row => {
+            const name = row.querySelector('.course-name').value || 'Untitled';
+            const code = row.querySelector('.course-code').value || 'No code';
+            const credits = row.querySelector('.credit-hours').value;
+            const grade = row.querySelector('.grade-select').value;
+            coursesList += `${name} (${code}): ${credits} credits, grade ${grade}\n`;
         });
 
-        // Export results
-        exportBtn.addEventListener('click', function() {
-            const resultText = resultDiv.innerText;
-            if (!resultText) {
-                alert('Calculate GPA first before exporting.');
-                return;
-            }
+        const prevGPA = prevGPAInput.value ? `Previous GPA: ${prevGPAInput.value} over ${prevCreditsInput.value} credits\n` : '';
+        const exportContent = `GPA Calculation Results\n\n${coursesList}\n${resultText}\n${prevGPA}`;
 
-            // Build a more detailed export
-            const rows = document.querySelectorAll('#coursesContainer tbody tr');
-            let coursesList = '';
-            rows.forEach(row => {
-                const name = row.querySelector('.course-name').value || 'Untitled';
-                const code = row.querySelector('.course-code').value || 'No code';
-                const credits = row.querySelector('.credit-hours').value;
-                const grade = row.querySelector('.grade-select').value;
-                coursesList += `${name} (${code}): ${credits} credits, grade ${grade}\n`;
-            });
-
-            const prevGPA = prevGPAInput.value ? `Previous GPA: ${prevGPAInput.value} over ${prevCreditsInput.value} credits\n` : '';
-            const exportContent = `GPA Calculation Results\n\n${coursesList}\n${resultText}\n${prevGPA}`;
-
-            // Copy to clipboard
-            navigator.clipboard.writeText(exportContent).then(() => {
-                alert('Results copied to clipboard!');
-            }).catch(() => {
-                // Fallback download as text file
-                const blob = new Blob([exportContent], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'gpa_results.txt';
-                a.click();
-                URL.revokeObjectURL(url);
-            });
+        navigator.clipboard.writeText(exportContent).then(() => {
+            alert('Results copied to clipboard!');
+        }).catch(() => {
+            const blob = new Blob([exportContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'gpa_results.txt';
+            a.click();
+            URL.revokeObjectURL(url);
         });
     });
-    // Show/hide scroll hint based on overflow
-    const container = document.querySelector('.courses-container');
-    const hint = document.getElementById('scrollHint');
-    if (container && hint) {
-        function checkOverflow() {
-            if (container.scrollWidth > container.clientWidth) {
-                hint.classList.remove('hidden');
-            } else {
-                hint.classList.add('hidden');
-            }
-        }
-        checkOverflow();
-        container.addEventListener('scroll', function() {
-            if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 5) {
-                hint.classList.add('hidden');
-            } else {
-                hint.classList.remove('hidden');
-            }
-        });
-        window.addEventListener('resize', checkOverflow);
-    }
-    </script>
+});
+</script>
 {% endblock %}

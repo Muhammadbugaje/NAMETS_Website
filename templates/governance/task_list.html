@@ -1,0 +1,558 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Tasks · Governance{% endblock %}
+
+{% block extra_css %}
+<style>
+.gov-head {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.6rem 2rem; margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.gov-head::before {
+    content: "✅"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.gov-head-inner {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.gov-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #C8A951; background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.85rem; border-radius: 20px;
+    margin-bottom: 0.35rem;
+}
+.gov-head h1 { font-size: 1.4rem; font-weight: 800; margin: 0; }
+.gov-head p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+.gov-head-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.25rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem; text-decoration: none;
+    border: 1px solid transparent; transition: all 0.25s;
+}
+.hbtn-gold { background: #C8A951; color: #0F3D2E; border-color: #C8A951; }
+.hbtn-gold:hover { background: #E0C96E; color: #0F3D2E; transform: translateY(-2px); }
+.hbtn-outline { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2); }
+.hbtn-outline:hover { background: rgba(255,255,255,0.22); color: #fff; transform: translateY(-2px); }
+
+/* Stats row */
+.stat-mini-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem; margin-bottom: 1.25rem;
+}
+.stat-mini {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 0.85rem 1.1rem;
+    box-shadow: var(--shadow-sm);
+    display: flex; align-items: center; gap: 0.75rem;
+    position: relative; overflow: hidden;
+    transition: all 0.25s;
+}
+.stat-mini::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+}
+.stat-mini.green::before { background: linear-gradient(90deg,#0F3D2E,#38a169); }
+.stat-mini.red::before { background: linear-gradient(90deg,#9b2c2c,#f87171); }
+.stat-mini.blue::before { background: linear-gradient(90deg,#185fa5,#4299e1); }
+.stat-mini .ic {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+.stat-mini.green .ic { background: #e8f2ec; color: #1a6b3c; }
+.stat-mini.red .ic { background: #fdecea; color: #9b2c2c; }
+.stat-mini.blue .ic { background: #e6f0fb; color: #185fa5; }
+.stat-mini .num { font-size: 1.2rem; font-weight: 800; color: #0F3D2E; line-height: 1; }
+.stat-mini .lbl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: #8a9b95; font-weight: 700; margin-top: 0.2rem; }
+
+/* Filters */
+.filters-bar {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.2rem; margin-bottom: 1rem;
+}
+.filters-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    gap: 0.5rem; align-items: center;
+}
+.filters-grid input, .filters-grid select {
+    padding: 0.5rem 0.85rem; border: 1px solid #d0d9d6;
+    border-radius: 8px; background: #fff;
+    font-size: 0.85rem; font-family: inherit;
+    width: 100%;
+}
+.filters-grid input:focus, .filters-grid select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.filters-grid .btn-search {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.55rem 1.1rem; border-radius: 8px; cursor: pointer;
+    font-weight: 700; font-size: 0.82rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    justify-content: center;
+    white-space: nowrap;
+}
+.clear-link {
+    display: block; text-align: right;
+    color: #8a9b95; text-decoration: none;
+    font-size: 0.78rem; margin-top: 0.5rem;
+}
+.clear-link:hover { color: var(--text-primary); text-decoration: underline; }
+
+/* Bulk bar */
+.bulk-bar {
+    display: none;
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44);
+    border-radius: 14px; padding: 0.75rem 1.15rem;
+    margin-bottom: 1rem;
+    align-items: center; gap: 0.75rem; flex-wrap: wrap;
+    box-shadow: 0 8px 24px rgba(15,61,46,0.25);
+}
+.bulk-bar.active { display: flex; }
+.bulk-count {
+    font-weight: 800; font-size: 0.85rem;
+    color: #C8A951;
+    background: rgba(200,169,81,0.18);
+    padding: 0.25rem 0.85rem; border-radius: 20px;
+}
+.bulk-bar select {
+    padding: 0.45rem 0.85rem; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.1); color: #fff;
+    font-size: 0.82rem; font-family: inherit;
+}
+.bulk-bar select option { color: #0F3D2E; }
+.bulk-bar .bulk-btn {
+    padding: 0.45rem 1.1rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem;
+    border: none; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    transition: all 0.2s;
+}
+.bulk-btn.apply { background: var(--gold); color: var(--text-primary); }
+.bulk-btn.apply:hover { background: #E0C96E; transform: translateY(-1px); }
+.bulk-btn.clear { background: rgba(255,255,255,0.15); color: #fff; }
+.bulk-btn.clear:hover { background: rgba(255,255,255,0.25); }
+
+/* Card-based task list */
+.task-list { display: flex; flex-direction: column; gap: 0.65rem; }
+.task-item {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    display: flex; align-items: flex-start;
+    gap: 1rem; position: relative;
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: var(--shadow-sm);
+}
+.task-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(200,169,81,0.4);
+}
+.task-item.overdue {
+    border-left: 4px solid #c0392b;
+}
+.task-item.completed {
+    opacity: 0.75;
+}
+.task-item.completed .task-title {
+    text-decoration: line-through;
+    color: #8a9b95;
+}
+.task-check {
+    width: 20px; height: 20px;
+    accent-color: var(--gold);
+    cursor: pointer; margin-top: 0.15rem;
+    flex-shrink: 0;
+}
+.task-body { flex: 1; min-width: 0; }
+.task-title {
+    font-size: 0.98rem; font-weight: 700;
+    color: #0F3D2E; margin: 0 0 0.35rem;
+    line-height: 1.3;
+    text-decoration: none;
+    display: block;
+}
+.task-title:hover { color: var(--gold); }
+.task-meta {
+    display: flex; flex-wrap: wrap;
+    gap: 0.5rem 0.9rem;
+    font-size: 0.75rem; color: #8a9b95;
+    align-items: center;
+}
+.task-meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.task-meta i { color: #C8A951; font-size: 0.7rem; }
+
+.priority-chip, .status-chip {
+    display: inline-flex; align-items: center;
+    padding: 0.15rem 0.6rem; border-radius: 20px;
+    font-size: 0.62rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+.priority-chip.urgent { background: #fdecea; color: #9b2c2c; }
+.priority-chip.high   { background: #fef3e8; color: #a8671a; }
+.priority-chip.medium { background: #f5e9c8; color: #8a6a1a; }
+.priority-chip.low    { background: #e8f2ec; color: #1a6b3c; }
+.status-chip.pending     { background: #f5e9c8; color: #8a6a1a; }
+.status-chip.in_progress { background: #e6f0fb; color: #185fa5; }
+.status-chip.completed   { background: #e8f2ec; color: #1a6b3c; }
+.status-chip.cancelled   { background: #f0f0f0; color: #777; }
+.status-chip.overdue     { background: #fdecea; color: #9b2c2c; }
+
+.task-actions {
+    display: flex; gap: 0.3rem;
+    flex-shrink: 0;
+}
+.task-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; cursor: pointer; font-size: 0.75rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.task-btn.complete { background: #e8f2ec; color: #1a6b3c; }
+.task-btn.complete:hover { background: #38a169; color: #fff; transform: scale(1.1); }
+.task-btn.edit { background: #f5e9c8; color: #8a6a1a; }
+.task-btn.edit:hover { background: var(--gold); color: #fff; }
+.task-btn.del { background: #fdecea; color: #9b2c2c; }
+.task-btn.del:hover { background: #f5c2bc; }
+
+.empty-state {
+    text-align: center; padding: 4rem 1.5rem;
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 2px dashed rgba(200,169,81,0.35);
+    border-radius: 18px;
+}
+.empty-state .ic { font-size: 3.5rem; display: block; margin-bottom: 0.75rem; }
+.empty-state h3 { color: #0F3D2E; margin: 0 0 0.35rem; font-size: 1.05rem; }
+.empty-state p { color: #8a9b95; font-size: 0.85rem; margin: 0 0 1rem; }
+
+.pagination { margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap; }
+.pagination a, .pagination .current {
+    min-width: 38px; height: 38px; padding: 0 0.8rem;
+    border-radius: 10px; text-decoration: none;
+    font-size: 0.82rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: #0F3D2E;
+    transition: all 0.2s;
+}
+.pagination a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pagination .current { background: var(--primary); color: #C8A951; border-color: var(--primary); }
+
+@media (max-width: 900px) {
+    .filters-grid { grid-template-columns: 1fr 1fr; }
+    .filters-grid .btn-search { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+    .gov-head { padding: 1.15rem 1.25rem; }
+    .gov-head-inner { flex-direction: column; align-items: stretch; }
+    .gov-head-actions { flex-direction: column; }
+    .hbtn { justify-content: center; width: 100%; }
+    .filters-grid { grid-template-columns: 1fr; }
+    .stat-mini-row { grid-template-columns: repeat(2, 1fr); }
+    .task-item { flex-wrap: wrap; }
+    .task-actions { width: 100%; justify-content: flex-end; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- HEADER -->
+<div class="gov-head">
+    <div class="gov-head-inner">
+        <div>
+            <span class="gov-eyebrow">Governance · Tasks</span>
+            <h1>Tasks</h1>
+            <p>Assign, track, and complete work across the EXCO.</p>
+        </div>
+        <div class="gov-head-actions">
+            {% if perms.governance.add_task %}
+            <a href="{% url 'governance:task_create' %}" class="hbtn hbtn-gold">
+                <i class="fas fa-plus"></i> New Task
+            </a>
+            {% endif %}
+            <a href="{% url 'governance:dashboard' %}" class="hbtn hbtn-outline">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- STATS -->
+<div class="stat-mini-row">
+    <div class="stat-mini green">
+        <div class="ic"><i class="fas fa-list-check"></i></div>
+        <div>
+            <div class="num">{{ stats.total|default:0 }}</div>
+            <div class="lbl">Total Shown</div>
+        </div>
+    </div>
+    <div class="stat-mini red">
+        <div class="ic"><i class="fas fa-exclamation-triangle"></i></div>
+        <div>
+            <div class="num">{{ stats.overdue|default:0 }}</div>
+            <div class="lbl">Overdue</div>
+        </div>
+    </div>
+    <div class="stat-mini blue">
+        <div class="ic"><i class="fas fa-check-circle"></i></div>
+        <div>
+            <div class="num">{{ stats.completed|default:0 }}</div>
+            <div class="lbl">Completed</div>
+        </div>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-bar">
+    <form method="get">
+        <div class="filters-grid">
+            <input type="text" name="q" placeholder="Search tasks…" value="{{ query }}">
+
+            <select name="status">
+                <option value="">All Status</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+
+            <select name="priority">
+                <option value="">All Priorities</option>
+                <option value="urgent" {% if priority_filter == 'urgent' %}selected{% endif %}>Urgent</option>
+                <option value="high" {% if priority_filter == 'high' %}selected{% endif %}>High</option>
+                <option value="medium" {% if priority_filter == 'medium' %}selected{% endif %}>Medium</option>
+                <option value="low" {% if priority_filter == 'low' %}selected{% endif %}>Low</option>
+            </select>
+
+            <select name="assignee">
+                <option value="">All Assignees</option>
+                <option value="me" {% if assignee_filter == 'me' %}selected{% endif %}>Assigned to me</option>
+                <option value="others" {% if assignee_filter == 'others' %}selected{% endif %}>Assigned to others</option>
+            </select>
+
+            <button type="submit" class="btn-search"><i class="fas fa-search"></i> Filter</button>
+        </div>
+        {% if show_overdue_only %}
+        <input type="hidden" name="overdue" value="1">
+        {% endif %}
+        {% if query or status_filter or priority_filter or assignee_filter or show_overdue_only %}
+        <a href="{% url 'governance:task_list' %}" class="clear-link">✕ Clear all filters</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- BULK BAR -->
+{% if perms.governance.change_task %}
+<div class="bulk-bar" id="bulkBar">
+    <span class="bulk-count" id="bulkCount">0 selected</span>
+    <select id="bulkAction">
+        <option value="">— Choose action —</option>
+        <option value="complete">✅ Mark completed</option>
+        <option value="in_progress">🔄 Set to in progress</option>
+        <option value="cancel">❌ Cancel</option>
+        {% if perms.governance.delete_task %}
+        <option value="delete">🗑 Delete</option>
+        {% endif %}
+    </select>
+    <button type="button" class="bulk-btn apply" onclick="applyBulkAction()">
+        <i class="fas fa-bolt"></i> Apply
+    </button>
+    <button type="button" class="bulk-btn clear" onclick="clearSelection()">
+        <i class="fas fa-times"></i> Clear
+    </button>
+</div>
+
+<form method="post" action="{% url 'governance:task_bulk_action' %}" id="bulkForm" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="bulk_action" id="bulkActionHidden">
+    <div id="bulkIdsContainer"></div>
+</form>
+{% endif %}
+
+<!-- TASK LIST -->
+<div class="task-list">
+    {% for t in tasks %}
+    <div class="task-item {% if t.is_overdue %}overdue{% endif %} {% if t.status == 'completed' %}completed{% endif %}">
+        {% if perms.governance.change_task %}
+        <input type="checkbox" class="task-check row-select" value="{{ t.pk }}">
+        {% endif %}
+        <div class="task-body">
+            <a href="{% url 'governance:task_detail' t.pk %}" class="task-title">{{ t.title }}</a>
+            <div class="task-meta">
+                {% if t.is_overdue %}
+                <span class="status-chip overdue">Overdue</span>
+                {% else %}
+                <span class="status-chip {{ t.status }}">{{ t.get_status_display }}</span>
+                {% endif %}
+                <span class="priority-chip {{ t.priority }}">{{ t.get_priority_display }}</span>
+                <span><i class="fas fa-user"></i> {{ t.assignee_display }}</span>
+                {% if t.deadline %}
+                <span><i class="fas fa-clock"></i> {{ t.deadline|date:"M d, Y · H:i" }}</span>
+                {% endif %}
+                {% if t.assigned_by %}
+                <span><i class="fas fa-user-tie"></i> by {{ t.assigned_by.get_full_name|default:t.assigned_by.username }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="task-actions">
+            {% if t.status != 'completed' %}
+            <form method="post" action="{% url 'governance:task_mark_complete' t.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="task-btn complete" title="Mark complete"
+                        onclick="return NAMETSConfirm(event, 'Mark this task as complete?')">
+                    <i class="fas fa-check"></i>
+                </button>
+            </form>
+            {% endif %}
+            {% if perms.governance.change_task %}
+            <a href="{% url 'governance:task_edit' t.pk %}" class="task-btn edit" title="Edit">
+                <i class="fas fa-pen"></i>
+            </a>
+            {% endif %}
+            {% if perms.governance.delete_task %}
+            <button type="button" class="task-btn del" title="Delete"
+                    onclick="confirmTaskDelete('{{ t.pk }}', '{{ t.title|escapejs }}')">
+                <i class="fas fa-trash"></i>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <span class="ic">✅</span>
+        <h3>No tasks found</h3>
+        <p>{% if query or status_filter or priority_filter %}Try adjusting the filters.{% else %}No tasks have been created yet.{% endif %}</p>
+        {% if perms.governance.add_task %}
+        <a href="{% url 'governance:task_create' %}" class="hbtn hbtn-gold" style="display:inline-flex;">
+            <i class="fas fa-plus"></i> Create the first task
+        </a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<!-- PAGINATION -->
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- DELETE FORM (hidden) -->
+<form method="post" id="taskDeleteForm" style="display:none;">
+    {% csrf_token %}
+</form>
+
+<script>
+// ============ HELPERS ============
+window.NAMETSConfirm = function(event, message) {
+    event.preventDefault();
+    const form = event.target.closest('form');
+    NAMETS.confirm({
+        title: 'Please confirm',
+        message: message,
+        confirmText: 'Yes, continue',
+        danger: false,
+    }).then(ok => { if (ok) form.submit(); });
+    return false;
+};
+
+function confirmTaskDelete(pk, title) {
+    NAMETS.confirm({
+        title: 'Delete Task?',
+        message: `“${title}” will be permanently removed. This cannot be undone.`,
+        confirmText: 'Yes, Delete',
+        danger: true,
+    }).then(ok => {
+        if (!ok) return;
+        const form = document.getElementById('taskDeleteForm');
+        form.action = `/governance/tasks/${pk}/delete/`;
+        form.submit();
+    });
+}
+
+// ============ BULK SELECTION ============
+(function() {
+    const checks = document.querySelectorAll('.row-select');
+    const bar = document.getElementById('bulkBar');
+    const count = document.getElementById('bulkCount');
+    if (!checks.length || !bar) return;
+
+    function update() {
+        const checked = document.querySelectorAll('.row-select:checked');
+        if (checked.length > 0) {
+            bar.classList.add('active');
+            count.textContent = checked.length + ' selected';
+        } else {
+            bar.classList.remove('active');
+        }
+    }
+    checks.forEach(cb => cb.addEventListener('change', update));
+})();
+
+function clearSelection() {
+    document.querySelectorAll('.row-select').forEach(cb => cb.checked = false);
+    document.getElementById('bulkBar').classList.remove('active');
+}
+
+function applyBulkAction() {
+    const action = document.getElementById('bulkAction').value;
+    const selected = Array.from(document.querySelectorAll('.row-select:checked')).map(cb => cb.value);
+
+    if (!action) { NAMETS.notify('Please choose an action.', 'warning'); return; }
+    if (!selected.length) { NAMETS.notify('Select at least one task.', 'warning'); return; }
+
+    const labels = {
+        complete: 'mark as completed',
+        in_progress: 'set to in progress',
+        cancel: 'cancel',
+        delete: 'permanently delete',
+    };
+    const danger = action === 'delete';
+
+    NAMETS.confirm({
+        title: danger ? 'Delete Tasks?' : 'Apply to Tasks?',
+        message: `You are about to ${labels[action]} ${selected.length} task(s).${danger ? ' This cannot be undone.' : ''}`,
+        confirmText: danger ? 'Yes, Delete' : 'Yes, Apply',
+        danger: danger,
+    }).then(ok => {
+        if (!ok) return;
+        const form = document.getElementById('bulkForm');
+        document.getElementById('bulkActionHidden').value = action;
+        const container = document.getElementById('bulkIdsContainer');
+        container.innerHTML = '';
+        selected.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'selected_ids';
+            input.value = id;
+            container.appendChild(input);
+        });
+        form.submit();
+    });
+}
+</script>
+
+{% endblock %}

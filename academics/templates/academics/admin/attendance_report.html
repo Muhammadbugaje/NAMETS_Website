@@ -1,0 +1,206 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Attendance Report · Academics{% endblock %}
+
+{% block extra_css %}
+<style>
+.rp-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.75rem 2rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 32px rgba(15,61,46,0.2);
+    color: #fff;
+}
+.rp-header::before {
+    content: "📊"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.rp-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.15); padding: 0.15rem 0.75rem;
+    border-radius: 20px; margin-bottom: 0.35rem;
+}
+.rp-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.35rem; }
+.rp-header p { font-size: 0.85rem; color: rgba(255,255,255,0.8); margin: 0; }
+
+.rp-filter {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 0.85rem 1.2rem; margin-bottom: 1.25rem;
+}
+.rp-filter form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.rp-filter select {
+    padding: 0.5rem 0.85rem; border: 1px solid #d0d9d6;
+    border-radius: 8px; background: #fff; flex: 1; min-width: 160px; font-size: 0.85rem;
+}
+.rp-filter .btn {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.5rem 1.1rem; border-radius: 8px; cursor: pointer;
+    font-weight: 600; font-size: 0.85rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+}
+
+.rp-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm); margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+.rp-card h3 {
+    font-size: 0.9rem; font-weight: 700; color: var(--text-primary);
+    padding: 1rem 1.5rem;
+    background: #f8faf9; margin: 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.rp-card h3 i { color: var(--gold); }
+
+.rp-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.rp-table th {
+    background: #fff; color: #0F3D2E;
+    padding: 0.65rem 1rem; text-align: left;
+    font-size: 0.7rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.rp-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    vertical-align: middle;
+}
+.rp-table tr:last-child td { border-bottom: none; }
+.rp-table tr:hover { background: rgba(200,169,81,0.04); }
+
+.pct-bar {
+    display: flex; align-items: center; gap: 0.6rem;
+    min-width: 120px;
+}
+.pct-bar .bar-wrap {
+    flex: 1; height: 8px; background: #f0f4f2;
+    border-radius: 4px; overflow: hidden;
+}
+.pct-bar .bar {
+    height: 100%; background: linear-gradient(90deg, #38a169, #48bb78);
+    border-radius: 4px;
+}
+.pct-bar .bar.low { background: linear-gradient(90deg, #c0392b, #e53e3e); }
+.pct-bar .bar.mid { background: linear-gradient(90deg, #d69e2e, #ecc94b); }
+.pct-bar .label { font-size: 0.78rem; font-weight: 700; min-width: 45px; text-align: right; }
+
+.empty-row {
+    text-align: center; padding: 3rem 1rem;
+    color: var(--text-muted); font-size: 0.88rem;
+}
+
+@media (max-width: 768px) {
+    .rp-header { padding: 1.35rem 1.25rem; }
+    .rp-header h1 { font-size: 1.2rem; }
+    .rp-filter form { flex-direction: column; align-items: stretch; }
+    .rp-table th, .rp-table td { font-size: 0.72rem; padding: 0.5rem 0.6rem; }
+    .rp-table .hide-sm { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="rp-header">
+    <span class="rp-eyebrow">Academics</span>
+    <h1>📊 Attendance Report</h1>
+    <p>Per-session stats and per-candidate attendance percentages.</p>
+</div>
+
+<div class="rp-filter">
+    <form method="get">
+        <select name="type">
+            <option value="">All Session Types</option>
+            <option value="tutorial" {% if session_type == 'tutorial' %}selected{% endif %}>Tutorials</option>
+            <option value="islamiyyah" {% if session_type == 'islamiyyah' %}selected{% endif %}>Islamiyya</option>
+            <option value="exco_meeting" {% if session_type == 'exco_meeting' %}selected{% endif %}>EXCO Meetings</option>
+            <option value="event" {% if session_type == 'event' %}selected{% endif %}>Events</option>
+        </select>
+        <button type="submit" class="btn"><i class="fas fa-filter"></i> Apply</button>
+    </form>
+</div>
+
+<!-- Per-session stats -->
+<div class="rp-card">
+    <h3><i class="fas fa-calendar-check"></i> Session Summary (last 200)</h3>
+    {% if session_stats %}
+    <div style="overflow-x:auto;">
+        <table class="rp-table">
+            <thead>
+                <tr>
+                    <th>Session</th>
+                    <th class="hide-sm">Type</th>
+                    <th>Date</th>
+                    <th>Present / Total</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in session_stats %}
+                <tr>
+                    <td><strong>{{ s.session.title|truncatechars:36 }}</strong></td>
+                    <td class="hide-sm">{{ s.session.get_session_type_display }}</td>
+                    <td>{{ s.session.date|date:"M d, Y" }}</td>
+                    <td>{{ s.present }} / {{ s.total }}</td>
+                    <td>
+                        <div class="pct-bar">
+                            <div class="bar-wrap">
+                                <div class="bar {% if s.pct < 50 %}low{% elif s.pct < 75 %}mid{% endif %}"
+                                     style="width: {{ s.pct|floatformat:0 }}%;"></div>
+                            </div>
+                            <div class="label">{{ s.pct|floatformat:0 }}%</div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-row">No attendance sessions found for this filter.</div>
+    {% endif %}
+</div>
+
+<!-- Per-candidate stats -->
+{% if candidate_stats %}
+<div class="rp-card">
+    <h3><i class="fas fa-user-check"></i> Per-Student Attendance (Islamiyya)</h3>
+    <div style="overflow-x:auto;">
+        <table class="rp-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th class="hide-sm">Level</th>
+                    <th>Present / Total</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in candidate_stats %}
+                <tr>
+                    <td><strong>{{ c.name }}</strong></td>
+                    <td class="hide-sm">{{ c.meta }}</td>
+                    <td>{{ c.present }} / {{ c.total }}</td>
+                    <td>
+                        <div class="pct-bar">
+                            <div class="bar-wrap">
+                                <div class="bar {% if c.pct < 50 %}low{% elif c.pct < 75 %}mid{% endif %}"
+                                     style="width: {{ c.pct|floatformat:0 }}%;"></div>
+                            </div>
+                            <div class="label">{{ c.pct|floatformat:0 }}%</div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

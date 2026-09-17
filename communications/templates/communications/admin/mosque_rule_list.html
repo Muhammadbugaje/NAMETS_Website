@@ -1,0 +1,150 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Mosque Rules · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.mosque-rule-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.mosque-rule-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.mosque-rule-header-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.mosque-rule-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.mosque-rule-header h1 { font-size: 1.6rem; font-weight: 700; color: #fff; margin: 0 0 0.3rem; }
+.mosque-rule-header p { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+.mosque-rule-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.25s;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+}
+.mosque-rule-btn:hover { background: rgba(255,255,255,0.2); color: #fff; transform: translateY(-2px); }
+
+.rule-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.rule-item {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    transition: var(--transition);
+}
+.rule-item:hover { transform: translateX(4px); border-color: var(--gold); }
+.rule-item .info { flex: 1; }
+.rule-item .info .title { font-weight: 700; color: var(--text-primary); }
+.rule-item .info .content { font-size: 0.9rem; color: var(--text-secondary); margin: 0.2rem 0 0; }
+.rule-item .info .order { font-size: 0.75rem; color: var(--text-muted); }
+.rule-item .actions { display: flex; gap: 0.3rem; }
+.rule-item .actions .btn-sm {
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.badge-sm {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+.badge-success { background: #e8f2ec; color: #1a3c2e; }
+.badge-danger { background: #fdecea; color: #9b2c2c; }
+.empty { text-align: center; color: var(--text-muted); padding: 2rem; }
+@media (max-width: 768px) {
+    .mosque-rule-header { padding: 1.4rem 1.25rem; }
+    .mosque-rule-header-content { flex-direction: column; align-items: stretch; }
+    .mosque-rule-btn { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="mosque-rule-header">
+    <div class="mosque-rule-header-glow" aria-hidden="true"></div>
+    <div class="mosque-rule-header-content">
+        <div>
+            <span class="mosque-rule-eyebrow">Masjid Committee</span>
+            <h1>📜 Mosque Rules</h1>
+            <p>Manage rules and guidelines for the Engineering Mosque.</p>
+        </div>
+        {% if perms.communications.add_mosquerule %}
+        <a href="{% url 'communications:admin_mosque_rule_create' %}" class="mosque-rule-btn">
+            <i class="fas fa-plus-circle"></i> Add Rule
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="rule-list">
+    {% for rule in rules %}
+    <div class="rule-item">
+        <div class="info">
+            <div class="title">{{ rule.title }}</div>
+            <div class="content">{{ rule.content|truncatechars:120 }}</div>
+            <div class="order">Order: {{ rule.order }} • {% if rule.is_active %}<span class="badge-sm badge-success">Active</span>{% else %}<span class="badge-sm badge-danger">Inactive</span>{% endif %}</div>
+        </div>
+        <div class="actions">
+            <a href="{% url 'communications:admin_mosque_rule_edit' rule.pk %}" class="btn-sm btn-sm-gold"><i class="fas fa-edit"></i> Edit</a>
+            <a href="{% url 'communications:admin_mosque_rule_delete' rule.pk %}" class="btn-sm btn-sm-danger"><i class="fas fa-trash"></i></a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty">No rules found. Add your first mosque rule.</div>
+    {% endfor %}
+</div>
+
+{% endblock %}

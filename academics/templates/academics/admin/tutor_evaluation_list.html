@@ -1,0 +1,225 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Tutor Evaluations · Academics{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px; padding: 1.5rem 2rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.page-header::before {
+    content: "⭐"; font-size: 5rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.page-header-inner {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.page-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.15rem 0.8rem; border-radius: 20px; margin-bottom: 0.3rem;
+}
+.page-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.page-header p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+.header-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.2rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem; text-decoration: none;
+    background: var(--gold); color: var(--text-primary);
+    border: 1px solid var(--gold); transition: all 0.25s;
+}
+.header-btn:hover { background: #E0C96E; transform: translateY(-2px); }
+
+.filters-bar {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 0.85rem 1.2rem; margin-bottom: 1rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form select {
+    padding: 0.45rem 0.85rem; border: 1px solid #d0d9d6;
+    border-radius: 8px; background: #fff; flex: 1; min-width: 140px; font-size: 0.85rem;
+}
+.filter-form select:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.filter-form .btn-search {
+    background: var(--primary); color: #fff; border: none;
+    padding: 0.5rem 1.1rem; border-radius: 8px; cursor: pointer;
+    font-weight: 600; font-size: 0.85rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+}
+.filter-form .clear { color: var(--text-muted); text-decoration: none; font-size: 0.82rem; }
+
+.eval-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+.eval-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1.25rem 1.35rem; transition: var(--transition);
+    box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+}
+.eval-card::before {
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0;
+    width: 4px; background: var(--gold);
+}
+.eval-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.eval-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.85rem; }
+.eval-tutor {
+    font-size: 0.95rem; font-weight: 700; color: #0F3D2E;
+    margin-bottom: 0.15rem;
+}
+.eval-course { font-size: 0.75rem; color: #8a9b95; }
+.stars {
+    display: flex; gap: 0.15rem; flex-shrink: 0;
+}
+.star { color: #ddd; font-size: 0.95rem; }
+.star.filled { color: #C8A951; }
+
+.eval-comment {
+    font-size: 0.85rem; color: #5A5A5A; line-height: 1.55;
+    margin: 0.85rem 0;
+    padding: 0.75rem 0.9rem; background: #f8faf9;
+    border-radius: 8px;
+    border-left: 3px solid rgba(200,169,81,0.3);
+    display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.eval-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 0.75rem; border-top: 1px solid rgba(0,0,0,0.05);
+    font-size: 0.72rem; color: #8a9b95;
+}
+.eval-student { font-weight: 600; color: #2d3748; }
+
+.empty-state {
+    grid-column: 1 / -1; text-align: center; color: var(--text-muted);
+    padding: 4rem 1rem;
+    background: var(--card-bg); border: 1px dashed rgba(200,169,81,0.3);
+    border-radius: var(--radius-md);
+}
+.empty-state .icon { font-size: 3rem; display: block; margin-bottom: 0.6rem; }
+.empty-state h3 { color: var(--text-primary); margin: 0.3rem 0 0.4rem; font-size: 1rem; }
+
+.pagination { margin-top: 1rem; text-align: center; display: flex; justify-content: center; gap: 0.3rem; flex-wrap: wrap; }
+.pagination a, .pagination .current {
+    padding: 0.35rem 0.75rem; border-radius: 6px;
+    text-decoration: none; font-size: 0.82rem;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-primary);
+}
+.pagination a:hover { background: var(--gold); border-color: var(--gold); color: #fff; }
+.pagination .current { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 700; }
+
+@media (max-width: 768px) {
+    .page-header { padding: 1.15rem 1.25rem; }
+    .page-header-inner { flex-direction: column; align-items: stretch; }
+    .header-btn { justify-content: center; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .eval-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="page-header">
+    <div class="page-header-inner">
+        <div>
+            <span class="page-eyebrow">Academics</span>
+            <h1>⭐ Tutor Evaluations</h1>
+            <p>Feedback submitted by students on course tutors.</p>
+        </div>
+        <div>
+            <a href="{% url 'academics:admin_tutor_evaluation_export' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}" class="header-btn">
+                <i class="fas fa-file-excel"></i> Export
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="filters-bar">
+    <form method="get" class="filter-form">
+        <select name="course">
+            <option value="">All Courses</option>
+            {% for c in courses %}
+            <option value="{{ c.pk }}" {% if course_filter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="tutor">
+            <option value="">All Tutors</option>
+            {% for t in tutors %}
+            <option value="{{ t.pk }}" {% if tutor_filter == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="rating">
+            <option value="">All Ratings</option>
+            {% for r in "12345" %}
+            <option value="{{ r }}" {% if rating_filter == r %}selected{% endif %}>{{ r }} star{{ r|add:"0"|pluralize }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-search"><i class="fas fa-search"></i> Filter</button>
+        {% if course_filter or tutor_filter or rating_filter %}
+        <a href="{% url 'academics:admin_tutor_evaluation_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="eval-grid">
+    {% for ev in evaluations %}
+    <div class="eval-card">
+        <div class="eval-header">
+            <div>
+                <div class="eval-tutor">{{ ev.tutor.name }}</div>
+                <div class="eval-course">{{ ev.course.name }}</div>
+            </div>
+            <div class="stars">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= ev.rating %}
+                    <span class="star filled">★</span>
+                    {% else %}
+                    <span class="star">★</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% if ev.comments %}
+        <div class="eval-comment">{{ ev.comments }}</div>
+        {% else %}
+        <div class="eval-comment" style="font-style: italic; color: #b0b8b5;">No comment provided.</div>
+        {% endif %}
+        <div class="eval-footer">
+            <span>By <span class="eval-student">{{ ev.student_name|default:"Anonymous" }}</span></span>
+            <span>{{ ev.submitted_at|date:"M d, Y" }}</span>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <span class="icon">⭐</span>
+        <h3>No evaluations yet</h3>
+        <p>{% if course_filter or tutor_filter or rating_filter %}Try adjusting the filters.{% else %}Student evaluations of tutors will appear here once submitted.{% endif %}</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">‹ Prev</a>
+    {% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">Next ›</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

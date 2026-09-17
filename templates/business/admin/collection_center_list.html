@@ -1,0 +1,156 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Collection Centers · Business Office{% endblock %}
+
+{% block extra_css %}
+<style>
+.cc-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px; padding: 1.5rem 2rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.cc-header-content {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; color: #fff;
+}
+.cc-eyebrow {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.15); padding: 0.15rem 0.8rem;
+    border-radius: 20px; margin-bottom: 0.3rem;
+}
+.cc-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.cc-header p { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+.cc-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.2rem; border-radius: 50px; font-weight: 600;
+    font-size: 0.8rem; text-decoration: none;
+    background: var(--gold); color: var(--text-primary);
+    border: 1px solid var(--gold); transition: all 0.25s;
+}
+.cc-btn:hover { background: var(--gold-light); transform: translateY(-2px); }
+.cc-filters {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 0.8rem 1.2rem; margin-bottom: 1rem;
+}
+.filter-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-form input {
+    padding: 0.4rem 0.8rem; border: 1px solid #d0d9d6; border-radius: 8px;
+    background: var(--card-bg); flex: 1; min-width: 200px; font-size: 0.85rem;
+}
+.filter-form .btn { background: var(--primary); color: #fff; border: none; padding: 0.4rem 1rem; border-radius: 8px; cursor: pointer; }
+.filter-form .clear { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+.cc-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;
+}
+.cc-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: var(--radius-md);
+    padding: 1.25rem; transition: var(--transition); box-shadow: var(--shadow-sm);
+}
+.cc-card:hover { transform: translateY(-4px); border-color: var(--gold); box-shadow: var(--shadow-md); }
+.cc-card .name { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.3rem; }
+.cc-card .loc { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+.cc-card .contact { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; }
+.cc-card .hours {
+    display: inline-block; font-size: 0.7rem; color: #8a6a1a;
+    background: #f5e9c8; padding: 0.15rem 0.6rem; border-radius: 12px; margin-top: 0.3rem;
+}
+.cc-card .actions { display: flex; gap: 0.3rem; margin-top: 0.75rem; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 0.5rem; }
+.btn-sm {
+    padding: 0.2rem 0.7rem; border-radius: 12px; font-size: 0.7rem;
+    font-weight: 600; text-decoration: none; transition: var(--transition);
+}
+.btn-sm-gold { background: var(--gold); color: var(--text-primary); }
+.btn-sm-gold:hover { background: var(--gold-dark); }
+.btn-sm-danger { background: #fdecea; color: #9b2c2c; }
+.btn-sm-danger:hover { background: #fce4e0; }
+.badge-inactive { background: #f0f0f0; color: #777; font-size: 0.6rem; padding: 0.1rem 0.5rem; border-radius: 10px; font-weight: 600; }
+.empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem; }
+.pagination { margin-top: 1rem; text-align: center; }
+.pagination .step-links a { color: var(--gold); text-decoration: none; margin: 0 0.2rem; padding: 0.2rem 0.5rem; border-radius: 4px; }
+.pagination .current { font-weight: 600; color: var(--text-primary); margin: 0 0.3rem; }
+@media (max-width: 768px) {
+    .cc-header { padding: 1rem 1.25rem; }
+    .cc-header-content { flex-direction: column; align-items: stretch; }
+    .cc-btn { justify-content: center; }
+    .cc-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="cc-header">
+    <div class="cc-header-content">
+        <div>
+            <span class="cc-eyebrow">Business Office</span>
+            <h1>📍 Collection Centers</h1>
+            <p>Define pickup locations for shop items, free claims, and bookings.</p>
+        </div>
+        <div>
+            {% if perms.business.add_collectioncenter %}
+            <a href="{% url 'business:admin_collection_center_create' %}" class="cc-btn">
+                <i class="fas fa-plus-circle"></i> Add Center
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="cc-filters">
+    <form method="get" class="filter-form">
+        <input type="text" name="q" placeholder="Search by name or location..." value="{{ query }}">
+        <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        {% if query %}
+        <a href="{% url 'business:admin_collection_center_list' %}" class="clear">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="cc-grid">
+    {% for center in centers %}
+    <div class="cc-card">
+        <div class="name">{{ center.name }}</div>
+        <div class="loc">{{ center.location }}</div>
+        {% if center.contact_person %}
+        <div class="contact"><i class="fas fa-user"></i> {{ center.contact_person }}</div>
+        {% endif %}
+        {% if center.contact_phone %}
+        <div class="contact"><i class="fas fa-phone"></i> {{ center.contact_phone }}</div>
+        {% endif %}
+        {% if center.opening_hours %}
+        <div class="hours"><i class="fas fa-clock"></i> {{ center.opening_hours }}</div>
+        {% endif %}
+        {% if not center.is_active %}
+        <span class="badge-inactive">Inactive</span>
+        {% endif %}
+        <div class="actions">
+            <a href="{% url 'business:admin_collection_center_edit' center.pk %}" class="btn-sm btn-sm-gold"><i class="fas fa-edit"></i> Edit</a>
+            <a href="{% url 'business:admin_collection_center_delete' center.pk %}" class="btn-sm btn-sm-danger"><i class="fas fa-trash"></i></a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+        <span style="font-size:2.5rem; display:block;">📍</span>
+        No collection centers yet. Add one to start assigning pickup locations.
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">‹ Prev</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next ›</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+{% endblock %}

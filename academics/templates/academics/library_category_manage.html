@@ -1,0 +1,256 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Library Categories · NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+.cat-wrap { max-width: 1100px; margin: 0 auto; }
+
+.cat-hero {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    color: #fff;
+    position: relative; overflow: hidden;
+    box-shadow: 0 12px 36px rgba(15,61,46,0.22);
+}
+.cat-hero::before {
+    content: "🏷️"; font-size: 7rem;
+    position: absolute; right: 1rem; top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.1; pointer-events: none;
+}
+.cat-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.cat-hero h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.3rem; }
+.cat-hero p { color: rgba(255,255,255,0.82); font-size: 0.85rem; margin: 0; }
+.cat-hbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.2rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem;
+    text-decoration: none; border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.12); color: #fff;
+    transition: all 0.25s;
+}
+.cat-hbtn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+
+.cat-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1.25rem;
+}
+@media (max-width: 900px) { .cat-grid { grid-template-columns: 1fr; } }
+
+.cat-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    padding: 1.5rem 1.65rem;
+    box-shadow: 0 4px 14px rgba(15,61,46,0.05);
+}
+.cat-card h2 {
+    font-size: 0.9rem; font-weight: 800; color: #0F3D2E;
+    margin: 0 0 1.15rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.cat-card h2 i { color: #C8A951; }
+
+.cat-field { margin-bottom: 0.9rem; }
+.cat-field label {
+    display: block; font-size: 0.76rem; font-weight: 700;
+    color: #0F3D2E; margin-bottom: 0.3rem;
+}
+.cat-field input, .cat-field textarea {
+    width: 100%; padding: 0.65rem 0.85rem;
+    border: 1px solid #d5dcd9; border-radius: 10px;
+    font-family: inherit; font-size: 0.85rem;
+    background: #fff; color: #0F3D2E;
+    transition: all 0.15s;
+}
+.cat-field input:focus, .cat-field textarea:focus {
+    border-color: #C8A951; outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.14);
+}
+.cat-field .hint {
+    font-size: 0.7rem; color: #8a9b95; margin-top: 0.25rem;
+}
+.cat-field input[type="color"] {
+    padding: 0.2rem; height: 42px; cursor: pointer;
+}
+
+.cat-list { display: flex; flex-direction: column; gap: 0.65rem; }
+.cat-item {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 1rem 1.15rem;
+    background: #f8faf9;
+    border-radius: 14px;
+    transition: all 0.2s;
+    border-left: 4px solid #0F3D2E;
+}
+.cat-item:hover { background: #fff; box-shadow: 0 4px 14px rgba(15,61,46,0.06); }
+.cat-icon-box {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; flex-shrink: 0;
+    background: rgba(15,61,46,0.08); color: #0F3D2E;
+}
+.cat-info { flex: 1; min-width: 0; }
+.cat-info .name {
+    font-size: 0.9rem; font-weight: 800;
+    color: #0F3D2E; margin-bottom: 0.15rem;
+}
+.cat-info .desc {
+    font-size: 0.75rem; color: #8a9b95;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cat-info .count {
+    display: inline-block;
+    font-size: 0.68rem; font-weight: 800;
+    padding: 0.18rem 0.6rem; border-radius: 20px;
+    background: rgba(200,169,81,0.18); color: #8a6a1a;
+    margin-left: 0.5rem;
+}
+
+.cat-actions { display: flex; gap: 0.35rem; }
+.cat-action-btn {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; cursor: pointer; font-size: 0.8rem;
+    transition: all 0.2s; font-family: inherit;
+}
+.cat-action-btn.edit { background: #e6f0fb; color: #185fa5; }
+.cat-action-btn.edit:hover { background: #185fa5; color: #fff; }
+.cat-action-btn.delete { background: #fdecea; color: #9b2c2c; }
+.cat-action-btn.delete:hover { background: #dc3545; color: #fff; }
+
+.cat-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.7rem 1.3rem; border-radius: 10px;
+    background: #0F3D2E; color: #fff; border: none;
+    cursor: pointer; font-weight: 700; font-size: 0.85rem;
+    font-family: inherit; transition: all 0.2s;
+    width: 100%; justify-content: center;
+}
+.cat-btn:hover { background: #1a5a44; transform: translateY(-2px); }
+
+.cat-empty {
+    text-align: center; padding: 2.5rem 1rem;
+    color: #8a9b95;
+}
+.cat-empty .ic { font-size: 2.5rem; opacity: 0.4; display: block; margin-bottom: 0.6rem; }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="cat-wrap">
+
+    <div class="cat-hero">
+        <div class="cat-hero-inner">
+            <div>
+                <h1>🏷️ Book Categories</h1>
+                <p>Organize books into shelves of similar subjects.</p>
+            </div>
+            <a href="{% url 'academics:library_manage' %}" class="cat-hbtn">
+                <i class="fas fa-arrow-left"></i> Back to Library
+            </a>
+        </div>
+    </div>
+
+    <div class="cat-grid">
+
+        <!-- CREATE FORM -->
+        <div class="cat-card">
+            <h2><i class="fas fa-plus-circle"></i> Add New Category</h2>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+
+                <div class="cat-field">
+                    <label>Category name</label>
+                    <input type="text" name="name" required
+                           placeholder="e.g. Islamic Studies">
+                </div>
+
+                <div class="cat-field">
+                    <label>Font Awesome icon class</label>
+                    <input type="text" name="icon"
+                           placeholder="e.g. fa-book-quran">
+                    <div class="hint">
+                        Browse at <a href="https://fontawesome.com/search?o=r&m=free" target="_blank" rel="noopener" style="color:#C8A951;">fontawesome.com</a>
+                    </div>
+                </div>
+
+                <div class="cat-field">
+                    <label>Accent color</label>
+                    <input type="color" name="color" value="#0F3D2E">
+                </div>
+
+                <div class="cat-field">
+                    <label>Description (optional)</label>
+                    <textarea name="description" rows="2"
+                              placeholder="Short note about this category…"></textarea>
+                </div>
+
+                <div class="cat-field">
+                    <label>Display order</label>
+                    <input type="number" name="order" value="0" min="0">
+                    <div class="hint">Lower numbers come first.</div>
+                </div>
+
+                <button type="submit" class="cat-btn">
+                    <i class="fas fa-plus"></i> Create Category
+                </button>
+            </form>
+        </div>
+
+        <!-- LIST -->
+        <div class="cat-card">
+            <h2><i class="fas fa-list"></i> Existing Categories ({{ categories|length }})</h2>
+
+            {% if categories %}
+            <div class="cat-list">
+                {% for c in categories %}
+                <div class="cat-item" style="border-left-color: {{ c.color|default:'#0F3D2E' }};">
+                    <div class="cat-icon-box" style="background: {{ c.color|default:'#0F3D2E' }}15; color: {{ c.color|default:'#0F3D2E' }};">
+                        {% if c.icon %}<i class="fas {{ c.icon }}"></i>{% else %}<i class="fas fa-book"></i>{% endif %}
+                    </div>
+                    <div class="cat-info">
+                        <div class="name">
+                            {{ c.name }}
+                            <span class="count">{{ c.count }} book{{ c.count|pluralize }}</span>
+                        </div>
+                        {% if c.description %}
+                        <div class="desc">{{ c.description }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="cat-actions">
+                        <form method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="category_id" value="{{ c.pk }}">
+                            <button type="submit" class="cat-action-btn delete"
+                                    title="Delete"
+                                    onclick="return confirm('Delete category “{{ c.name }}”? Books in it will become uncategorized.');">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="cat-empty">
+                <i class="fas fa-tags ic"></i>
+                <div>No categories yet. Create one on the left.</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

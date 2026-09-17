@@ -1,0 +1,120 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Delete “{{ book.title }}” · Library{% endblock %}
+
+{% block extra_css %}
+<style>
+.del-wrap { max-width: 600px; margin: 3rem auto; }
+
+.del-card {
+    background: #fff;
+    border: 1px solid rgba(220,53,69,0.2);
+    border-radius: 20px;
+    padding: 2.25rem;
+    box-shadow: 0 12px 36px rgba(220,53,69,0.1);
+    text-align: center;
+    position: relative; overflow: hidden;
+}
+.del-card::before {
+    content: '⚠️'; font-size: 8rem;
+    position: absolute; top: -2rem; right: -1rem;
+    opacity: 0.05; pointer-events: none;
+}
+.del-icon {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: #fdecea; color: #dc3545;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; margin: 0 auto 1.25rem;
+}
+.del-card h1 {
+    font-size: 1.4rem; font-weight: 800;
+    color: #0F3D2E; margin: 0 0 0.6rem;
+}
+.del-card p {
+    color: #4a5568; font-size: 0.92rem;
+    line-height: 1.6; margin: 0 0 1.75rem;
+}
+.del-card p strong { color: #0F3D2E; }
+
+.del-book-preview {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 1rem;
+    background: #f8faf9;
+    border-radius: 14px;
+    margin-bottom: 1.75rem;
+    text-align: left;
+}
+.del-book-cover {
+    width: 60px; height: 84px; border-radius: 8px;
+    background: linear-gradient(135deg, #eef3f0, #e2eae6);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0;
+    color: #0F3D2E; font-size: 1.2rem; opacity: 0.7;
+}
+.del-book-cover img { width: 100%; height: 100%; object-fit: cover; }
+.del-book-info .t { font-size: 0.9rem; font-weight: 800; color: #0F3D2E; }
+.del-book-info .a { font-size: 0.78rem; color: #8a9b95; }
+
+.del-actions { display: flex; gap: 0.65rem; justify-content: center; flex-wrap: wrap; }
+.del-btn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.75rem 1.5rem; border-radius: 50px;
+    font-size: 0.85rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    border: none; transition: all 0.25s;
+    font-family: inherit;
+}
+.del-btn.cancel {
+    background: transparent; color: #8a9b95;
+    border: 1px solid #d5dcd9;
+}
+.del-btn.cancel:hover { background: #f0f4f2; color: #0F3D2E; }
+.del-btn.confirm {
+    background: linear-gradient(135deg, #dc3545, #b02a37);
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(220,53,69,0.3);
+}
+.del-btn.confirm:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(220,53,69,0.45); }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="del-wrap">
+    <div class="del-card">
+        <div class="del-icon">
+            <i class="fas fa-trash"></i>
+        </div>
+
+        <h1>Delete this book?</h1>
+        <p>
+            This will permanently remove the book and its uploaded files from the library.
+            This <strong>cannot be undone</strong>.
+        </p>
+
+        <div class="del-book-preview">
+            <div class="del-book-cover">
+                {% if book.has_cover %}
+                    <img src="{{ book.cover_url }}" alt="">
+                {% else %}
+                    <i class="fas fa-book"></i>
+                {% endif %}
+            </div>
+            <div class="del-book-info">
+                <div class="t">{{ book.title }}</div>
+                <div class="a">{{ book.author|default:"—" }}</div>
+            </div>
+        </div>
+
+        <form method="post" class="del-actions">
+            {% csrf_token %}
+            <a href="{% url 'academics:library_book_edit' book.pk %}" class="del-btn cancel">
+                Cancel
+            </a>
+            <button type="submit" class="del-btn confirm">
+                <i class="fas fa-trash"></i> Yes, delete permanently
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

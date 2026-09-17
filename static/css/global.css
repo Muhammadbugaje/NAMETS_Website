@@ -300,6 +300,7 @@ body.menu-open .drawer-nav a:nth-child(7) { transition-delay: 0.4s; }
 body.menu-open .drawer-nav a:nth-child(8) { transition-delay: 0.45s; }
 body.menu-open .drawer-nav a:nth-child(9) { transition-delay: 0.5s; }
 body.menu-open .drawer-nav a:nth-child(10) { transition-delay: 0.55s; }
+body.menu-open .drawer-nav a:nth-child(11) { transition-delay: 0.6s; }
 /* Add more if needed */
 
 
@@ -1069,4 +1070,321 @@ body.menu-open .drawer-nav a:nth-child(10) { transition-delay: 0.55s; }
         flex-wrap: wrap;
         justify-content: center;
     }
+}
+
+
+/* ══════════════════════════════════════════════════════
+   DESIGN TOKENS — single source of truth
+   ══════════════════════════════════════════════════════ */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.3);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-blur: 8px;
+
+  --text-primary: #1A1A1A;
+  --text-muted: #5A5A5A;
+
+  --accent: #C8A951;
+  --accent-bright: #e8b84b;
+  --brand-green: #0F3D2E;
+  --brand-green-dark: #014938;
+}
+
+/* ── Consolidated glass recipe — replaces 5 variants ──── */
+.glass,
+.glass-card,
+.gallery-card,
+.announcement-content,
+.category-filter {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+}
+
+/* ── BUG FIX #3: replace off-brand donation card color ── */
+.fr-donation-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  color: var(--text-primary);
+}
+
+/* ── BUG FIX: text color consolidation (spot-fix existing greys) ── */
+.gallery-info p,
+.gallery-date,
+.active-caption,
+.subscription-intro,
+.subscription-note {
+  color: var(--text-muted);
+}
+
+/* ══════════════════════════════════════════════════════
+   VISIBLE-AT-REST CARD BORDERS + PERIODIC GLOW PULSE
+   ══════════════════════════════════════════════════════ */
+.glass-card,
+.card-reveal,
+.card-reveal-s {
+  border: 1.5px solid rgba(200, 169, 81, 0.28);
+  position: relative;
+}
+
+@keyframes border-glow-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(200, 169, 81, 0); }
+  15%  { box-shadow: 0 0 18px 3px rgba(200, 169, 81, 0.45); }
+  40%  { box-shadow: 0 0 0 0 rgba(200, 169, 81, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(200, 169, 81, 0); }
+}
+
+.glow-pulse-active {
+  animation: border-glow-pulse 2.2s ease-out;
+}
+
+/* ══════════════════════════════════════════════════════
+   EVENTS — ambient shine (hover + occasional auto pulse)
+   Scoped ONLY to Upcoming Events cards, per decision
+   ══════════════════════════════════════════════════════ */
+.event-ambient-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.event-ambient-glow::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 40%; height: 100%;
+  background: linear-gradient(
+    100deg,
+    transparent, rgba(255,255,255,0.55), transparent
+  );
+  transform: skewX(-20deg);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.event-ambient-glow:hover::before {
+  animation: event-shine-sweep 0.9s ease forwards;
+}
+
+.event-ambient-glow.auto-shine::before {
+  animation: event-shine-sweep 1.1s ease forwards;
+}
+
+@keyframes event-shine-sweep {
+  0%   { left: -60%; opacity: 0; }
+  15%  { opacity: 1; }
+  100% { left: 120%; opacity: 0; }
+}
+
+/* ══════════════════════════════════════════════════════
+   BUTTONS — glow + bounce
+   ══════════════════════════════════════════════════════ */
+.btn-primary,
+.btn-secondary {
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s ease;
+  position: relative;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.035);
+  box-shadow: 0 6px 22px rgba(200, 169, 81, 0.45),
+              0 2px 8px rgba(15, 61, 46, 0.25);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px) scale(1.035);
+  box-shadow: 0 6px 22px rgba(15, 61, 46, 0.25);
+}
+
+.btn-primary:active,
+.btn-secondary:active {
+  transform: scale(0.96);
+  transition: transform 0.12s ease;
+}
+
+/* ══════════════════════════════════════════════════════
+   HERO — shine sweep on brand name
+   ══════════════════════════════════════════════════════ */
+.hero-title .text-accent {
+  background: linear-gradient(
+    100deg,
+    var(--accent) 30%,
+    #fff6df 45%,
+    var(--accent-bright) 50%,
+    var(--accent) 65%
+  );
+  background-size: 220% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: hero-shine 9s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes hero-shine {
+  0%, 65%, 100% { background-position: 200% center; }
+  80%            { background-position: 0% center; }
+}
+
+/* ── Rotating subtitle phrases (crossfade) ──────────────── */
+.hero-subtitle-rotator {
+  position: relative;
+  display: inline-block;
+  min-height: 1.4em;
+}
+
+.hero-phrase {
+  position: absolute;
+  left: 0; right: 0;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.hero-phrase.active {
+  position: relative;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Scroll cue ──────────────────────────────────────────── */
+.scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 32px;
+  opacity: 0.75;
+  transition: opacity 0.4s ease;
+  cursor: pointer;
+}
+
+.scroll-cue.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scroll-cue-arrow {
+  width: 18px;
+  height: 18px;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transform: rotate(45deg);
+  animation: scroll-bounce 1.8s ease-in-out infinite;
+}
+
+.scroll-cue.nudge .scroll-cue-arrow {
+  animation: scroll-bounce-strong 1s ease-in-out infinite;
+}
+
+@keyframes scroll-bounce {
+  0%, 100% { transform: rotate(45deg) translate(0, 0); }
+  50%      { transform: rotate(45deg) translate(4px, 4px); }
+}
+
+@keyframes scroll-bounce-strong {
+  0%, 100% { transform: rotate(45deg) translate(0, 0); }
+  50%      { transform: rotate(45deg) translate(7px, 7px); }
+}
+
+/* ══════════════════════════════════════════════════════
+   SUBSCRIBE CELEBRATION
+   ══════════════════════════════════════════════════════ */
+.celebration-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(1, 73, 56, 0.35);
+  backdrop-filter: blur(3px);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.celebration-overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.celebration-box {
+  background: #fff;
+  border: 2px solid var(--accent);
+  border-radius: 20px;
+  padding: 36px 48px;
+  text-align: center;
+  transform: scale(0.7);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.celebration-overlay.show .celebration-box {
+  transform: scale(1);
+}
+
+.celebration-arabic {
+  font-size: 2rem;
+  color: var(--brand-green);
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.celebration-sub {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.confetti-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ══════════════════════════════════════════════════════
+   REDUCED MOTION — extend existing rule
+   ══════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .hero-title .text-accent,
+  .event-ambient-glow::before,
+  .glow-pulse-active,
+  .scroll-cue-arrow,
+  .celebration-box {
+    animation: none !important;
+  }
+  .hero-phrase {
+    transition: none !important;
+  }
+}
+
+
+.card-img-top { border-radius: 14px 14px 0 0; }
+.card-narrow  { max-width: 300px; }
+
+.featured-event-highlight {
+  border: 2.5px solid var(--accent);
+  background: linear-gradient(145deg, rgba(200,169,81,0.08), var(--glass-bg));
+  position: relative;
+}
+
+.featured-badge {
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  background: var(--accent);
+  color: var(--brand-green);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 20px;
+  box-shadow: 0 3px 10px rgba(200,169,81,0.4);
 }

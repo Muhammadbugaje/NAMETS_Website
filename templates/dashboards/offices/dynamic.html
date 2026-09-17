@@ -1,0 +1,76 @@
+{% extends "dashboards/offices/base_office.html" %}
+{% load static %}
+
+{% block widgets %}
+    <!-- Announcements -->
+    {% if perms.communications.view_announcement %}
+    <div class="widget-card">
+        <span class="icon">📢</span>
+        <span class="count">{{ announcements_count|default:0 }}</span>
+        <span class="label">Announcements</span>
+        <div class="action">
+            <a href="{% url 'communications:announcement_list' %}"><i class="fas fa-arrow-right"></i> View All</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Create Announcement -->
+    {% if perms.communications.add_announcement %}
+    <div class="widget-card">
+        <span class="icon">✏️</span>
+        <span class="count" style="font-size:1.2rem;">New</span>
+        <span class="label">Create Announcement</span>
+        <div class="action">
+            <a href="{% url 'admin:communications_announcement_add' %}"><i class="fas fa-arrow-right"></i> Create</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Events -->
+    {% if perms.events.view_event %}
+    <div class="widget-card">
+        <span class="icon">📅</span>
+        <span class="count">{{ upcoming_events|length }}</span>
+        <span class="label">Upcoming Events</span>
+        <div class="action">
+            <a href="{% url 'events:list' %}"><i class="fas fa-arrow-right"></i> View All</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Islamiyya Registrations -->
+    {% if perms.academics.view_islamiyyaregistration %}
+    <div class="widget-card">
+        <span class="icon">🕌</span>
+        <span class="count">{{ pending_islamiyya|default:0 }}</span>
+        <span class="label">Pending Islamiyya Registrations</span>
+        <div class="action">
+            <a href="{% url 'admin:academics_islamiyyaregistration_changelist' %}"><i class="fas fa-arrow-right"></i> Review</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Resources -->
+    {% if perms.academics.view_userresourcesubmission %}
+    <div class="widget-card">
+        <span class="icon">📄</span>
+        <span class="count">{{ pending_resources|default:0 }}</span>
+        <span class="label">Pending Resource Submissions</span>
+        <div class="action">
+            <a href="{% url 'admin:academics_userresourcesubmission_changelist' %}"><i class="fas fa-arrow-right"></i> Review</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Subscribers -->
+    {% if perms.communications.view_subscriber %}
+    <div class="widget-card">
+        <span class="icon">📧</span>
+        <span class="count">{{ subscribers_count|default:0 }}</span>
+        <span class="label">Subscribers</span>
+        <div class="action">
+            <a href="{% url 'admin:communications_subscriber_changelist' %}"><i class="fas fa-arrow-right"></i> Manage</a>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}

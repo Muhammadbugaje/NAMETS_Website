@@ -1,0 +1,215 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Mosque Info · NAMETS EXCO{% endblock %}
+
+{% block extra_css %}
+<style>
+.mosque-container { max-width: 800px; margin: 0 auto; }
+.mosque-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,61,46,0.2);
+}
+.mosque-header-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,169,81,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.mosque-header-content {
+    position: relative;
+    color: #fff;
+}
+.mosque-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8A951;
+    background: rgba(200,169,81,0.15);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+.mosque-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.3rem; color:#fff; }
+.mosque-header p { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+
+.form-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.form-row .full { grid-column: 1 / -1; }
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+.form-group label .required { color: #e53e3e; font-size: 1.1rem; }
+.form-group input, .form-group textarea {
+    width: 100%; padding: 0.6rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 8px;
+    font-size: 0.95rem; background: var(--card-bg);
+}
+.form-group input:focus, .form-group textarea:focus {
+    border-color: var(--gold); outline: none;
+}
+.form-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid rgba(0,0,0,0.05); }
+.btn-primary {
+    background: var(--primary); color: #fff;
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; transition: var(--transition);
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-secondary {
+    background: var(--gold); color: var(--text-primary);
+    padding: 0.6rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; cursor: pointer; text-decoration: none; text-align: center;
+    transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--gold-dark); transform: translateY(-2px); }
+
+.rules-section { margin-top: 2rem; }
+.rules-section h3 {
+    color: var(--text-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.rules-section .btn-sm {
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+    background: var(--gold); color: var(--text-primary);
+}
+.rules-section .btn-sm:hover { background: var(--gold-dark); }
+.rule-item {
+    background: #f8faf9;
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.rule-item .rule-title { font-weight: 600; color: var(--text-primary); }
+.rule-item .rule-actions { display: flex; gap: 0.3rem; }
+.rule-item .rule-actions a {
+    padding: 0.1rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.rule-item .rule-actions .edit { background: var(--gold); color: var(--text-primary); }
+.rule-item .rule-actions .edit:hover { background: var(--gold-dark); }
+.rule-item .rule-actions .delete { background: #fdecea; color: #9b2c2c; }
+.rule-item .rule-actions .delete:hover { background: #fce4e0; }
+.empty-rules { text-align: center; color: var(--text-muted); padding: 1rem; }
+
+@media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="mosque-container">
+    <div class="mosque-header">
+        <div class="mosque-header-glow" aria-hidden="true"></div>
+        <div class="mosque-header-content">
+            <span class="mosque-eyebrow">Masjid Committee</span>
+            <h1>🕌 Mosque Information</h1>
+            <p>Update mosque details and manage rules.</p>
+        </div>
+    </div>
+
+    <!-- Mosque Info Form -->
+    <form method="post" class="form-card">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_location">Location <span class="required">*</span></label>
+                {{ form.location }}
+                {% if form.location.errors %}<div class="error-text">{{ form.location.errors }}</div>{% endif %}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_description">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}<div class="error-text">{{ form.description.errors }}</div>{% endif %}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_imam_name">Imam Name</label>
+                {{ form.imam_name }}
+                {% if form.imam_name.errors %}<div class="error-text">{{ form.imam_name.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_contact_phone">Contact Phone</label>
+                {{ form.contact_phone }}
+                {% if form.contact_phone.errors %}<div class="error-text">{{ form.contact_phone.errors }}</div>{% endif %}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group full">
+                <label for="id_contact_email">Contact Email</label>
+                {{ form.contact_email }}
+                {% if form.contact_email.errors %}<div class="error-text">{{ form.contact_email.errors }}</div>{% endif %}
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Update Mosque Info</button>
+        </div>
+    </form>
+
+    <!-- Rules Section -->
+    <div class="rules-section">
+        <h3>
+            📜 Mosque Rules
+            {% if perms.communications.add_mosquerule %}
+            <a href="{% url 'communications:admin_mosque_rule_create' %}" class="btn-sm">
+                <i class="fas fa-plus"></i> Add Rule
+            </a>
+            {% endif %}
+        </h3>
+        {% if rules %}
+            {% for rule in rules %}
+            <div class="rule-item">
+                <span class="rule-title">{{ rule.title }}</span>
+                <div class="rule-actions">
+                    <a href="{% url 'communications:admin_mosque_rule_edit' rule.pk %}" class="edit"><i class="fas fa-edit"></i> Edit</a>
+                    <a href="{% url 'communications:admin_mosque_rule_delete' rule.pk %}" class="delete"><i class="fas fa-trash"></i></a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-rules">No rules added yet.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

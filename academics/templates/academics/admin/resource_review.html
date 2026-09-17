@@ -1,0 +1,413 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Review · {{ resource.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.rd-wrap { max-width: 1000px; margin: 0 auto; }
+.rd-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--gold); text-decoration: none; font-weight: 600;
+    margin-bottom: 0.75rem; font-size: 0.85rem;
+}
+.rd-back:hover { text-decoration: underline; }
+
+.rd-header {
+    background: linear-gradient(135deg, #0F3D2E 0%, #1a5a44 100%);
+    border-radius: 22px; padding: 1.75rem 2rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 36px rgba(15,61,46,0.22);
+    color: #fff; margin-bottom: 1.25rem;
+}
+.rd-header::before {
+    content: "📄"; font-size: 6rem;
+    position: absolute; bottom: -1rem; right: 1.5rem; opacity: 0.08;
+}
+.rd-header-content { position: relative; }
+.rd-eyebrow {
+    display: inline-block; font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; color: #C8A951;
+    background: rgba(200,169,81,0.15); padding: 0.15rem 0.75rem;
+    border-radius: 20px; margin-bottom: 0.5rem;
+}
+.rd-header h1 {
+    font-size: 1.4rem; font-weight: 700; color: #fff; margin: 0 0 0.35rem;
+    word-break: break-word;
+}
+.rd-header-meta {
+    display: flex; gap: 1.25rem; flex-wrap: wrap;
+    font-size: 0.82rem; color: rgba(255,255,255,0.85);
+    margin-top: 0.65rem;
+}
+.rd-header-meta span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.rd-header-meta i { color: #C8A951; }
+
+.status-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.4rem 1rem; border-radius: 30px;
+    font-size: 0.78rem; font-weight: 700;
+    margin-top: 0.75rem;
+}
+.status-badge.pending { background: #fef3e8; color: #a8671a; }
+.status-badge.approved { background: #d4edda; color: #155724; }
+.status-badge.rejected { background: #f8d7da; color: #721c24; }
+.status-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+.rd-grid {
+    display: grid; grid-template-columns: 1.5fr 1fr;
+    gap: 1.25rem;
+}
+.rd-card {
+    background: var(--card-bg); backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.35rem 1.5rem; box-shadow: var(--shadow-sm);
+}
+.rd-card h3 {
+    font-size: 0.85rem; font-weight: 700; color: var(--text-primary);
+    margin: 0 0 1rem; display: flex; align-items: center;
+    gap: 0.5rem;
+}
+.rd-card h3 i { color: var(--gold); }
+
+.field-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 1rem; padding: 0.65rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    font-size: 0.85rem;
+}
+.field-row:last-child { border-bottom: none; }
+.field-row .lbl {
+    font-size: 0.72rem; font-weight: 700;
+    color: #8a9b95; text-transform: uppercase;
+    letter-spacing: 0.05em; flex-shrink: 0;
+    min-width: 110px;
+}
+.field-row .val { color: var(--text-primary); font-weight: 500; text-align: right; word-break: break-word; }
+
+.description-box {
+    background: #f8faf9; border-radius: 10px; padding: 1rem 1.15rem;
+    margin-top: 0.5rem; font-size: 0.85rem; color: #2d3748;
+    line-height: 1.65; white-space: pre-wrap;
+}
+
+/* File preview / download card */
+.file-card {
+    background: linear-gradient(135deg, #f5e9c8 0%, #fbf3d9 100%);
+    border-left: 4px solid var(--gold);
+    border-radius: 14px; padding: 1.2rem 1.35rem;
+    margin-top: 1rem;
+}
+.file-card .file-title {
+    font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #8a6a1a; margin-bottom: 0.5rem;
+}
+.file-card .file-name {
+    font-size: 0.9rem; font-weight: 700; color: #0F3D2E;
+    word-break: break-all; margin-bottom: 0.75rem;
+}
+.file-actions {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+}
+.file-btn {
+    padding: 0.55rem 1.15rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem;
+    text-decoration: none; border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s; font-family: inherit;
+}
+.file-btn.view { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(15,61,46,0.2); }
+.file-btn.view:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.file-btn.download { background: #fff; color: #0F3D2E; border: 1px solid rgba(0,0,0,0.08); }
+.file-btn.download:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+/* Action buttons */
+.action-card { margin-top: 1.25rem; }
+.action-btns {
+    display: flex; flex-direction: column; gap: 0.6rem;
+}
+.action-btns button, .action-btns a {
+    padding: 0.85rem 1.25rem; border-radius: 50px;
+    font-weight: 700; font-size: 0.9rem;
+    border: none; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    transition: all 0.25s; text-decoration: none;
+}
+.action-btns .btn-approve {
+    background: linear-gradient(135deg, #0F3D2E, #1a5a44); color: #fff;
+    box-shadow: 0 6px 20px rgba(15,61,46,0.25);
+}
+.action-btns .btn-approve:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(15,61,46,0.35); }
+.action-btns .btn-reject {
+    background: #fff; color: #9b2c2c; border: 2px solid #f5c2bc;
+}
+.action-btns .btn-reject:hover { background: #fdecea; border-color: #c0392b; }
+.action-btns .btn-delete {
+    background: transparent; color: #9b2c2c;
+    border: 1px dashed rgba(192,57,43,0.4);
+}
+.action-btns .btn-delete:hover { background: #fdecea; }
+.action-btns .btn-back {
+    background: #f0f4f2; color: var(--text-primary);
+}
+.action-btns .btn-back:hover { background: #e0e8e5; }
+
+/* Modal */
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,42,31,0.55); backdrop-filter: blur(4px);
+    z-index: 9999; justify-content: center; align-items: center; padding: 1rem;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+    background: #fff; border-radius: 20px; max-width: 480px; width: 100%;
+    padding: 2rem 1.75rem 1.75rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25); text-align: center;
+    animation: modalIn 0.25s ease-out;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-icon {
+    width: 64px; height: 64px; margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+}
+.modal-icon.success { background: #e8f2ec; color: #1a3c2e; }
+.modal-icon.danger { background: #fdecea; color: #9b2c2c; }
+.modal-icon.warning { background: #fef3e8; color: #a8671a; }
+.modal h3 { color: #0F3D2E; margin: 0 0 0.4rem; font-size: 1.15rem; font-weight: 700; }
+.modal p { color: #5A5A5A; font-size: 0.9rem; margin: 0 0 1.25rem; line-height: 1.5; }
+.modal .note-field {
+    width: 100%; padding: 0.75rem 1rem;
+    border: 1px solid #d0d9d6; border-radius: 10px;
+    font-size: 0.88rem; font-family: inherit;
+    resize: vertical; min-height: 80px;
+    margin-bottom: 1.25rem;
+}
+.modal .note-field:focus {
+    border-color: var(--gold); outline: none;
+    box-shadow: 0 0 0 3px rgba(200,169,81,0.12);
+}
+.modal-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+.modal-actions .btn {
+    padding: 0.65rem 1.5rem; border: none; border-radius: 50px;
+    font-weight: 700; font-size: 0.85rem; cursor: pointer;
+    transition: all 0.2s ease; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.modal-actions .btn-secondary { background: #f0f4f2; color: #0F3D2E; }
+.modal-actions .btn-secondary:hover { background: #e0e8e5; }
+.modal-actions .btn-success { background: var(--primary); color: #fff; box-shadow: 0 4px 14px rgba(15,61,46,0.25); }
+.modal-actions .btn-success:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.modal-actions .btn-danger { background: #c0392b; color: #fff; box-shadow: 0 4px 14px rgba(192,57,43,0.25); }
+.modal-actions .btn-danger:hover { background: #9b2c2c; transform: translateY(-2px); }
+
+@media (max-width: 900px) {
+    .rd-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+    .rd-header { padding: 1.4rem 1.25rem; }
+    .rd-header h1 { font-size: 1.15rem; }
+    .field-row { flex-direction: column; gap: 0.3rem; }
+    .field-row .lbl { min-width: auto; }
+    .field-row .val { text-align: left; }
+    .modal { padding: 1.5rem 1.25rem; }
+    .modal-actions .btn { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="rd-wrap">
+
+    <a href="{% url 'academics:admin_resource_list' %}" class="rd-back">
+        <i class="fas fa-arrow-left"></i> Back to Resources
+    </a>
+
+    <div class="rd-header">
+        <div class="rd-header-content">
+            <span class="rd-eyebrow">Resource Review</span>
+            <h1>{{ resource.title }}</h1>
+            <div class="rd-header-meta">
+                {% if resource.submitted_by %}
+                <span><i class="fas fa-user"></i> {{ resource.submitted_by }}</span>
+                {% endif %}
+                {% if resource.email %}
+                <span><i class="fas fa-envelope"></i> {{ resource.email }}</span>
+                {% endif %}
+                <span><i class="fas fa-clock"></i> {{ resource.submitted_at|date:"M d, Y · g:i A" }}</span>
+            </div>
+            {% if resource.status == 'pending' %}
+            <span class="status-badge pending">⏳ Pending Review</span>
+            {% elif resource.status == 'approved' %}
+            <span class="status-badge approved">✓ Approved</span>
+            {% elif resource.status == 'rejected' %}
+            <span class="status-badge rejected">✗ Rejected</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="rd-grid">
+        <div>
+            <div class="rd-card">
+                <h3><i class="fas fa-info-circle"></i> Resource Information</h3>
+                <div class="field-row">
+                    <span class="lbl">Description</span>
+                </div>
+                <div class="description-box">{{ resource.description }}</div>
+            </div>
+
+            {% if resource.file %}
+            <div class="file-card">
+                <div class="file-title">📎 Attached File</div>
+                <div class="file-name">{{ resource.file.name }}</div>
+                <div class="file-actions">
+                    <a href="{{ resource.file.url }}" target="_blank" class="file-btn view">
+                        <i class="fas fa-external-link-alt"></i> View in Browser
+                    </a>
+                    <a href="{{ resource.file.url }}" download class="file-btn download">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if resource.review_note %}
+            <div class="rd-card" style="margin-top: 1.25rem;">
+                <h3><i class="fas fa-comment-dots"></i> Review Note</h3>
+                <p style="font-size: 0.85rem; color: #5A5A5A; line-height: 1.6; margin: 0; white-space: pre-wrap;">{{ resource.review_note }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div>
+            <div class="rd-card action-card">
+                <h3><i class="fas fa-gavel"></i> Review Actions</h3>
+
+                {% if resource.status == 'pending' %}
+                <div class="action-btns">
+                    <button type="button" class="btn-approve" onclick="openAction('approve')">
+                        <i class="fas fa-check"></i> Approve & Publish
+                    </button>
+                    <button type="button" class="btn-reject" onclick="openAction('reject')">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                    <button type="button" class="btn-delete" onclick="openAction('delete')">
+                        <i class="fas fa-trash"></i> Delete Permanently
+                    </button>
+                </div>
+                {% else %}
+                <div style="text-align:center; padding: 1rem 0; color: #8a9b95; font-size: 0.85rem;">
+                    This resource has been <strong>{{ resource.get_status_display }}</strong>.
+                    {% if resource.reviewed_at %}<br>Reviewed {{ resource.reviewed_at|timesince }} ago.{% endif %}
+                </div>
+                <div class="action-btns" style="margin-top: 0.75rem;">
+                    <button type="button" class="btn-delete" onclick="openAction('delete')">
+                        <i class="fas fa-trash"></i> Delete Permanently
+                    </button>
+                </div>
+                {% endif %}
+
+                <div class="action-btns" style="margin-top: 0.6rem;">
+                    <a href="{% url 'academics:admin_resource_list' %}" class="btn-back">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </div>
+
+            <div class="rd-card" style="margin-top: 1.25rem;">
+                <h3><i class="fas fa-chart-bar"></i> Stats</h3>
+                <div class="field-row">
+                    <span class="lbl">Downloads</span>
+                    <span class="val">{{ resource.download_count }}</span>
+                </div>
+                <div class="field-row">
+                    <span class="lbl">Email Sent</span>
+                    <span class="val">{% if resource.email_sent %}✓ Yes{% else %}— Not yet{% endif %}</span>
+                </div>
+                {% if resource.reviewed_at %}
+                <div class="field-row">
+                    <span class="lbl">Reviewed</span>
+                    <span class="val">{{ resource.reviewed_at|date:"M d, Y" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action modal -->
+<div class="modal-overlay" id="actionModal">
+    <div class="modal">
+        <div class="modal-icon" id="amIcon"><i class="fas fa-question"></i></div>
+        <h3 id="amTitle">Confirm</h3>
+        <p id="amMessage">Are you sure?</p>
+        <form method="post" id="amForm">
+            {% csrf_token %}
+            <textarea name="note" class="note-field" id="amNote" placeholder="Add an optional note (visible to submitter on rejection)…"></textarea>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeAction()">Cancel</button>
+                <button type="submit" class="btn" id="amConfirm"></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const ACTIONS = {
+    'approve': {
+        title: 'Approve Resource?',
+        message: 'The resource will be published on the public Academics Resources page and the submitter will be notified.',
+        icon: 'success', iconFa: 'fa-check',
+        btnClass: 'btn-success', btnLabel: 'Yes, Approve',
+        url: '{% url "academics:admin_resource_approve" resource.pk %}',
+        showNote: false,
+    },
+    'reject': {
+        title: 'Reject Resource?',
+        message: 'The resource will not be published. Add an optional note below if you wish.',
+        icon: 'warning', iconFa: 'fa-times',
+        btnClass: 'btn-danger', btnLabel: 'Yes, Reject',
+        url: '{% url "academics:admin_resource_reject" resource.pk %}',
+        showNote: true,
+    },
+    'delete': {
+        title: 'Delete Resource?',
+        message: 'This will permanently remove the resource and its file. Cannot be undone.',
+        icon: 'danger', iconFa: 'fa-trash',
+        btnClass: 'btn-danger', btnLabel: 'Yes, Delete',
+        url: '{% url "academics:admin_resource_delete" resource.pk %}',
+        showNote: false,
+    },
+};
+
+function openAction(action) {
+    const cfg = ACTIONS[action];
+    if (!cfg) return;
+    document.getElementById('amTitle').textContent = cfg.title;
+    document.getElementById('amMessage').textContent = cfg.message;
+    document.getElementById('amIcon').className = 'modal-icon ' + cfg.icon;
+    document.getElementById('amIcon').innerHTML = '<i class="fas ' + cfg.iconFa + '"></i>';
+    const btn = document.getElementById('amConfirm');
+    btn.className = 'btn ' + cfg.btnClass;
+    btn.innerHTML = '<i class="fas ' + cfg.iconFa + '"></i> ' + cfg.btnLabel;
+    const note = document.getElementById('amNote');
+    if (cfg.showNote) { note.style.display = 'block'; } else { note.style.display = 'none'; note.value = ''; }
+    document.getElementById('amForm').action = cfg.url;
+    document.getElementById('actionModal').classList.add('active');
+}
+function closeAction() {
+    document.getElementById('actionModal').classList.remove('active');
+}
+document.getElementById('actionModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAction();
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAction();
+});
+</script>
+
+{% endblock %}

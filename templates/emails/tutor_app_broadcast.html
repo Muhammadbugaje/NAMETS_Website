@@ -1,0 +1,16 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+    <h2>📢 {{ subject }}</h2>
+    
+    <p>Assalamu Alaikum,</p>
+    
+    <div class="content-block">
+        {{ body|safe|linebreaks }}
+    </div>
+    
+    <p style="margin-top: 20px; color: #718096; font-size: 14px;">
+        This email was sent to you because you submitted a tutor application to NAMETS.
+        If you have any questions, please contact us at <a href="mailto:nametsabu@gmail.com">nametsabu@gmail.com</a> or <a href="mailto:namets.notifications@gmail.com">namets.notifications@gmail.com</a>.
+    </p>
+{% endblock %}
