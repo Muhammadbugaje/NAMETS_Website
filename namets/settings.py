@@ -170,7 +170,7 @@ DATABASES = {
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
 
-"""
+
 # for hosting on render and allowing render to send requests to our webhook endpoint, we need to allow render's domain in the allowed hosts and csrf trusted origins.
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
@@ -183,7 +183,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
 ]
-
+"""
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -247,7 +247,7 @@ PAYSTACK_PUBLIC_KEY = os.environ.get(
 
 PAYSTACK_SECRET_KEY = os.environ.get(
     'PAYSTACK_SECRET_KEY',
-    'sk_test_a6bb2f8c06dc7549147b593a68084651a1070b03'   # ← paste your real test secret here
+    'sk_test_a6bb2f8c06dc7549147b593a68084651a1070b03'  
 )
 
 # Paystack callback base (used to build callback_url in views)
