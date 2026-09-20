@@ -105,3 +105,10 @@ def site_settings_view(request):
     })
 
 
+from django.http import HttpResponse
+
+
+def health_check(request):
+    """Ultra-lightweight endpoint for uptime monitors and cron keep-alives."""
+    return HttpResponse("ok", content_type="text/plain")
+

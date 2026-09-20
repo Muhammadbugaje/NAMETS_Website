@@ -5,6 +5,7 @@ from . import views_hero
 app_name = 'core'
 
 urlpatterns = [
+    path("health/", views.health_check, name="health_check"),
     path('', views.homepage, name='homepage'),
     path('settings/', views.site_settings_view, name='site_settings'),
     # ============================================================

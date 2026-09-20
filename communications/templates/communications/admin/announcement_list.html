@@ -337,7 +337,11 @@
                 <span class="badge green">✅ Published</span>
                 {% endif %}
                 <span><i class="far fa-tag"></i> {{ announcement.get_category_display }}</span>
-                <span><i class="far fa-user"></i> {{ announcement.created_by.get_full_name|default:announcement.created_by.username }}</span>
+                {% if announcement.created_by %}
+                    <span><i class="far fa-user"></i> {{ announcement.created_by.get_full_name|default:announcement.created_by.username }}</span>
+                {% else %}
+                    <span><i class="far fa-user"></i> <em style="color:#8a9b95;">Unknown</em></span>
+                {% endif %}
             </div>
             <div class="preview">
                 {{ announcement.content|striptags|truncatechars:120 }}

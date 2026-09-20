@@ -36,9 +36,10 @@ def announcement_saved_handler(sender, instance, created, **kwargs):
     )
 
 
-
+"""
 @receiver(post_save, sender=Subscriber, dispatch_uid="communications_subscriber_welcome_email")
 def subscriber_saved_handler(sender, instance, created, **kwargs):
+    
     if created:
         print(f"✅ SIGNAL FIRED for {instance.email}")
         send_templated_email(
@@ -53,7 +54,7 @@ def subscriber_saved_handler(sender, instance, created, **kwargs):
                 },
             },
         )
-
+"""
 @receiver(post_save, sender=PrayerSchedule)
 def prayer_saved_handler(sender, instance, created, **kwargs):
     if not instance.send_email:

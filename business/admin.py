@@ -3,6 +3,7 @@
 
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Sum, Count, Q
@@ -55,11 +56,11 @@ class EquipmentBorrowInline(admin.TabularInline):
     verbose_name_plural = "Borrow History"
     classes = ['collapse']
 
+    @admin.display(description="Status")
     def is_overdue_display(self, obj):
         if obj.is_overdue():
-            return format_html('<span style="color: #dc3545;">🔴 Overdue</span>')
-        return format_html('<span style="color: #28a745;">✅ On Time</span>')
-    is_overdue_display.short_description = "Status"
+            return format_html('<span style="color: {};">🔴 Overdue</span>', '#dc3545')
+        return format_html('<span style="color: {};">✅ On Time</span>', '#28a745')
 
 
 class ShopOrderInline(admin.TabularInline):
@@ -153,9 +154,9 @@ class BankAccountAdmin(ModelAdmin):
         }),
     )
 
+    @admin.display(description="Balance")
     def current_balance_display(self, obj):
         return f"₦{obj.current_balance:,.2f}"
-    current_balance_display.short_description = "Balance"
 
 
 @admin.register(Transaction)
@@ -175,10 +176,11 @@ class TransactionAdmin(ModelAdmin):
         }),
     )
 
+    @admin.display(description="Category")
     def category_display(self, obj):
         return obj.get_category_display()
-    category_display.short_description = "Category"
 
+    @admin.display(description="Amount")
     def amount_display(self, obj):
         if obj.is_income():
             color = '#28a745'
@@ -186,18 +188,21 @@ class TransactionAdmin(ModelAdmin):
         else:
             color = '#dc3545'
             sign = '-'
-        return format_html(f'<span style="color: {color}; font-weight: 600;">{sign}₦{obj.amount:,.2f}</span>')
-    amount_display.short_description = "Amount"
+        amount_str = f"₦{obj.amount:,.2f}"
+        return format_html(
+            '<span style="color: {}; font-weight: 600;">{}{}</span>',
+            color, sign, amount_str
+        )
 
+    @admin.display(description="Description")
     def description_short(self, obj):
         return obj.description[:50] + ('...' if len(obj.description) > 50 else '')
-    description_short.short_description = "Description"
 
+    @admin.display(description="Type")
     def is_correction_icon(self, obj):
         if obj.is_correction:
-            return format_html('<span style="color: #fd7e14;">⚠️ Correction</span>')
-        return format_html('<span style="color: #28a745;">✓ Original</span>')
-    is_correction_icon.short_description = "Type"
+            return format_html('<span style="color: {};">⚠️ Correction</span>', '#fd7e14')
+        return format_html('<span style="color: {};">✓ Original</span>', '#28a745')
 
     @action(description="Mark selected as corrections", permissions=['change'])
     def mark_as_correction(self, request, queryset):
@@ -237,6 +242,7 @@ class EquipmentItemAdmin(ModelAdmin):
         }),
     )
 
+    @admin.display(description="Condition")
     def condition_badge(self, obj):
         colors = {
             'excellent': '#28a745',
@@ -247,14 +253,19 @@ class EquipmentItemAdmin(ModelAdmin):
             'lost': '#6c757d',
         }
         color = colors.get(obj.condition, '#6c757d')
-        return format_html(f'<span style="background: {color}; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem;">{obj.get_condition_display()}</span>')
-    condition_badge.short_description = "Condition"
+        return format_html(
+            '<span style="background: {}; color: #fff; padding: 2px 10px; '
+            'border-radius: 12px; font-size: 0.75rem;">{}</span>',
+            color, obj.get_condition_display()
+        )
 
+    @admin.display(description="Stock")
     def quantity_display(self, obj):
-        if obj.available_quantity > 0:
-            return format_html(f'<span style="color: #28a745;">{obj.available_quantity} / {obj.quantity} available</span>')
-        return format_html(f'<span style="color: #dc3545;">{obj.available_quantity} / {obj.quantity} available</span>')
-    quantity_display.short_description = "Stock"
+        color = '#28a745' if obj.available_quantity > 0 else '#dc3545'
+        return format_html(
+            '<span style="color: {};">{} / {} available</span>',
+            color, obj.available_quantity, obj.quantity
+        )
 
 
 @admin.register(EquipmentBorrow)
@@ -275,15 +286,31 @@ class EquipmentBorrowAdmin(ModelAdmin):
         }),
     )
 
+    @admin.display(description="Status")
     def status_badge(self, obj):
         if obj.status == 'overdue':
-            return format_html('<span style="background: #dc3545; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem;">🔴 Overdue</span>')
+            return format_html(
+                '<span style="background: {}; color: #fff; padding: 2px 10px; '
+                'border-radius: 12px; font-size: 0.75rem;">🔴 Overdue</span>',
+                '#dc3545'
+            )
         elif obj.status == 'returned':
-            return format_html('<span style="background: #28a745; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem;">✅ Returned</span>')
+            return format_html(
+                '<span style="background: {}; color: #fff; padding: 2px 10px; '
+                'border-radius: 12px; font-size: 0.75rem;">✅ Returned</span>',
+                '#28a745'
+            )
         elif obj.is_overdue():
-            return format_html('<span style="background: #dc3545; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem;">⚠️ Overdue</span>')
-        return format_html('<span style="background: #17a2b8; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem;">📖 Borrowed</span>')
-    status_badge.short_description = "Status"
+            return format_html(
+                '<span style="background: {}; color: #fff; padding: 2px 10px; '
+                'border-radius: 12px; font-size: 0.75rem;">⚠️ Overdue</span>',
+                '#dc3545'
+            )
+        return format_html(
+            '<span style="background: {}; color: #fff; padding: 2px 10px; '
+            'border-radius: 12px; font-size: 0.75rem;">📖 Borrowed</span>',
+            '#17a2b8'
+        )
 
     @action(description="Mark selected as returned", permissions=['change'])
     def mark_returned(self, request, queryset):
@@ -320,17 +347,19 @@ class ShopItemAdmin(ModelAdmin):
         }),
     )
 
+    @admin.display(description="Price")
     def price_display(self, obj):
         if obj.is_free:
-            return format_html('<span style="color: #28a745;">🆓 Free</span>')
+            return format_html('<span style="color: {};">🆓 Free</span>', '#28a745')
         return f"₦{obj.price:,.2f}"
-    price_display.short_description = "Price"
 
+    @admin.display(description="Stock")
     def stock_display(self, obj):
-        if obj.available_quantity > 0:
-            return format_html(f'<span style="color: #28a745;">{obj.available_quantity} / {obj.quantity_in_stock}</span>')
-        return format_html(f'<span style="color: #dc3545;">{obj.available_quantity} / {obj.quantity_in_stock}</span>')
-    stock_display.short_description = "Stock"
+        color = '#28a745' if obj.available_quantity > 0 else '#dc3545'
+        return format_html(
+            '<span style="color: {};">{} / {}</span>',
+            color, obj.available_quantity, obj.quantity_in_stock
+        )
 
 
 @admin.register(ShopOrder)
@@ -355,10 +384,11 @@ class ShopOrderAdmin(ModelAdmin):
         }),
     )
 
+    @admin.display(description="Total")
     def total_amount_display(self, obj):
         return f"₦{obj.total_amount:,.2f}"
-    total_amount_display.short_description = "Total"
 
+    @admin.display(description="Status")
     def status_badge(self, obj):
         colors = {
             'pending': '#ffc107',
@@ -367,8 +397,11 @@ class ShopOrderAdmin(ModelAdmin):
             'cancelled': '#dc3545',
         }
         color = colors.get(obj.status, '#6c757d')
-        return format_html(f'<span style="background: {color}; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem;">{obj.get_status_display()}</span>')
-    status_badge.short_description = "Status"
+        return format_html(
+            '<span style="background: {}; color: #fff; padding: 2px 10px; '
+            'border-radius: 12px; font-size: 0.75rem;">{}</span>',
+            color, obj.get_status_display()
+        )
 
     @action(description="Mark selected as paid", permissions=['change'])
     def mark_paid(self, request, queryset):
@@ -406,6 +439,7 @@ class FreeClaimAdmin(ModelAdmin):
         }),
     )
 
+    @admin.display(description="Status")
     def status_badge(self, obj):
         colors = {
             'pending': '#ffc107',
@@ -413,8 +447,11 @@ class FreeClaimAdmin(ModelAdmin):
             'expired': '#dc3545',
         }
         color = colors.get(obj.status, '#6c757d')
-        return format_html(f'<span style="background: {color}; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem;">{obj.get_status_display()}</span>')
-    status_badge.short_description = "Status"
+        return format_html(
+            '<span style="background: {}; color: #fff; padding: 2px 10px; '
+            'border-radius: 12px; font-size: 0.75rem;">{}</span>',
+            color, obj.get_status_display()
+        )
 
     @action(description="Mark selected as claimed", permissions=['change'])
     def mark_claimed(self, request, queryset):
@@ -448,9 +485,9 @@ class SellableFormAdmin(ModelAdmin):
         }),
     )
 
+    @admin.display(description="Price")
     def price_display(self, obj):
         return f"₦{obj.price:,.2f}"
-    price_display.short_description = "Price"
 
 
 @admin.register(FormPurchase)
@@ -475,10 +512,11 @@ class FormPurchaseAdmin(ModelAdmin):
         }),
     )
 
+    @admin.display(description="Amount")
     def amount_paid_display(self, obj):
         return f"₦{obj.amount_paid:,.2f}"
-    amount_paid_display.short_description = "Amount"
 
+    @admin.display(description="Status")
     def status_badge(self, obj):
         colors = {
             'pending': '#ffc107',
@@ -487,8 +525,11 @@ class FormPurchaseAdmin(ModelAdmin):
             'cancelled': '#dc3545',
         }
         color = colors.get(obj.status, '#6c757d')
-        return format_html(f'<span style="background: {color}; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem;">{obj.get_status_display()}</span>')
-    status_badge.short_description = "Status"
+        return format_html(
+            '<span style="background: {}; color: #fff; padding: 2px 10px; '
+            'border-radius: 12px; font-size: 0.75rem;">{}</span>',
+            color, obj.get_status_display()
+        )
 
     @action(description="Mark selected as paid", permissions=['change'])
     def mark_paid(self, request, queryset):
@@ -530,9 +571,9 @@ class BookingListingAdmin(ModelAdmin):
         }),
     )
 
+    @admin.display(description="Price")
     def price_display(self, obj):
         return f"₦{obj.price:,.2f}"
-    price_display.short_description = "Price"
 
 
 @admin.register(Booking)
@@ -560,14 +601,15 @@ class BookingAdmin(ModelAdmin):
         }),
     )
 
+    @admin.display(description="Total")
     def total_amount_display(self, obj):
         return f"₦{obj.total_amount:,.2f}"
-    total_amount_display.short_description = "Total"
 
+    @admin.display(description="QR Token")
     def qr_token_short(self, obj):
         return obj.qr_token[:12] + '...' if obj.qr_token else '-'
-    qr_token_short.short_description = "QR Token"
 
+    @admin.display(description="Status")
     def status_badge(self, obj):
         colors = {
             'pending': '#ffc107',
@@ -576,8 +618,11 @@ class BookingAdmin(ModelAdmin):
             'cancelled': '#dc3545',
         }
         color = colors.get(obj.status, '#6c757d')
-        return format_html(f'<span style="background: {color}; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem;">{obj.get_status_display()}</span>')
-    status_badge.short_description = "Status"
+        return format_html(
+            '<span style="background: {}; color: #fff; padding: 2px 10px; '
+            'border-radius: 12px; font-size: 0.75rem;">{}</span>',
+            color, obj.get_status_display()
+        )
 
     @action(description="Mark selected as paid", permissions=['change'])
     def mark_paid(self, request, queryset):
@@ -632,16 +677,3 @@ class BusinessDashboardAdmin(ModelAdmin):
             'pending_bookings': Booking.objects.filter(status='pending').count(),
         }
         return render(request, 'admin/business/dashboard.html', context)
-
-
-# ============================================================
-# OPTIONAL: Custom Admin Site (if you want a separate business admin)
-# ============================================================
-
-# If you want a separate admin site for business:
-# business_admin_site = admin.AdminSite(name='business_admin')
-# business_admin_site.register(CollectionCenter, CollectionCenterAdmin)
-# ... etc.
-
-# Then wire it in urls.py:
-# path('business-admin/', business_admin_site.urls),
