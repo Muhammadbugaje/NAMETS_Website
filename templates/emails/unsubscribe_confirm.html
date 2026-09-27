@@ -17,7 +17,7 @@
     <p>To confirm you want to unsubscribe, click the button below:</p>
     
     <p style="margin-top: 20px;">
-        <a href="{{ unsubscribe_url }}" class="button button-primary" style="background: #e53e3e; background: linear-gradient(135deg, #c0392b, #e74c3c);">
+        <a href="{{ unsubscribe_url|default:'https://namets-website.onrender.com/communications/unsubscribe/' }}" class="button button-primary" style="background: #e53e3e; background: linear-gradient(135deg, #c0392b, #e74c3c);">
             Confirm Unsubscribe
         </a>
     </p>
