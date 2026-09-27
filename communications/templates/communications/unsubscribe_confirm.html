@@ -1,13 +1,228 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Confirm Unsubscribe | NAMETS{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #0F3D2E;
+        --primary-light: #1a5a44;
+        --accent: #C8A951;
+        --accent-soft: #F5EEDC;
+        --danger: #AA1C1C;
+        --danger-light: #b32d2d;
+        --danger-soft: #FEF2F2;
+        --danger-border: #FECACA;
+        --text: #1A1A1A;
+        --muted: #6B7280;
+        --border: #E5E7EB;
+    }
+
+    .unsub-container {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 40px 20px 60px;
+    }
+
+    /* Header */
+    .unsub-header {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+    .unsub-header .icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--danger), var(--danger-light));
+        color: #fff;
+        font-size: 30px;
+        margin-bottom: 16px;
+        box-shadow: 0 10px 25px rgba(170, 28, 28, 0.25);
+    }
+    .unsub-header h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--text);
+        margin: 0 0 8px;
+        letter-spacing: -0.02em;
+    }
+    .unsub-header p {
+        color: var(--muted);
+        font-size: 0.95rem;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Card */
+    .unsub-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    }
+
+    /* Email chip */
+    .email-chip {
+        display: block;
+        background: #F9FAFB;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 24px;
+        text-align: center;
+    }
+    .email-chip .label {
+        display: block;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 4px;
+    }
+    .email-chip .email {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary);
+        word-break: break-all;
+    }
+
+    /* Warning box */
+    .warning {
+        background: var(--danger-soft);
+        border-left: 4px solid var(--danger);
+        border-radius: 12px;
+        padding: 16px 18px;
+        margin-bottom: 28px;
+        font-size: 0.9rem;
+        color: #7F1D1D;
+        line-height: 1.55;
+    }
+    .warning strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--danger);
+    }
+
+    /* Actions */
+    .button-group {
+        display: flex;
+        gap: 12px;
+    }
+    .btn-cancel,
+    .btn-unsub {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px 24px;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+    }
+    .btn-cancel {
+        background: var(--primary);
+        color: #fff;
+        box-shadow: 0 6px 16px rgba(15, 61, 46, 0.25);
+        order: 1;
+    }
+    .btn-cancel:hover {
+        background: var(--primary-light);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px rgba(15, 61, 46, 0.3);
+    }
+    .btn-unsub {
+        background: #fff;
+        color: var(--danger);
+        border: 2px solid var(--danger-border);
+        order: 2;
+    }
+    .btn-unsub:hover {
+        background: var(--danger-soft);
+        border-color: var(--danger);
+        transform: translateY(-2px);
+    }
+
+    /* Footer note */
+    .footer-note {
+        margin-top: 24px;
+        text-align: center;
+        font-size: 0.8rem;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    @media (max-width: 560px) {
+        .unsub-card {
+            padding: 22px;
+        }
+        .unsub-header h1 {
+            font-size: 1.5rem;
+        }
+        .button-group {
+            flex-direction: column;
+        }
+        /* On mobile, "Cancel" should be on top (safer) */
+        .btn-cancel { order: 1; }
+        .btn-unsub  { order: 2; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container text-center">
-    <h1>Unsubscribe</h1>
-    <p>Are you sure you want to unsubscribe {{ subscriber.email }}? This will permanently remove your email from our records.</p>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-secondary" style=" border: none; border-radius:15px; background-color: rgb(170, 28, 28); color: white; padding:7px; margin-top: 10px;">Yes, unsubscribe</button>
-        <a href="{% url 'core:homepage' %}" class="btn btn-secondary" style=" border: none; border-radius:15px; background-color: rgb(7, 151, 62); color: white; padding:7px; margin-top: 10px;">Cancel</a>
-    </form>
+<div class="unsub-container">
+
+    <!-- Header -->
+    <div class="unsub-header">
+        <div class="icon">⚠️</div>
+        <h1>Unsubscribe</h1>
+        <p>We're sorry to see you go. Please confirm you want to leave.</p>
+    </div>
+
+    <!-- Card -->
+    <div class="unsub-card">
+
+        <!-- Email being unsubscribed -->
+        <div class="email-chip">
+            <span class="label">Email address</span>
+            <span class="email">{{ subscriber.email }}</span>
+        </div>
+
+        <!-- Warning -->
+        <div class="warning">
+            <strong>This action is permanent.</strong>
+            Your email will be completely removed from our records and you'll stop receiving all NAMETS notifications.
+        </div>
+
+        <!-- Actions -->
+        <form method="post">
+            {% csrf_token %}
+            <div class="button-group">
+                <a href="{% url 'core:homepage' %}" class="btn-cancel">
+                    ← Keep My Subscription
+                </a>
+                <button type="submit" class="btn-unsub">
+                    Yes, Unsubscribe
+                </button>
+            </div>
+        </form>
+
+        <!-- Footer note -->
+        <p class="footer-note">
+            Changed your mind later? You can always subscribe again from our homepage.
+        </p>
+
+    </div>
 </div>
 {% endblock %}
